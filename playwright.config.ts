@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const PORT = 4321;
+// Separate port from `npm run dev` (4321) so tests never reuse a running dev server.
+const PORT = 4330;
 // Use the locally installed Edge (always present on Windows) instead of downloading Chromium.
 // Override with PW_CHANNEL=chrome, or PW_CHANNEL= (empty) to use Playwright's bundled browser.
 const channel = process.env['PW_CHANNEL'] ?? 'msedge';

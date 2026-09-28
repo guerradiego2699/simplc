@@ -66,9 +66,29 @@ type="industry|tip|note|warning|safety">`, `<TrySimulator example="…">`, `<Plc
 - Technical claims must be accurate (cite the standard: IEC 61131-2, IEC 60947-5-2, NAMUR NE 43…).
 - E2E widget tests must wait for hydration (`hydrated()` helper in `tests/e2e/phase2.spec.ts`).
 
+## PLC engine (Phase 3)
+
+- `src/simulator/ir/`: the IR every language compiles to (`types.ts`) + `builders.ts` helpers.
+  Networks run in order; statements in order (last write wins); AND/OR/XOR never short-circuit;
+  edges keep per-`instance` memory (start FALSE after restart, like R_TRIG); temps are per network.
+- `src/simulator/engine/`: `PlcRuntime` (load → start → scan/advance), `analyze()` diagnostics with
+  stable codes (UI translates them), `compile.ts` (IR → closures), `instructions/`, `memory.ts`.
+  Addresses are canonical generic bits: `I`/`Q` (2 bytes each), `M` (32 bytes), `S` system bits
+  (`S0.0` always on, `S0.1` first scan, `S0.2` 1 Hz clock). Parser also accepts `%IX0.0`.
+- Scan: read inputs (physical/forced → I image) → networks → write outputs (Q → physical/forced)
+  → housekeeping (clock += cycle, default 10 ms). `scanSteps()` yields after each part.
+  Watchdog = `maxStepsPerScan` → STOP + `fault`. `trace: true` records IR `probe` values.
+- ESLint forbids React/DOM/timers/`Date` inside engine and IR. Keep it that way.
+- `npm run engine:demo` prints a scan-by-scan table; `npm run test:coverage` for coverage.
+
 ## Environment notes
 
 - Windows. Project lives in `C:\dev\simplc` (kept out of OneDrive on purpose: node_modules sync
   caused slowness/locks). Remote: https://github.com/guerradiego2699/simplc (branch `main`).
+- E2E tests run `astro preview` on port **4330**; `npm run dev` uses 4321. Never point tests at the
+  dev server. After installing packages, restart the dev server; if islands fail with
+  `_jsxDEV is not a function`, stop it, delete `node_modules/.vite` and start again.
+- The owner uses Windows PowerShell, where `npm` is blocked by the execution policy: tell them to
+  run `npm.cmd run dev` from `C:\dev\simplc`.
 - Playwright uses the installed Microsoft Edge (`channel: 'msedge'`) because downloading
   Playwright's Chromium times out on this machine.
