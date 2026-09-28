@@ -1,0 +1,40 @@
+---
+/**
+ * Temporary "under construction" page for sections built in later phases.
+ * Each section is removed from PLACEHOLDER_SECTIONS once its real page exists.
+ */
+import type { GetStaticPaths } from 'astro';
+import Construction from '@lucide/astro/icons/construction';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { FOOTER_NAV, MAIN_NAV, PLACEHOLDER_SECTIONS } from '@/config/navigation';
+import { getTranslator, locales, localizePath } from '@/i18n';
+import type { Locale } from '@/config/site';
+
+export const getStaticPaths = (() =>
+  locales.flatMap((lang) =>
+    PLACEHOLDER_SECTIONS.map((section) => ({ params: { lang, section } })),
+  )) satisfies GetStaticPaths;
+
+const locale = Astro.params.lang as Locale;
+const section = Astro.params.section;
+const t = getTranslator(locale);
+const item = [...MAIN_NAV, ...FOOTER_NAV].find((n) => n.path === `/${section}`);
+const title = item ? t(item.label) : section;
+---
+
+<BaseLayout locale={locale} title={title} path={`/${section}`} noindex>
+  <div class="mx-auto max-w-3xl px-4 py-24 text-center sm:px-6">
+    <span class="inline-flex items-center gap-2 rounded-full border border-warning/40 bg-warning/10 px-3 py-1 font-mono text-xs font-medium text-text">
+      <Construction size={14} aria-hidden="true" class="text-warning" />
+      {t('placeholder.badge')}
+    </span>
+    <h1 class="mt-6 text-3xl font-semibold tracking-tight text-text sm:text-4xl">{title}</h1>
+    <p class="mt-4 text-text-muted">{t('placeholder.body')}</p>
+    <a
+      href={localizePath(locale)}
+      class="mt-8 inline-flex h-11 items-center rounded-md border border-border px-5 text-sm font-semibold text-text no-underline hover:border-primary hover:text-primary"
+    >
+      {t('placeholder.back')}
+    </a>
+  </div>
+</BaseLayout>

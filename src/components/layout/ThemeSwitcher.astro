@@ -1,0 +1,88 @@
+---
+import Sun from '@lucide/astro/icons/sun';
+import Moon from '@lucide/astro/icons/moon';
+import Monitor from '@lucide/astro/icons/monitor';
+import { getTranslator } from '@/i18n';
+import type { Locale } from '@/config/site';
+
+interface Props {
+  locale: Locale;
+  class?: string;
+}
+
+const { locale, class: className } = Astro.props;
+const t = getTranslator(locale);
+
+const options = [
+  { value: 'light', label: t('theme.light'), Icon: Sun },
+  { value: 'dark', label: t('theme.dark'), Icon: Moon },
+  { value: 'system', label: t('theme.system'), Icon: Monitor },
+] as const;
+---
+
+<div
+  role="group"
+  aria-label={t('theme.label')}
+  data-theme-switcher
+  class:list={[
+    'inline-flex items-center gap-0.5 rounded-md border border-border bg-surface p-0.5',
+    className,
+  ]}
+>
+  {options.map(({ value, label, Icon }) => (
+    <button
+      type="button"
+      data-value={value}
+      aria-pressed={value === 'system' ? 'true' : 'false'}
+      aria-label={label}
+      title={label}
+      class="inline-flex size-7 items-center justify-center rounded text-text-muted transition-colors hover:text-text aria-pressed:bg-bg aria-pressed:text-primary aria-pressed:shadow-sm"
+    >
+      <Icon size={16} aria-hidden="true" />
+    </button>
+  ))}
+</div>
+
+<script>
+  import { STORAGE_KEYS } from '@/config/site';
+
+  type ThemePref = 'light' | 'dark' | 'system';
+
+  function readPref(): ThemePref {
+    try {
+      const value = localStorage.getItem(STORAGE_KEYS.theme);
+      return value === 'light' || value === 'dark' ? value : 'system';
+    } catch {
+      return 'system';
+    }
+  }
+
+  function apply(pref: ThemePref) {
+    const root = document.documentElement;
+    if (pref === 'system') delete root.dataset['theme'];
+    else root.dataset['theme'] = pref;
+
+    document.querySelectorAll<HTMLButtonElement>('[data-theme-switcher] button').forEach((b) => {
+      b.setAttribute('aria-pressed', String(b.dataset['value'] === pref));
+    });
+  }
+
+  function save(pref: ThemePref) {
+    try {
+      if (pref === 'system') localStorage.removeItem(STORAGE_KEYS.theme);
+      else localStorage.setItem(STORAGE_KEYS.theme, pref);
+    } catch {
+      // Storage blocked: the choice still applies for this page view.
+    }
+  }
+
+  apply(readPref());
+
+  document.querySelectorAll<HTMLButtonElement>('[data-theme-switcher] button').forEach((b) => {
+    b.addEventListener('click', () => {
+      const pref = (b.dataset['value'] ?? 'system') as ThemePref;
+      save(pref);
+      apply(pref);
+    });
+  });
+</script>

@@ -1,0 +1,258 @@
+---
+/**
+ * Non-editable home preview of the classic start/stop seal-in rung:
+ *   MOTOR := (START OR MOTOR) AND NOT STOP
+ * Logic is hardcoded on purpose; the real PLC engine arrives in Phase 3.
+ */
+import Play from '@lucide/astro/icons/play';
+import Square from '@lucide/astro/icons/square';
+import Fan from '@lucide/astro/icons/fan';
+import { getTranslator } from '@/i18n';
+import type { Locale } from '@/config/site';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = getTranslator(locale);
+const startTag = t('home.preview.start').toUpperCase();
+const stopTag = t('home.preview.stop').toUpperCase();
+const motorTag = t('home.preview.motor').toUpperCase();
+---
+
+<div
+  data-motor-demo
+  data-running={t('home.preview.running')}
+  data-stopped={t('home.preview.stopped')}
+  class="overflow-hidden rounded-lg border border-border bg-bg shadow-sm"
+>
+  <div class="flex items-center justify-between border-b border-border bg-surface-2 px-4 py-2 font-mono text-xs text-text-muted">
+    <span>LD · 001</span>
+    <span class="inline-flex items-center gap-1.5">
+      <span class="size-2 rounded-full bg-led-on" aria-hidden="true"></span>
+      RUN
+    </span>
+  </div>
+
+  <div class="grid-bg px-3 py-4 sm:px-6">
+    <svg
+      viewBox="0 0 520 216"
+      role="img"
+      aria-label={t('home.preview.diagramLabel')}
+      class="h-auto w-full"
+    >
+      <!-- Power rails -->
+      <path d="M20 36 V196" class="w on rail" />
+      <path d="M500 36 V196" class="w rail" />
+
+      <!-- Always-powered segments from the left rail -->
+      <path d="M20 80 H92 M48 80 V170 H92" class="w on" />
+      <!-- After START / after the MOTOR seal-in contact -->
+      <path d="M108 80 H160" class="w" data-seg="start" />
+      <path d="M108 170 H160 V80" class="w" data-seg="seal" />
+      <!-- Between the parallel branch and STOP -->
+      <path d="M160 80 H232" class="w" data-seg="node" />
+      <!-- After STOP, into the coil, and out to the right rail -->
+      <path d="M248 80 H360" class="w" data-seg="coil" />
+      <path d="M388 80 H500" class="w" data-seg="coil" />
+
+      <!-- START: normally open contact -->
+      <path d="M92 66 V94 M108 66 V94" class="el" data-el="start" />
+      <text x="100" y="54" class="tag">
+        {startTag}
+      </text>
+      <text x="100" y="116" class="addr">
+        %I0.0
+      </text>
+
+      <!-- MOTOR seal-in: normally open contact -->
+      <path d="M92 156 V184 M108 156 V184" class="el" data-el="seal" />
+      <text x="100" y="146" class="tag">
+        {motorTag}
+      </text>
+      <text x="100" y="206" class="addr">
+        %Q0.0
+      </text>
+
+      <!-- STOP: normally closed contact -->
+      <path d="M232 66 V94 M248 66 V94 M226 100 L254 60" class="el" data-el="stop" />
+      <text x="240" y="54" class="tag">
+        {stopTag}
+      </text>
+      <text x="240" y="116" class="addr">
+        %I0.1
+      </text>
+
+      <!-- MOTOR coil -->
+      <path d="M366 64 Q354 80 366 96 M382 64 Q394 80 382 96" class="el" data-el="coil" />
+      <text x="374" y="54" class="tag">
+        {motorTag}
+      </text>
+      <text x="374" y="116" class="addr">
+        %Q0.0
+      </text>
+    </svg>
+  </div>
+
+  <div class="flex flex-wrap items-center justify-between gap-4 border-t border-border bg-surface px-4 py-4 sm:px-6">
+    <div class="flex items-center gap-3">
+      <button
+        type="button"
+        data-button="start"
+        aria-pressed="false"
+        class="inline-flex h-11 items-center gap-2 rounded-md border border-border bg-bg px-4 text-sm font-semibold text-text shadow-sm transition-colors select-none hover:border-primary aria-pressed:translate-y-px aria-pressed:bg-surface-2 aria-pressed:shadow-none"
+      >
+        <Play size={16} aria-hidden="true" />
+        {startTag}
+      </button>
+      <button
+        type="button"
+        data-button="stop"
+        aria-pressed="false"
+        class="inline-flex h-11 items-center gap-2 rounded-md bg-danger px-4 text-sm font-semibold text-on-danger shadow-sm transition-colors select-none hover:brightness-110 aria-pressed:translate-y-px aria-pressed:shadow-none aria-pressed:brightness-90"
+      >
+        <Square size={14} aria-hidden="true" />
+        {stopTag}
+      </button>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <span
+        class="inline-flex size-10 items-center justify-center rounded-full border border-border bg-bg text-text-muted"
+        data-motor-icon
+      >
+        <Fan size={22} aria-hidden="true" class="fan" />
+      </span>
+      <div class="text-sm leading-tight">
+        <div class="font-medium text-text">{t('home.preview.motor')}</div>
+        <div class="inline-flex items-center gap-1.5 text-text-muted">
+          <span class="size-2 rounded-full bg-wire-off" data-motor-dot aria-hidden="true"></span>
+          <span data-motor-status aria-live="polite">
+            {t('home.preview.stopped')}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="border-t border-border px-4 py-2 text-xs text-text-muted sm:px-6">
+    {t('home.preview.hold')}
+  </p>
+</div>
+
+<style>
+  .grid-bg {
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  .w,
+  .el {
+    fill: none;
+    stroke: var(--wire-off);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .el {
+    stroke-width: 3;
+  }
+  .rail {
+    stroke-width: 4;
+  }
+  .w.on,
+  .el.on {
+    stroke: var(--wire-on);
+  }
+  .tag {
+    font: 600 14px var(--ff-mono);
+    fill: var(--text);
+    text-anchor: middle;
+  }
+  .addr {
+    font: 500 12px var(--ff-mono);
+    fill: var(--text-muted);
+    text-anchor: middle;
+  }
+  [data-motor-icon].running {
+    border-color: var(--wire-on);
+    color: var(--wire-on);
+  }
+  [data-motor-icon].running .fan {
+    animation: spin 0.9s linear infinite;
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-motor-demo]');
+
+  if (root) {
+    const state = { start: false, stop: false, motor: false };
+
+    const segs = (name: string) => root.querySelectorAll(`[data-seg="${name}"]`);
+    const el = (name: string) => root.querySelector(`[data-el="${name}"]`);
+    const status = root.querySelector<HTMLElement>('[data-motor-status]');
+    const dot = root.querySelector<HTMLElement>('[data-motor-dot]');
+    const icon = root.querySelector<HTMLElement>('[data-motor-icon]');
+
+    function render() {
+      // One "scan" of the rung: MOTOR := (START OR MOTOR) AND NOT STOP
+      const node = state.start || state.motor;
+      state.motor = node && !state.stop;
+
+      segs('start').forEach((s) => s.classList.toggle('on', state.start));
+      segs('seal').forEach((s) => s.classList.toggle('on', state.motor));
+      segs('node').forEach((s) => s.classList.toggle('on', node));
+      segs('coil').forEach((s) => s.classList.toggle('on', state.motor));
+      el('start')?.classList.toggle('on', state.start);
+      el('seal')?.classList.toggle('on', state.motor);
+      el('stop')?.classList.toggle('on', !state.stop);
+      el('coil')?.classList.toggle('on', state.motor);
+
+      icon?.classList.toggle('running', state.motor);
+      dot?.classList.toggle('bg-led-on', state.motor);
+      dot?.classList.toggle('bg-wire-off', !state.motor);
+      if (status) {
+        status.textContent =
+          (state.motor ? root?.dataset['running'] : root?.dataset['stopped']) ?? '';
+      }
+    }
+
+    root.querySelectorAll<HTMLButtonElement>('[data-button]').forEach((button) => {
+      const key = button.dataset['button'] as 'start' | 'stop';
+      const set = (pressed: boolean) => {
+        if (state[key] === pressed) return;
+        state[key] = pressed;
+        button.setAttribute('aria-pressed', String(pressed));
+        render();
+      };
+
+      // Momentary pushbutton: active only while held (mouse, touch or keyboard).
+      button.addEventListener('pointerdown', (e) => {
+        button.setPointerCapture(e.pointerId);
+        set(true);
+      });
+      button.addEventListener('pointerup', () => set(false));
+      button.addEventListener('pointercancel', () => set(false));
+      button.addEventListener('lostpointercapture', () => set(false));
+      button.addEventListener('keydown', (e) => {
+        if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) {
+          e.preventDefault();
+          set(true);
+        }
+      });
+      button.addEventListener('keyup', (e) => {
+        if (e.key === ' ' || e.key === 'Enter') set(false);
+      });
+      button.addEventListener('blur', () => set(false));
+    });
+
+    render();
+  }
+</script>

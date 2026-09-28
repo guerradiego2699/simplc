@@ -1,0 +1,29 @@
+---
+import { SITE } from '@/config/site';
+
+interface Props {
+  href: string;
+  label: string;
+}
+
+const { href, label } = Astro.props;
+---
+
+<a
+  href={href}
+  aria-label={`${SITE.name} — ${label}`}
+  class="inline-flex items-center gap-2 rounded text-text no-underline"
+>
+  <!-- Mark: a normally-open contact between two power rails. -->
+  <svg viewBox="0 0 32 32" class="size-7 shrink-0" aria-hidden="true">
+    <rect width="32" height="32" rx="7" class="fill-primary"></rect>
+    <path
+      d="M7 8v16M25 8v16M7 16h6M19 16h6M13 11.5v9M19 11.5v9"
+      fill="none"
+      stroke-width="2.2"
+      stroke-linecap="round"
+      class="stroke-on-primary"
+    ></path>
+  </svg>
+  <span class="text-lg font-semibold tracking-tight">{SITE.name}</span>
+</a>

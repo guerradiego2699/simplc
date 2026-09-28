@@ -1,0 +1,314 @@
+---
+/**
+ * Hero illustration: a stylized modular PLC on a DIN rail.
+ * Input LEDs light up in a subtle sequence; outputs (and their field lamps) follow one "scan"
+ * later. Static under prefers-reduced-motion. Labels are universal technical abbreviations.
+ */
+interface Props {
+  label: string;
+  class?: string;
+}
+
+const { label, class: className } = Astro.props;
+
+const channels = [0, 1, 2, 3, 4, 5, 6, 7];
+/** LEDs lit in the static (reduced-motion) frame. */
+const staticOn = new Set([0, 2, 3, 6]);
+const screws = (x: number, w: number) => {
+  const n = Math.max(3, Math.floor((w - 16) / 12));
+  const step = (w - 16) / n;
+  return Array.from({ length: n }, (_, i) => x + 8 + step * (i + 0.5));
+};
+
+const modules = [
+  { id: 'ps', x: 36, w: 72, name: 'PS' },
+  { id: 'cpu', x: 116, w: 132, name: 'CPU' },
+  { id: 'di', x: 256, w: 88, name: 'DI' },
+  { id: 'do', x: 352, w: 88, name: 'DO' },
+  { id: 'ai', x: 448, w: 76, name: 'AI' },
+] as const;
+
+const diScrews = screws(256, 88);
+const doScrews = screws(352, 88);
+/** Field lamps fan out under the output module; wire heights chosen so no wires cross. */
+const lampX = (i: number) => 348 + i * 32;
+const lampLevel = [326, 336, 336, 326];
+---
+
+<svg
+  viewBox="0 0 560 420"
+  role="img"
+  aria-label={label}
+  class:list={['plc h-auto w-full', className]}
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <!-- Field wiring: sensors above the input module, lamps below the output module -->
+  <g class="field">
+    {diScrews.slice(0, 4).map((x, i) => (
+      <g>
+        <path d={`M${x} 111 V${58 + i * 6}`} class="wire" />
+        <circle cx={x} cy={54 + i * 6} r="3.5" class="terminal" />
+      </g>
+    ))}
+    <path d="M60 111 V52 M84 111 V64" class="wire" />
+    <circle cx="60" cy="48" r="3.5" class="terminal" />
+    <circle cx="84" cy="60" r="3.5" class="terminal" />
+
+    {doScrews.slice(0, 4).map((x, i) => (
+      <g>
+        <path d={`M${x} 309 V${lampLevel[i]} H${lampX(i)} V364`} class="wire" />
+        <g transform={`translate(${lampX(i)} 374)`}>
+          <circle
+            r="9"
+            class:list={['lamp led-anim', { 'static-on': staticOn.has(i) }]}
+            style={`--i:${i};--lag:0.3s`}
+          />
+          <path d="M-5.6 -5.6 L5.6 5.6 M5.6 -5.6 L-5.6 5.6" class="lamp-x" />
+        </g>
+      </g>
+    ))}
+  </g>
+
+  <!-- DIN rail -->
+  <rect x="20" y="198" width="520" height="20" rx="2" class="rail" />
+  {Array.from({ length: 26 }, (_, i) => (
+    <rect x={28 + i * 20} y="205" width="10" height="6" rx="1" class="rail-slot" />
+  ))}
+
+  <!-- Module bodies -->
+  {modules.map((m) => (
+    <g>
+      <rect x={m.x} y="90" width={m.w} height="240" rx="6" class="body" />
+      <rect x={m.x + 8} y="100" width={m.w - 16} height="22" rx="3" class="strip" />
+      <rect x={m.x + 8} y="298" width={m.w - 16} height="22" rx="3" class="strip" />
+      {screws(m.x, m.w).map((sx) => (
+        <>
+          <circle cx={sx} cy="111" r="3.5" class="screw" />
+          <circle cx={sx} cy="309" r="3.5" class="screw" />
+        </>
+      ))}
+      <rect x={m.x + 8} y="132" width={m.w - 16} height="3" rx="1.5" class="accent" />
+      <text x={m.x + 10} y="153" class="name">
+        {m.name}
+      </text>
+    </g>
+  ))}
+
+  <!-- Power supply -->
+  <circle cx="50" cy="172" r="4" class="led on" />
+  <text x="60" y="175.5" class="tiny">
+    DC
+  </text>
+  {Array.from({ length: 6 }, (_, i) => (
+    <path d={`M50 ${236 + i * 8} H94`} class="vent" />
+  ))}
+
+  <!-- CPU: status LEDs, display and two Ethernet ports -->
+  <circle cx="130" cy="172" r="4" class="led on" />
+  <text x="140" y="175.5" class="tiny">
+    RUN
+  </text>
+  <circle cx="130" cy="188" r="4" class="led" />
+  <text x="140" y="191.5" class="tiny">
+    STOP
+  </text>
+  <circle cx="130" cy="204" r="4" class="led" />
+  <text x="140" y="207.5" class="tiny">
+    ERR
+  </text>
+  <rect x="182" y="162" width="54" height="34" rx="3" class="display" />
+  <path d="M188 172 H214 M188 180 H228 M188 188 H206" class="display-lines" />
+  <rect x="180" y="234" width="30" height="22" rx="2" class="port" />
+  <path d="M188 256 V250 H202 V256" class="port-notch" />
+  <rect x="180" y="264" width="30" height="22" rx="2" class="port" />
+  <path d="M188 286 V280 H202 V286" class="port-notch" />
+  <rect x="128" y="236" width="36" height="14" rx="7" class="switch" />
+  <circle cx="135" cy="243" r="5" class="switch-knob" />
+
+  <!-- Digital inputs -->
+  {channels.map((i) => (
+    <>
+      <circle
+        cx="272"
+        cy={170 + i * 15}
+        r="4"
+        class:list={['led led-anim', { 'static-on': staticOn.has(i) }]}
+        style={`--i:${i}`}
+      />
+      <text x="282" y={173.5 + i * 15} class="tiny">
+        {i}
+      </text>
+    </>
+  ))}
+
+  <!-- Digital outputs (follow the inputs one scan later) -->
+  {channels.map((i) => (
+    <>
+      <circle
+        cx="368"
+        cy={170 + i * 15}
+        r="4"
+        class:list={['led led-anim', { 'static-on': staticOn.has(i) }]}
+        style={`--i:${i};--lag:0.3s`}
+      />
+      <text x="378" y={173.5 + i * 15} class="tiny">
+        {i}
+      </text>
+    </>
+  ))}
+
+  <!-- Analog inputs: two bar gauges -->
+  <rect x="464" y="166" width="14" height="118" rx="2" class="gauge" />
+  <rect x="494" y="166" width="14" height="118" rx="2" class="gauge" />
+  <rect x="466" y="168" width="10" height="114" rx="1" class="bar bar-1" />
+  <rect x="496" y="168" width="10" height="114" rx="1" class="bar bar-2" />
+</svg>
+
+<style>
+  .plc {
+    --stroke: var(--text-muted);
+    overflow: visible;
+  }
+  .body {
+    fill: var(--bg);
+    stroke: var(--stroke);
+    stroke-width: 1.5;
+  }
+  .strip,
+  .display,
+  .gauge {
+    fill: var(--surface-2);
+    stroke: var(--border);
+    stroke-width: 1;
+  }
+  .screw {
+    fill: var(--bg);
+    stroke: var(--stroke);
+    stroke-width: 1;
+  }
+  .accent {
+    fill: var(--primary);
+  }
+  .rail {
+    fill: var(--surface-2);
+    stroke: var(--border);
+  }
+  .rail-slot {
+    fill: var(--border);
+  }
+  .name {
+    font: 600 11px var(--ff-mono);
+    fill: var(--text);
+    letter-spacing: 0.06em;
+  }
+  .tiny {
+    font: 500 8px var(--ff-mono);
+    fill: var(--text-muted);
+  }
+  .vent,
+  .display-lines {
+    stroke: var(--border);
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+  .display-lines {
+    stroke: var(--primary);
+    opacity: 0.55;
+  }
+  .port {
+    fill: var(--surface-2);
+    stroke: var(--stroke);
+  }
+  .port-notch {
+    fill: none;
+    stroke: var(--stroke);
+  }
+  .switch {
+    fill: var(--surface-2);
+    stroke: var(--stroke);
+  }
+  .switch-knob {
+    fill: var(--primary);
+  }
+  .wire {
+    fill: none;
+    stroke: var(--wire-off);
+    stroke-width: 1.25;
+  }
+  .terminal {
+    fill: var(--bg);
+    stroke: var(--wire-off);
+    stroke-width: 1.25;
+  }
+  .lamp-x {
+    stroke: var(--stroke);
+    stroke-width: 1.25;
+  }
+
+  .led,
+  .lamp {
+    fill: var(--surface-2);
+    stroke: var(--border);
+    stroke-width: 1;
+  }
+  .lamp {
+    stroke: var(--stroke);
+  }
+  .led.on {
+    fill: var(--led-on);
+  }
+  .led-anim {
+    animation: led-seq 8s linear infinite;
+    animation-delay: calc(var(--i) * 1s - 8s + var(--lag, 0s));
+  }
+  @keyframes led-seq {
+    0%,
+    9.9% {
+      fill: var(--surface-2);
+    }
+    10%,
+    35% {
+      fill: var(--led-on);
+    }
+    35.1%,
+    100% {
+      fill: var(--surface-2);
+    }
+  }
+
+  .bar {
+    fill: var(--primary);
+    opacity: 0.8;
+    transform-box: fill-box;
+    transform-origin: bottom;
+    animation: gauge 7s ease-in-out infinite alternate;
+  }
+  .bar-2 {
+    animation-duration: 9s;
+    animation-delay: -4s;
+  }
+  @keyframes gauge {
+    from {
+      transform: scaleY(0.3);
+    }
+    to {
+      transform: scaleY(0.82);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .led-anim,
+    .bar {
+      animation: none;
+    }
+    .static-on {
+      fill: var(--led-on);
+    }
+    .bar-1 {
+      transform: scaleY(0.6);
+    }
+    .bar-2 {
+      transform: scaleY(0.4);
+    }
+  }
+</style>

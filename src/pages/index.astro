@@ -1,19 +1,48 @@
 ---
-// Phase 0 placeholder. Real home with i18n routes (/es, /en) arrives in Phase 1.
+/**
+ * Root "/" — sends the visitor to /es/ or /en/: remembered choice first, then the browser
+ * language, then Spanish. Without JavaScript, <noscript> falls back to Spanish.
+ */
 import '@/styles/global.css';
 import { SITE } from '@/config/site';
-import HelloIsland from '@/components/ui/HelloIsland';
+import { getDictionary, locales, localizePath } from '@/i18n';
 ---
 
-<html lang="es">
+<!doctype html>
+<html lang={SITE.defaultLocale}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{SITE.name}</title>
+    <meta name="robots" content="noindex, follow" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    {locales.map((l) => (
+      <link rel="alternate" hreflang={l} href={new URL(localizePath(l), SITE.url).href} />
+    ))}
+    <noscript>
+      <meta http-equiv="refresh" content={`0; url=${localizePath(SITE.defaultLocale)}`} />
+    </noscript>
+    <script>
+      import { STORAGE_KEYS } from '@/config/site';
+      import { isLocale, localizePath, pickLocale } from '@/i18n';
+
+      let stored: string | null = null;
+      try {
+        stored = localStorage.getItem(STORAGE_KEYS.locale);
+      } catch {
+        // Storage blocked: fall back to the browser language.
+      }
+      const locale = isLocale(stored) ? stored : pickLocale(navigator.languages ?? []);
+      location.replace(localizePath(locale));
+    </script>
   </head>
-  <body class="flex min-h-screen flex-col items-center justify-center gap-4 font-sans">
-    <h1 class="text-3xl font-semibold">{SITE.name}</h1>
-    <p class="text-slate-600">Fase 0 — base del proyecto</p>
-    <HelloIsland client:load />
+  <body class="flex min-h-screen items-center justify-center gap-4 p-6 font-sans">
+    <p class="flex gap-4">
+      {locales.map((l) => (
+        <a href={localizePath(l)} hreflang={l} lang={l} class="text-primary underline">
+          {getDictionary(l).meta.language}
+        </a>
+      ))}
+    </p>
   </body>
 </html>

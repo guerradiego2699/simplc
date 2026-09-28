@@ -39,6 +39,18 @@ light/dark (desktop always, mobile only for content pages); short Spanish summar
 - No accounts, no database, no ads/pop-ups in simulator or challenges.
 - Don't add heavy libraries without explaining why to the owner.
 
+## i18n & layout (Phase 1)
+
+- Pages live under `src/pages/[lang]/`; `/` only redirects (saved choice → browser language → es).
+- Strings: `src/i18n/{es,en}.json` (same keys — a unit test enforces it). In Astro use
+  `const t = getTranslator(locale)`; keys are type-checked. Links: `localizePath(locale, '/learn')`.
+- Every page uses `BaseLayout` (`locale`, `title`, `description`, `path` for canonical/hreflang).
+- Theme: `data-theme` on <html> (`light`/`dark`, absent = system). Tailwind utilities map to tokens:
+  `bg-bg`, `bg-surface`, `text-text-muted`, `bg-primary`, `text-on-primary`, `stroke-wire-on`…
+- Unbuilt sections render `[lang]/[section].astro` ("under construction"). When a phase builds a
+  real page, remove its slug from `PLACEHOLDER_SECTIONS` in `src/config/navigation.ts`.
+- Header/footer/theme/language controls are plain Astro + small scripts (no React on content pages).
+
 ## Environment notes
 
 - Windows. Project lives in `C:\dev\simplc` (kept out of OneDrive on purpose: node_modules sync

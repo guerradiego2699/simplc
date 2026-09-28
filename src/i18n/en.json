@@ -1,0 +1,96 @@
+{
+  "meta": {
+    "homeTitle": "Learn PLCs from scratch with a free simulator",
+    "homeDescription": "Free platform to learn PLCs: clear theory, an in-browser Ladder simulator, animated processes and self-grading challenges.",
+    "language": "English"
+  },
+  "a11y": {
+    "skipToContent": "Skip to content",
+    "mainNav": "Main navigation",
+    "footerNav": "Footer navigation",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "home": "Home"
+  },
+  "nav": {
+    "learn": "Learn",
+    "brands": "Brands & software",
+    "simulator": "Simulator",
+    "examples": "Examples",
+    "challenges": "Challenges",
+    "glossary": "Glossary",
+    "faq": "FAQ",
+    "support": "Support the project"
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "lang": {
+    "label": "Language"
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "Free · No sign-up · English and Spanish",
+      "title": "Learn PLCs from scratch, programming right in your browser",
+      "subtitle": "Clear theory, a simulator with Ladder and the IEC 61131-3 languages, animated processes and self-grading challenges.",
+      "ctaLearn": "Start learning",
+      "ctaSimulator": "Open simulator",
+      "illustrationLabel": "Illustration of a modular PLC with power supply, CPU and I/O modules whose indicators light up in sequence"
+    },
+    "routes": {
+      "title": "Four learning paths",
+      "subtitle": "Go at your own pace, from your first contact to processes close to real industry.",
+      "explore": "Explore",
+      "fundamentals": {
+        "title": "Fundamentals",
+        "description": "What a PLC is, how the scan cycle works and how its memory is organized."
+      },
+      "hardware": {
+        "title": "Hardware & wiring",
+        "description": "Inputs and outputs, PNP and NPN sensors, wiring, ports and industrial protocols."
+      },
+      "brands": {
+        "title": "Brands & software",
+        "description": "The main brands, their product lines, programming software and how they name addresses."
+      },
+      "practice": {
+        "title": "Practice",
+        "description": "Simulator, examples with virtual plants and self-grading challenges."
+      }
+    },
+    "preview": {
+      "title": "Try it: motor start and stop",
+      "subtitle": "The classic seal-in circuit. Press START and STOP and watch power flow through the rung.",
+      "start": "Start",
+      "stop": "Stop",
+      "motor": "Motor",
+      "running": "Running",
+      "stopped": "Stopped",
+      "hold": "Press and hold",
+      "explanation": "The motor contact, in parallel with START, keeps the circuit closed after you release the button: that is the seal-in (latch). STOP uses a normally closed contact, which opens when pressed and breaks the circuit.",
+      "diagramLabel": "Ladder diagram of a motor start/stop circuit",
+      "cta": "Go to the full simulator"
+    }
+  },
+  "footer": {
+    "tagline": "Free educational platform to learn PLC automation.",
+    "learnHeading": "Learn",
+    "projectHeading": "Project",
+    "sourceCode": "Source code",
+    "disclaimer": "Independent educational site. All brands mentioned belong to their respective owners.",
+    "supportCta": "Support"
+  },
+  "placeholder": {
+    "badge": "Under construction",
+    "body": "This section is being built and will be available soon.",
+    "back": "Back to home"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "The page you are looking for does not exist or has been moved.",
+    "back": "Back to home"
+  }
+}

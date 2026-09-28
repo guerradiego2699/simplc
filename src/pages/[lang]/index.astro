@@ -1,0 +1,134 @@
+---
+import type { GetStaticPaths } from 'astro';
+import ArrowRight from '@lucide/astro/icons/arrow-right';
+import BookOpen from '@lucide/astro/icons/book-open';
+import Cable from '@lucide/astro/icons/cable';
+import Factory from '@lucide/astro/icons/factory';
+import FlaskConical from '@lucide/astro/icons/flask-conical';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PlcIllustration from '@/components/content/PlcIllustration.astro';
+import MotorStartStopDemo from '@/components/content/MotorStartStopDemo.astro';
+import { getTranslator, locales, localizePath } from '@/i18n';
+import type { Locale } from '@/config/site';
+
+export const getStaticPaths = (() =>
+  locales.map((lang) => ({ params: { lang } }))) satisfies GetStaticPaths;
+
+const locale = Astro.params.lang as Locale;
+const t = getTranslator(locale);
+
+const routes = [
+  { key: 'fundamentals', Icon: BookOpen, href: '/learn' },
+  { key: 'hardware', Icon: Cable, href: '/learn' },
+  { key: 'brands', Icon: Factory, href: '/brands' },
+  { key: 'practice', Icon: FlaskConical, href: '/challenges' },
+] as const;
+
+const primaryBtn =
+  'inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-5 text-sm font-semibold text-on-primary no-underline shadow-sm transition-colors hover:bg-primary-hover';
+const secondaryBtn =
+  'inline-flex h-11 items-center justify-center gap-2 rounded-md border border-border bg-bg px-5 text-sm font-semibold text-text no-underline transition-colors hover:border-primary hover:text-primary';
+---
+
+<BaseLayout locale={locale}>
+  <!-- Hero -->
+  <section class="hero relative isolate overflow-hidden">
+    <div class="mx-auto grid max-w-6xl items-center gap-12 px-4 py-14 sm:px-6 lg:grid-cols-[1fr_1.05fr] lg:py-24">
+      <div class="max-w-xl">
+        <p class="inline-flex rounded-full border border-border bg-surface px-3 py-1 font-mono text-xs text-text-muted">
+          {t('home.hero.eyebrow')}
+        </p>
+        <h1 class="mt-5 text-4xl font-semibold tracking-tight text-balance text-text sm:text-5xl lg:text-[3.25rem] lg:leading-[1.1]">
+          {t('home.hero.title')}
+        </h1>
+        <p class="mt-5 text-lg text-pretty text-text-muted">{t('home.hero.subtitle')}</p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href={localizePath(locale, '/learn')} class={primaryBtn}>
+            {t('home.hero.ctaLearn')}
+            <ArrowRight size={16} aria-hidden="true" />
+          </a>
+          <a href={localizePath(locale, '/simulator')} class={secondaryBtn}>
+            {t('home.hero.ctaSimulator')}
+          </a>
+        </div>
+      </div>
+      <div class="mx-auto w-full max-w-xl">
+        <PlcIllustration label={t('home.hero.illustrationLabel')} />
+      </div>
+    </div>
+  </section>
+
+  <!-- Learning paths -->
+  <section class="border-y border-border bg-surface">
+    <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
+      <h2 class="text-2xl font-semibold tracking-tight text-text sm:text-3xl">
+        {t('home.routes.title')}
+      </h2>
+      <p class="mt-3 max-w-2xl text-text-muted">{t('home.routes.subtitle')}</p>
+
+      <ul class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {routes.map(({ key, Icon, href }) => (
+          <li>
+            <a
+              href={localizePath(locale, href)}
+              class="group flex h-full flex-col rounded-lg border border-border bg-bg p-6 no-underline transition-colors hover:border-primary"
+            >
+              <span class="inline-flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary">
+                <Icon size={20} aria-hidden="true" />
+              </span>
+              <h3 class="mt-5 text-base font-semibold text-text">
+                {t(`home.routes.${key}.title` as const)}
+              </h3>
+              <p class="mt-2 flex-1 text-sm text-text-muted">
+                {t(`home.routes.${key}.description` as const)}
+              </p>
+              <span class="mt-5 inline-flex items-center gap-1 text-sm font-medium text-primary">
+                {t('home.routes.explore')}
+                <ArrowRight
+                  size={14}
+                  aria-hidden="true"
+                  class="transition-transform group-hover:translate-x-0.5"
+                />
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <!-- Simulator preview -->
+  <section>
+    <div class="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1.35fr_1fr] lg:py-24">
+      <div class="max-w-md">
+        <h2 class="text-2xl font-semibold tracking-tight text-text sm:text-3xl">
+          {t('home.preview.title')}
+        </h2>
+        <p class="mt-3 text-text-muted">{t('home.preview.subtitle')}</p>
+        <p class="mt-4 text-sm text-text-muted">{t('home.preview.explanation')}</p>
+        <a href={localizePath(locale, '/simulator')} class:list={[secondaryBtn, 'mt-6']}>
+          {t('home.preview.cta')}
+          <ArrowRight size={16} aria-hidden="true" />
+        </a>
+      </div>
+      <div class="lg:order-first">
+        <MotorStartStopDemo locale={locale} />
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* Faint CAD grid behind the hero, fading out towards the bottom. */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 24px 24px;
+    mask-image: linear-gradient(to bottom, black 40%, transparent);
+  }
+</style>

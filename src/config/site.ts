@@ -1,11 +1,12 @@
 /**
  * Single source of truth for site-wide settings.
- * The project name is still provisional: change it ONLY here.
+ * Change the project name ONLY here.
  */
 export const SITE = {
-  name: 'SimPLC',
-  /** Public URL (without trailing slash). Update when the domain is purchased. */
-  url: 'https://example.com',
+  name: 'PLCampus',
+  /** Public URL (without trailing slash). */
+  url: 'https://plcampus.com',
+  repoUrl: 'https://github.com/guerradiego2699/simplc',
   defaultLocale: 'es',
   locales: ['es', 'en'],
   /** Donation links (section 10). Empty string = hidden. */
@@ -21,3 +22,9 @@ export const SITE = {
 } as const;
 
 export type Locale = (typeof SITE.locales)[number];
+
+/** localStorage keys (always accessed through try/catch). */
+export const STORAGE_KEYS = {
+  locale: 'plcampus:locale',
+  theme: 'plcampus:theme',
+} as const;

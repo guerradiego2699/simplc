@@ -1,0 +1,49 @@
+---
+import { getDictionary, getTranslator, locales, switchLocalePath } from '@/i18n';
+import type { Locale } from '@/config/site';
+
+interface Props {
+  locale: Locale;
+  class?: string;
+}
+
+const { locale, class: className } = Astro.props;
+const t = getTranslator(locale);
+const pathname = Astro.url.pathname;
+---
+
+<nav
+  aria-label={t('lang.label')}
+  class:list={[
+    'inline-flex items-center gap-0.5 rounded-md border border-border bg-surface p-0.5',
+    className,
+  ]}
+>
+  {locales.map((l) => (
+    <a
+      href={switchLocalePath(pathname, l)}
+      hreflang={l}
+      lang={l}
+      data-locale-link={l}
+      aria-current={l === locale ? 'true' : undefined}
+      aria-label={getDictionary(l).meta.language}
+      class="inline-flex h-7 min-w-8 items-center justify-center rounded px-1.5 font-mono text-xs font-medium text-text-muted uppercase no-underline transition-colors hover:text-text aria-[current]:bg-bg aria-[current]:text-primary aria-[current]:shadow-sm"
+    >
+      {l}
+    </a>
+  ))}
+</nav>
+
+<script>
+  import { STORAGE_KEYS } from '@/config/site';
+
+  document.querySelectorAll<HTMLAnchorElement>('[data-locale-link]').forEach((link) => {
+    link.addEventListener('click', () => {
+      try {
+        localStorage.setItem(STORAGE_KEYS.locale, link.dataset['localeLink'] ?? '');
+      } catch {
+        // Storage blocked: navigation still works, the choice is just not remembered.
+      }
+    });
+  });
+</script>

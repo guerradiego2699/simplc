@@ -1,0 +1,77 @@
+---
+import Heart from '@lucide/astro/icons/heart';
+import { FOOTER_NAV, MAIN_NAV } from '@/config/navigation';
+import { SITE, type Locale } from '@/config/site';
+import { getTranslator, localizePath } from '@/i18n';
+import Logo from './Logo.astro';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = getTranslator(locale);
+const year = new Date().getFullYear();
+const linkClass = 'text-sm text-text-muted no-underline hover:text-text hover:underline';
+---
+
+<footer class="mt-auto border-t border-border bg-surface">
+  <div class="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.5fr_1fr_1fr]">
+    <div class="max-w-sm">
+      <Logo href={localizePath(locale)} label={t('a11y.home')} />
+      <p class="mt-3 text-sm text-text-muted">{t('footer.tagline')}</p>
+      <a
+        href={localizePath(locale, '/support')}
+        class="mt-5 inline-flex items-center gap-2 rounded-md border border-border bg-bg px-3 py-1.5 text-sm font-medium text-text no-underline transition-colors hover:border-primary hover:text-primary"
+      >
+        <Heart size={14} aria-hidden="true" />
+        {t('footer.supportCta')}
+      </a>
+    </div>
+
+    <nav aria-label={t('a11y.footerNav')} class="contents">
+      <div>
+        <h2 class="text-xs font-semibold tracking-wider text-text uppercase">
+          {t('footer.learnHeading')}
+        </h2>
+        <ul class="mt-3 space-y-2">
+          {MAIN_NAV.map((item) => (
+            <li>
+              <a href={localizePath(locale, item.path)} class={linkClass}>
+                {t(item.label)}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h2 class="text-xs font-semibold tracking-wider text-text uppercase">
+          {t('footer.projectHeading')}
+        </h2>
+        <ul class="mt-3 space-y-2">
+          {FOOTER_NAV.map((item) => (
+            <li>
+              <a href={localizePath(locale, item.path)} class={linkClass}>
+                {t(item.label)}
+              </a>
+            </li>
+          ))}
+          <li>
+            <a href={SITE.repoUrl} class={linkClass} rel="noopener">
+              {t('footer.sourceCode')}
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+
+  <div class="border-t border-border">
+    <div class="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-5 text-xs text-text-muted sm:flex-row sm:justify-between sm:px-6">
+      <p>{t('footer.disclaimer')}</p>
+      <p class="shrink-0">
+        © {year} {SITE.name}
+      </p>
+    </div>
+  </div>
+</footer>

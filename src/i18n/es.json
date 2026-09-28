@@ -1,0 +1,96 @@
+{
+  "meta": {
+    "homeTitle": "Aprende PLC desde cero con un simulador gratuito",
+    "homeDescription": "Plataforma gratuita para aprender PLC: teoría clara, simulador Ladder en el navegador, procesos animados y desafíos con corrección automática.",
+    "language": "Español"
+  },
+  "a11y": {
+    "skipToContent": "Saltar al contenido",
+    "mainNav": "Navegación principal",
+    "footerNav": "Navegación del pie de página",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú",
+    "home": "Inicio"
+  },
+  "nav": {
+    "learn": "Aprender",
+    "brands": "Marcas y software",
+    "simulator": "Simulador",
+    "examples": "Ejemplos",
+    "challenges": "Desafíos",
+    "glossary": "Glosario",
+    "faq": "Preguntas frecuentes",
+    "support": "Apoyar el proyecto"
+  },
+  "theme": {
+    "label": "Tema",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "system": "Sistema"
+  },
+  "lang": {
+    "label": "Idioma"
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "Gratis · Sin registro · Español e inglés",
+      "title": "Aprende PLC desde cero, programando en tu navegador",
+      "subtitle": "Teoría clara, un simulador con Ladder y los lenguajes IEC 61131-3, procesos animados y desafíos que se corrigen solos.",
+      "ctaLearn": "Aprender",
+      "ctaSimulator": "Abrir simulador",
+      "illustrationLabel": "Ilustración de un PLC modular con fuente, CPU y módulos de entradas y salidas cuyos indicadores se encienden en secuencia"
+    },
+    "routes": {
+      "title": "Cuatro rutas para aprender",
+      "subtitle": "Avanza a tu ritmo, desde el primer contacto hasta procesos cercanos a la industria.",
+      "explore": "Explorar",
+      "fundamentals": {
+        "title": "Fundamentos",
+        "description": "Qué es un PLC, cómo funciona el ciclo de scan y cómo se organiza su memoria."
+      },
+      "hardware": {
+        "title": "Hardware y conexiones",
+        "description": "Entradas y salidas, sensores PNP y NPN, cableado, puertos y protocolos industriales."
+      },
+      "brands": {
+        "title": "Marcas y software",
+        "description": "Las principales marcas, sus gamas, su software de programación y cómo nombran las direcciones."
+      },
+      "practice": {
+        "title": "Práctica",
+        "description": "Simulador, ejemplos con plantas virtuales y desafíos con corrección automática."
+      }
+    },
+    "preview": {
+      "title": "Pruébalo: partida y parada de un motor",
+      "subtitle": "El circuito clásico de autorretención. Pulsa MARCHA y PARO y observa cómo circula la energía por el peldaño.",
+      "start": "Marcha",
+      "stop": "Paro",
+      "motor": "Motor",
+      "running": "En marcha",
+      "stopped": "Detenido",
+      "hold": "Mantén presionado",
+      "explanation": "El contacto del motor, en paralelo con MARCHA, mantiene el circuito cerrado cuando sueltas el botón: eso es la autorretención. PARO usa un contacto normalmente cerrado, que se abre al pulsarlo y corta el circuito.",
+      "diagramLabel": "Diagrama Ladder de partida y parada de motor",
+      "cta": "Ir al simulador completo"
+    }
+  },
+  "footer": {
+    "tagline": "Plataforma educativa gratuita para aprender automatización con PLC.",
+    "learnHeading": "Aprender",
+    "projectHeading": "Proyecto",
+    "sourceCode": "Código fuente",
+    "disclaimer": "Sitio independiente y educativo. Las marcas mencionadas pertenecen a sus respectivos dueños.",
+    "supportCta": "Apoyar"
+  },
+  "placeholder": {
+    "badge": "En construcción",
+    "body": "Esta sección está en desarrollo y estará disponible pronto.",
+    "back": "Volver al inicio"
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "body": "La página que buscas no existe o fue movida.",
+    "back": "Volver al inicio"
+  }
+}
