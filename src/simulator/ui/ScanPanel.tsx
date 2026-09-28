@@ -10,6 +10,7 @@ import { parseAddress } from '@/simulator/engine';
 import { formatAddressStyled } from '@/simulator/addressing/styles';
 import { allElements } from '@/simulator/languages/ladder/model';
 import { resolveOperand, tagForAddress } from '@/simulator/project/tags';
+import { InputControl } from '@/simulator/io-panel/IoBoard';
 import { fmt, useController, useSim, useStrings } from './context';
 
 const PHASES = ['read', 'execute', 'write', 'housekeeping'] as const;
@@ -17,9 +18,11 @@ const PHASES = ['read', 'execute', 'write', 'housekeeping'] as const;
 export function ScanPanel() {
   const t = useStrings();
   const controller = useController();
-  const { scanView, snapshot, ladder, tags, style } = useSim(
+  const { scanView, snapshot, ladder, tags, style, io, controls } = useSim(
     useShallow((s) => ({
       scanView: s.scanView,
+      io: s.project.io,
+      controls: s.ioControls,
       snapshot: s.snapshot,
       ladder: s.project.ladder,
       tags: s.project.tags,
@@ -152,13 +155,25 @@ export function ScanPanel() {
               {list.map((address) => (
                 <tr key={address} className="border-t border-border" data-scan-row={address}>
                   <td className="py-1 pr-2 font-mono text-text">
-                    {tagForAddress(address, tags)?.name ?? formatAddressStyled(address, style)}
+                    <span className="inline-flex items-center gap-2">
+                      {key === 'inputs' && (
+                        <InputControl
+                          small
+                          address={address}
+                          mode={io.inputs[address]?.mode ?? 'switch'}
+                          name={address}
+                          active={controls[address] ?? false}
+                        />
+                      )}
+                      {tagForAddress(address, tags)?.name ?? formatAddressStyled(address, style)}
+                    </span>
                   </td>
                   {[first, second].map((arr, i) => {
                     const on = bit(arr, address);
                     return (
                       <td key={i} className="py-1 text-center">
                         <span
+                          data-bit
                           className={`inline-flex size-5 items-center justify-center rounded font-mono font-semibold ${
                             on ? 'bg-led-on text-on-led' : 'bg-surface-2 text-text-muted'
                           }`}

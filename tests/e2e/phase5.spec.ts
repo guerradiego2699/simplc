@@ -96,8 +96,8 @@ test.describe('timers, counters, styles and scan visualization', () => {
     await page.getByTestId('param-in').fill('5');
     await expect(
       page
-        .getByText('Tipo de dato incorrecto: se esperaba BOOL (bit) y se recibió INT (entero).')
-        .first(),
+        .getByRole('tabpanel')
+        .getByText('Tipo de dato incorrecto: se esperaba BOOL (bit) y se recibió INT (entero).'),
     ).toBeVisible();
   });
 
@@ -125,13 +125,13 @@ test.describe('timers, counters, styles and scan visualization', () => {
     await page.getByRole('tab', { name: 'Ciclo de scan' }).click();
     const next = page.getByRole('button', { name: 'Siguiente paso' });
     const current = page.locator('[data-phase][aria-current="step"]');
-    const cells = (address: string) => page.locator(`[data-scan-row="${address}"] td span`);
+    const cells = (address: string) => page.locator(`[data-scan-row="${address}"] [data-bit]`);
 
     await next.click();
     await expect(current).toHaveAttribute('data-phase', 'read');
 
     // Press START now (after "read"): the terminal shows 1, the image still 0.
-    const start = page.locator('[data-input="I0.0"] button').first();
+    const start = page.locator('[data-scan-row="I0.0"] button');
     const box = (await start.boundingBox())!;
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
@@ -151,9 +151,9 @@ test.describe('timers, counters, styles and scan visualization', () => {
     await next.click();
     await expect(current).toHaveAttribute('data-phase', 'read');
     await expect(cells('I0.0').nth(1)).toHaveText('1');
-    await next.click();
-    await next.click();
-    await expect(led(page, 'Q0.0')).toHaveAttribute('data-on', 'true');
+    await next.click(); // execute
+    await next.click(); // write: the output terminal turns on
+    await expect(cells('Q0.0').nth(1)).toHaveText('1');
 
     await page.getByRole('button', { name: 'Salir' }).click();
     await expect(page.locator('[data-executing]')).toHaveCount(0);

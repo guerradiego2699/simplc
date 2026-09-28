@@ -2,11 +2,12 @@
  * Training panel (spec 6.6): 16 digital inputs — switch or momentary push button (NO/NC),
  * selectable per input — and 16 output LEDs, with editable labels.
  * Input LEDs show the terminal state (what the PLC input receives); output LEDs show the
- * physical outputs (including forced ones).
+ * physical outputs (including forced ones). Addresses follow the selected brand style.
  */
 import { useState, type KeyboardEvent, type PointerEvent } from 'react';
 import { Pencil } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
+import { formatAddressStyled, type AddressStyle } from '@/simulator/addressing/styles';
 import { PANEL_INPUTS, PANEL_OUTPUTS, physicalInput } from '@/simulator/store/controller';
 import type { InputMode, IoPanelSetup, Project } from '@/simulator/project/types';
 import { useSim, useStoreApi, useStrings } from '@/simulator/ui/context';
@@ -39,15 +40,24 @@ function Led({ on, label }: { on: boolean; label: string }) {
   );
 }
 
+function AddressText({ address, style }: { address: string; style: AddressStyle }) {
+  return (
+    <span className="font-mono text-[11px] text-text-muted" title={address}>
+      {formatAddressStyled(address, style)}
+    </span>
+  );
+}
+
 export function IoBoard() {
   const t = useStrings();
   const store = useStoreApi();
   const [editing, setEditing] = useState(false);
-  const { io, controls, outputs } = useSim(
+  const { io, controls, outputs, style } = useSim(
     useShallow((s) => ({
       io: s.project.io,
       controls: s.ioControls,
       outputs: s.snapshot?.physicalOutputs,
+      style: s.addressStyle,
     })),
   );
 
@@ -77,6 +87,7 @@ export function IoBoard() {
                 io={io}
                 controls={controls}
                 editing={editing}
+                style={style}
               />
             ))}
           </div>
@@ -95,7 +106,7 @@ export function IoBoard() {
                   className="flex min-w-0 flex-col items-center gap-1 rounded-md border border-border bg-bg px-1 py-1.5"
                 >
                   <Led on={outputs?.[i] ?? false} label={address} />
-                  <span className="font-mono text-[11px] text-text-muted">{address}</span>
+                  <AddressText address={address} style={style} />
                   {editing ? (
                     <input
                       aria-label={`${t.io.labelPlaceholder} ${address}`}
@@ -134,42 +145,20 @@ function InputSlot({
   io,
   controls,
   editing,
+  style,
 }: {
   address: string;
   io: IoPanelSetup;
   controls: Record<string, boolean>;
   editing: boolean;
+  style: AddressStyle;
 }) {
   const t = useStrings();
   const store = useStoreApi();
   const setup = io.inputs[address];
   const mode: InputMode = setup?.mode ?? 'switch';
   const label = setup?.label ?? '';
-  const active = controls[address] ?? false;
   const terminal = physicalInput(address, io, controls);
-  const set = (value: boolean) => store.getState().setIoControl(address, value);
-
-  // Momentary buttons: active only while held (mouse, touch or keyboard).
-  const press = {
-    onPointerDown: (e: PointerEvent<HTMLButtonElement>) => {
-      e.currentTarget.setPointerCapture(e.pointerId);
-      set(true);
-    },
-    onPointerUp: () => set(false),
-    onPointerCancel: () => set(false),
-    onLostPointerCapture: () => set(false),
-    onKeyDown: (e: KeyboardEvent) => {
-      if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) {
-        e.preventDefault();
-        set(true);
-      }
-    },
-    onKeyUp: (e: KeyboardEvent) => {
-      if (e.key === ' ' || e.key === 'Enter') set(false);
-    },
-    onBlur: () => set(false),
-  };
-
   const name = `${address}${label ? ` ${label}` : ''}`;
 
   return (
@@ -178,31 +167,8 @@ function InputSlot({
       className="flex min-w-0 flex-col items-center gap-1 rounded-md border border-border bg-bg px-1 py-1.5"
     >
       <Led on={terminal} label={address} />
-      {mode === 'switch' ? (
-        <button
-          type="button"
-          role="switch"
-          aria-checked={active}
-          aria-label={`${t.io.modes.switch} ${name}`}
-          onClick={() => set(!active)}
-          className={`relative h-5 w-9 rounded-full transition-colors ${active ? 'bg-primary' : 'bg-wire-off'}`}
-        >
-          <span
-            className={`absolute top-0.5 left-0.5 size-4 rounded-full bg-bg shadow transition-transform ${active ? 'translate-x-4' : ''}`}
-          />
-        </button>
-      ) : (
-        <button
-          type="button"
-          aria-pressed={active}
-          aria-label={`${t.io.modes[mode]} ${name}`}
-          {...press}
-          className={`size-7 rounded-full border-2 shadow-sm transition-transform select-none aria-pressed:translate-y-px aria-pressed:shadow-none ${
-            mode === 'button-nc' ? 'border-danger bg-danger/80' : 'border-border bg-surface-2'
-          }`}
-        />
-      )}
-      <span className="font-mono text-[11px] text-text-muted">{address}</span>
+      <InputControl address={address} mode={mode} name={name} active={controls[address] ?? false} />
+      <AddressText address={address} style={style} />
       {editing ? (
         <>
           <input
@@ -245,5 +211,72 @@ function InputSlot({
         </span>
       )}
     </div>
+  );
+}
+
+/**
+ * The control of one input: a maintained switch, or a momentary push button (NO or NC) that is
+ * active only while held with the mouse, touch or keyboard. Used by the panel and the scan tab.
+ */
+export function InputControl({
+  address,
+  mode,
+  name,
+  active,
+  small = false,
+}: {
+  address: string;
+  mode: InputMode;
+  name: string;
+  active: boolean;
+  small?: boolean;
+}) {
+  const t = useStrings();
+  const store = useStoreApi();
+  const set = (value: boolean) => store.getState().setIoControl(address, value);
+
+  if (mode === 'switch') {
+    return (
+      <button
+        type="button"
+        role="switch"
+        aria-checked={active}
+        aria-label={`${t.io.modes.switch} ${name}`}
+        onClick={() => set(!active)}
+        className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${active ? 'bg-primary' : 'bg-wire-off'}`}
+      >
+        <span
+          className={`absolute top-0.5 left-0.5 size-4 rounded-full bg-bg shadow transition-transform ${active ? 'translate-x-4' : ''}`}
+        />
+      </button>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      aria-label={`${t.io.modes[mode]} ${name}`}
+      onPointerDown={(e: PointerEvent<HTMLButtonElement>) => {
+        e.currentTarget.setPointerCapture(e.pointerId);
+        set(true);
+      }}
+      onPointerUp={() => set(false)}
+      onPointerCancel={() => set(false)}
+      onLostPointerCapture={() => set(false)}
+      onKeyDown={(e: KeyboardEvent) => {
+        if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) {
+          e.preventDefault();
+          set(true);
+        }
+      }}
+      onKeyUp={(e: KeyboardEvent) => {
+        if (e.key === ' ' || e.key === 'Enter') set(false);
+      }}
+      onBlur={() => set(false)}
+      className={`${small ? 'size-5' : 'size-7'} shrink-0 rounded-full border-2 shadow-sm transition-transform select-none aria-pressed:translate-y-px aria-pressed:shadow-none ${
+        mode === 'button-nc' ? 'border-danger bg-danger/80' : 'border-border bg-surface-2'
+      }`}
+    />
   );
 }

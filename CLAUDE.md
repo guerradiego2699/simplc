@@ -100,6 +100,25 @@ type="industry|tip|note|warning|safety">`, `<TrySimulator example="…">`, `<Plc
   shows the desktop-only notice. E2E: `tests/e2e/phase4.spec.ts` (runs at 1440×900).
 - The in-app browser pane may run at ~3 fps when hidden; verify simulator timing with Playwright.
 
+## Timers, counters, math, styles, visualize scan (Phase 5)
+
+- Engine data: `MW` INT (Int16, wraps), `MD` REAL (Float32), analog `IW`/`QW`, timers `T0–T31`
+  (members Q/ET/PT/IN; bare `T0` = Q), counters `C0–C31` (Q/QU/QD/CV/PV). No overlap between
+  areas. Literals: `5`, `1.5`, `16#FF`, `T#1m30s` (`engine/literals.ts`). IR adds `compare`,
+  `arith`, `convert`, `timer`, `counter`. `analyze()` type-checks (BOOL vs numbers; INT/REAL/TIME
+  mix freely). Timers use scan start time (`ctx.now`); memory resets timers/counters IN PLACE.
+- Ladder instructions come from `languages/ladder/catalog.ts` (side, family, main operand +
+  `params`). Elements keep `kind: 'contact' | 'coil'`; extra operands live in `params`.
+  Timer/counter boxes pass their Q as power; output boxes run inside `IF <rung power>`.
+  New timers/counters get the first free instance (`nextFreeInstance`).
+- `simulator/addressing/styles.ts`: display-only brand notation (generic/siemens/ab/mitsubishi/
+  omron); stored in `localStorage` (`plcampus:addressStyle`). Operands are always typed generic.
+- Visualize scan: `controller.visualize()/nextPart()/exitVisualize()` walk `runtime.scanSteps()`;
+  `ScanPanel` shows phases + terminal vs image and has its own input controls (`InputControl`).
+  Presses made mid-scan are held until the NEXT scan completes.
+- UI code: never generate TSX/template literals through bash heredocs or `node -e` strings —
+  `${…}` gets eaten by the shell. Use the Write/Edit tools.
+
 ## Environment notes
 
 - Windows. Project lives in `C:\dev\simplc` (kept out of OneDrive on purpose: node_modules sync
