@@ -1,0 +1,132 @@
+---
+title: What is a PLC?
+description: What a programmable logic controller is, where it is used and how it differs from a relay panel or an Arduino.
+example: lamp-switch
+updated: 2026-09-28
+---
+
+## A simple definition
+
+A **PLC** (_Programmable Logic Controller_) is an industrial computer designed to control machines and
+processes. Its job can be summed up in three verbs:
+
+1. **Read** signals from the real world: push buttons, sensors, level switches, transmitters.
+2. **Decide** what to do, following a program written by a person.
+3. **Act** on the machine: start motors, open valves, turn on warning lights.
+
+And it repeats this over and over, hundreds or thousands of times per second, for years.
+
+An easy way to picture it: the sensors are the machine's _senses_, motors and valves are its _muscles_,
+and the PLC is the _brain_ that follows the rules in the program. A typical rule would be: “if the start
+button is pressed **and** the safety door is closed, start the motor”.
+
+## What makes it “industrial”?
+
+A PLC is not a desktop computer with a different name. It is built for very different conditions:
+
+- **It withstands the environment**: extreme temperatures, vibration, dust and electrical noise from
+  motors and welders.
+- **It speaks the language of industry**: its inputs and outputs work directly with signals such as
+  24 VDC, 230 VAC or 4–20 mA, with no extra circuitry.
+- **It is predictable**: it runs its program in a controlled, repeating cycle (the _scan cycle_), so its
+  behaviour is always the same.
+- **It is built to last**: it runs non-stop for years, and manufacturers keep supporting it and supplying
+  spare parts for a long time.
+- **It is programmed in standard languages**: the IEC 61131-3 standard defines languages designed for
+  technicians and electricians. The classic one, **Ladder**, looks like an electrical drawing.
+
+## Where is it used?
+
+Practically anywhere something moves, fills, mixes or is transported automatically:
+
+- Production lines: bottling, packaging and assembly machines.
+- Mining: conveyor belts, crushers, pumps and process plants.
+- Drinking water and wastewater treatment: pumping stations and tank control.
+- Food and agribusiness: fruit packing, cold storage, precision irrigation.
+- Energy: substations, generation and distribution.
+- Buildings and infrastructure: HVAC, booster pumps, access control.
+
+<Callout type="industry">
+  PLCs sit at the heart of mining, pulp and paper, water utilities and food processing all over the
+  world. Being able to read and modify a PLC program is one of the most sought-after skills in
+  electrical maintenance and instrumentation.
+</Callout>
+
+## From relay panels to PLCs
+
+Before PLCs, machine logic was built with **relays**, timers and contactors wired together. Every “rule”
+was a physical wire. Changing how the machine worked meant **rewiring the panel**.
+
+The PLC was born in the late 1960s in the automotive industry precisely to replace those panels: the logic
+moved from wires into a program.
+
+| Aspect                           | Relay logic                           | PLC                                            |
+| -------------------------------- | ------------------------------------- | ---------------------------------------------- |
+| Changing the behaviour           | Rewire the panel                      | Edit the program                               |
+| Size                             | Grows with every new function         | Compact; logic takes no physical space         |
+| Timers and counters              | One physical device each              | Hundreds or thousands, in software             |
+| Wear                             | Mechanical contacts wear out          | Internal logic does not wear out               |
+| Troubleshooting                  | Check with a multimeter, wire by wire | Every signal's state is visible on screen      |
+| Communication with other systems | None                                  | Industrial networks, HMI panels, SCADA systems |
+
+<Callout type="note">
+  Relays did not disappear. The PLC drives the **coil** of a contactor, and the contactor switches
+  the motor's power. Safety circuits also often use certified safety relays.
+</Callout>
+
+## PLC versus microcontroller (Arduino)
+
+If you have used an Arduino, you already know the idea: a program that reads inputs and writes outputs. The
+difference lies in **what each one was designed for**.
+
+| Aspect             | Development board (e.g. Arduino)             | PLC                                                  |
+| ------------------ | -------------------------------------------- | ---------------------------------------------------- |
+| Signals            | 5 V or 3.3 V; needs extra circuitry for 24 V | 24 VDC, 230 VAC and 4–20 mA directly, with isolation |
+| Ruggedness         | Exposed board, sensitive to electrical noise | Designed and certified for industrial environments   |
+| Programming        | C/C++                                        | IEC 61131-3 languages (Ladder, Structured Text…)     |
+| Diagnostics        | Limited                                      | Online monitoring and changes while the machine runs |
+| Support and spares | Varies                                       | Long life cycles and manufacturer support            |
+| Cost               | Very low                                     | Higher                                               |
+
+There are now industrial controllers based on microcontrollers that are programmed in IEC languages, so
+the line has become blurry. What defines a PLC is that it is **designed, tested and certified** to work in
+industry.
+
+<Callout type="tip">
+  Learned with Arduino? It will help: the `loop()` function is very similar to a PLC's scan cycle.
+  The big difference is that a PLC reads **all** its inputs together at the start of each cycle. You
+  will see it in the next topic.
+</Callout>
+
+## The pieces of a PLC system
+
+A PLC never works alone. Around it you will always find:
+
+- **Input devices**: push buttons, selector switches, limit switches, proximity sensors, pressure or
+  temperature transmitters.
+- **The PLC**: the CPU, its memory and the input and output modules.
+- **Output devices (actuators)**: contactors, solenoid valves, pilot lights, variable frequency drives.
+- **The program**: written on a computer with the manufacturer's software and downloaded to the PLC.
+- **The human interface**: HMI screens so operators can see and control the process.
+
+## A first example
+
+The simplest possible program: a switch connected to input `I0.0` turns on a lamp connected to output
+`Q0.0`. In Ladder it looks like this:
+
+```
+   I0.0                          Q0.0
+──┤ ├──────────────────────────( )──
+```
+
+It reads from left to right: “if input `I0.0` is on, turn on output `Q0.0`”. The `┤ ├` symbol is a
+**contact** (a condition) and `( )` is a **coil** (an action).
+
+<TrySimulator example="lamp-switch" />
+
+## Summary
+
+- A PLC is an industrial computer that **reads** inputs, **decides** according to a program and **acts** on outputs.
+- It replaced relay panels because changing a program is much easier than rewiring.
+- Compared with a microcontroller, its strengths are ruggedness, industrial signals and standard languages.
+- In the next topic you will see what is inside a PLC and how its scan cycle works.

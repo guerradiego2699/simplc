@@ -46,7 +46,7 @@
       "explore": "Explore",
       "fundamentals": {
         "title": "Fundamentals",
-        "description": "What a PLC is, how the scan cycle works and how its memory is organized."
+        "description": "What a PLC is, how it works inside, the scan cycle and the types available."
       },
       "hardware": {
         "title": "Hardware & wiring",
@@ -92,5 +92,121 @@
     "title": "Page not found",
     "body": "The page you are looking for does not exist or has been moved.",
     "back": "Back to home"
+  },
+  "learn": {
+    "indexTitle": "Learn PLCs step by step",
+    "indexDescription": "Free PLC course from scratch: what a PLC is, how the scan cycle works, PLC types, inputs and outputs, PNP and NPN sensors, and more.",
+    "intro": "A structured path from what a PLC is to real-world industry practices. Every topic includes interactive diagrams and, where it makes sense, an example to try in the simulator.",
+    "groups": {
+      "fundamentals": {
+        "title": "Fundamentals",
+        "description": "What a PLC is, how it works inside and which types exist."
+      },
+      "hardware": {
+        "title": "Hardware & wiring",
+        "description": "Inputs, outputs, wiring and communications."
+      },
+      "programming": {
+        "title": "Programming",
+        "description": "Memory, languages, instructions and good practices."
+      }
+    },
+    "comingSoon": "Coming soon",
+    "readingTime": "{n} min read",
+    "onThisPage": "On this page",
+    "courseContents": "Course contents",
+    "previous": "Previous",
+    "next": "Next",
+    "fallbackNotice": "This page has not been translated yet; showing the Spanish version.",
+    "reviewed": "Reviewed: {date}",
+    "upcoming": {
+      "wiring": "Connections and wiring",
+      "ports-and-communications": "Ports and communications",
+      "memory-and-addressing": "Memory and addressing",
+      "iec-61131-3-languages": "IEC 61131-3 languages",
+      "basic-instructions": "Basic instructions",
+      "best-practices": "Real-world good practices"
+    },
+    "callout": {
+      "industry": "In industry",
+      "tip": "Tip",
+      "note": "Note",
+      "warning": "Warning",
+      "safety": "Safety"
+    },
+    "trySimulator": {
+      "title": "Try it in the simulator",
+      "body": "Open a preloaded example and experiment yourself."
+    }
+  },
+  "widgets": {
+    "scan": {
+      "label": "Interactive scan cycle diagram",
+      "play": "Play",
+      "pause": "Pause",
+      "step": "Next phase",
+      "cycle": "Cycle",
+      "phases": {
+        "read": {
+          "name": "Read inputs",
+          "description": "The PLC copies the state of every physical input into the input image. From now until the next cycle, the program works with that copy."
+        },
+        "execute": {
+          "name": "Execute program",
+          "description": "The program runs from top to bottom using the input image. Results are written to the output image, not to the terminals yet."
+        },
+        "write": {
+          "name": "Write outputs",
+          "description": "The output image is copied to the physical outputs: only now does the lamp turn on or off."
+        },
+        "housekeeping": {
+          "name": "Diagnostics and communication",
+          "description": "The PLC serves communications (HMI, programming device), checks its own health and resets the cycle-time watchdog. Then it starts over."
+        }
+      },
+      "physicalInput": "Physical input",
+      "inputImage": "Input image",
+      "program": "Program",
+      "outputImage": "Output image",
+      "physicalOutput": "Physical output",
+      "toggleInput": "Flip switch",
+      "hint": "Flip the switch at any moment: the PLC will only notice it in the next “Read inputs” phase."
+    },
+    "sensor": {
+      "label": "Wiring diagram of a three-wire sensor to a PLC input",
+      "sensorType": "Sensor type",
+      "object": "Object in front of the sensor",
+      "supply": "24 VDC supply",
+      "sensor": "Sensor",
+      "inputModule": "Input module",
+      "legend": "BN = brown (+24 V) · BU = blue (0 V) · BK = black (signal)",
+      "pnpCom": "COM to 0 V: sinking input.",
+      "npnCom": "COM to +24 V: sourcing input.",
+      "pnpOn": "The PNP sensor connects the black wire to +24 V. Current enters the PLC through I0.0 and returns to 0 V through the common.",
+      "npnOn": "The NPN sensor connects the black wire to 0 V. Current enters the PLC through the common from +24 V, leaves through I0.0 and flows into the sensor.",
+      "off": "With no object, the sensor's internal switch is open: no current flows through the input and the PLC reads 0."
+    },
+    "analog": {
+      "label": "Analog level signal simulator",
+      "level": "Tank level",
+      "current": "4–20 mA signal",
+      "voltage": "0–10 V signal",
+      "wireBreak": "Simulate a broken wire",
+      "ok": "Valid signal",
+      "currentFault": "0 mA is outside the 4–20 mA range: the PLC detects the fault.",
+      "voltageFault": "0 V looks like an empty tank: the fault goes unnoticed."
+    },
+    "plcBlock": {
+      "label": "Block diagram of a PLC",
+      "sensors": "Sensors and buttons",
+      "inputs": "Input module",
+      "cpu": "CPU",
+      "program": "Program memory",
+      "data": "Data memory",
+      "outputs": "Output module",
+      "actuators": "Actuators",
+      "psu": "Power supply",
+      "comms": "Communication: PC, HMI, network"
+    }
   }
 }

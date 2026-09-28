@@ -51,6 +51,21 @@ light/dark (desktop always, mobile only for content pages); short Spanish summar
   real page, remove its slug from `PLACEHOLDER_SECTIONS` in `src/config/navigation.ts`.
 - Header/footer/theme/language controls are plain Astro + small scripts (no React on content pages).
 
+## Learn content (Phase 2)
+
+- Pages: `src/content/learn/{es,en}/<slug>.mdx` (frontmatter: `title`, `description`, `updated`,
+  optional `example`). Order and grouping come from `LEARN_TOPICS` in `src/config/learn.ts`; a topic
+  without an MDX file shows as "coming soon" (title in `learn.upcoming.<slug>`). A missing English
+  file falls back to Spanish with a notice.
+- MDX components (no import needed, see `src/components/content/mdx-components.ts`): `<Callout
+type="industry|tip|note|warning|safety">`, `<TrySimulator example="…">`, `<PlcBlockDiagram />`,
+  `<ScanCycle />`, `<SensorWiring />`, `<AnalogSignal />`. React widgets live in
+  `src/components/content/widgets/` and get their strings from `widgets.*` in the dictionaries.
+- Prose styles in `src/styles/prose.css` target direct children of `.prose`; components use
+  `not-prose`. Code highlighting is off until Phase 11 (blocks are ASCII ladder diagrams).
+- Technical claims must be accurate (cite the standard: IEC 61131-2, IEC 60947-5-2, NAMUR NE 43…).
+- E2E widget tests must wait for hydration (`hydrated()` helper in `tests/e2e/phase2.spec.ts`).
+
 ## Environment notes
 
 - Windows. Project lives in `C:\dev\simplc` (kept out of OneDrive on purpose: node_modules sync

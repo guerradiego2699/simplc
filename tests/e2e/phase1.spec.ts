@@ -47,7 +47,7 @@ test('language switcher keeps the current page', async ({ page, isMobile }) => {
   if (isMobile) await page.getByRole('button', { name: 'Abrir menú' }).click();
   await page.getByRole('link', { name: 'English' }).filter({ visible: true }).click();
   await expect(page).toHaveURL(/\/en\/learn\/?$/);
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Learn');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Learn PLCs step by step');
 });
 
 test('theme selector applies and persists the choice', async ({ page, isMobile }) => {

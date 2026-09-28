@@ -1,0 +1,9 @@
+---
+/** MDX wrapper: <SensorWiring /> hydrates the PNP/NPN wiring diagram when visible. */
+import SensorWiringDiagram from './widgets/SensorWiringDiagram';
+import { getDictionary, localeFromUrl } from '@/i18n';
+
+const strings = getDictionary(localeFromUrl(Astro.url)).widgets.sensor;
+---
+
+<SensorWiringDiagram client:visible strings={strings} />

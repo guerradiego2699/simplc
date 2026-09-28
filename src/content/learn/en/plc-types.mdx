@@ -1,0 +1,124 @@
+---
+title: Types of PLC
+description: Programmable relays, compact, modular and rack PLCs, safety PLCs and PACs. What sets them apart and when to use each one.
+updated: 2026-09-28
+---
+
+## How they are classified
+
+There is no single official classification, but in practice PLCs are told apart by three things:
+
+- **Size**: how many inputs and outputs they can handle.
+- **Architecture**: whether everything comes in one box or is assembled from modules.
+- **Special function**: for example, whether they are certified for safety.
+
+Let's look at the most common types, from smallest to largest.
+
+## Programmable relay
+
+Also called a _smart relay_. It is the smallest step: a compact device with few inputs and outputs, often
+with a small display and buttons on the front for programming it directly.
+
+- **Ideal for**: simple tasks such as lighting control, a pump, a gate or ventilation.
+- **Limitations**: little memory, few I/O, basic functions and communications.
+
+## Compact PLC
+
+The CPU, power supply and a fixed set of inputs and outputs come in **a single housing**. Many models allow
+a few expansion modules to be added on the side.
+
+- **Ideal for**: small and medium machines, budget-limited projects and learning.
+- **Advantages**: affordable, easy to install, takes little panel space.
+- **Limitations**: expansion and performance have a ceiling.
+
+## Modular PLC
+
+The CPU, power supply and each input, output or communication module are **separate pieces** mounted side
+by side, usually on a DIN rail.
+
+- **Ideal for**: complex machines and production lines.
+- **Advantages**: you choose exactly the modules you need and can grow later; if a module fails, only that
+  one is replaced.
+- **Limitations**: more expensive and requires more planning than a compact PLC.
+
+## Rack (chassis) PLC
+
+Modules slide into a **rack** with a backplane that connects them. This is the architecture of large
+systems.
+
+- **Ideal for**: entire plants and continuous processes, with hundreds or thousands of I/O points.
+- **Typical features**: remote I/O racks spread across the plant, module replacement with the system
+  powered (_hot swap_) and **redundancy**: two CPUs running in parallel, where one takes over if the other
+  fails.
+
+<Callout type="industry">
+  In continuous processes —mining, power generation, water utilities— stopping the plant is very
+  costly or even dangerous. That is why **redundant** CPUs, power supplies and networks are common,
+  able to keep running even if one component fails.
+</Callout>
+
+## Safety PLC
+
+A PLC **certified for functional safety** according to standards such as IEC 61508, IEC 62061 or
+ISO 13849. Internally it uses redundant processing, continuous diagnostics and special inputs and outputs
+able to detect a broken wire or a welded contact.
+
+- **Used for**: emergency stops, light curtains, safety doors, two-hand controls, burner and boiler
+  shutdown systems.
+- Many current models run a standard program and a safety program on the same CPU, kept separate and
+  protected from each other.
+
+<Callout type="safety">
+  A standard PLC does **not** replace a certified safety system. Protecting people must be designed
+  with safety equipment (safety relays or safety PLCs) and validated against the applicable
+  standards. You will see more in the good practices topic.
+</Callout>
+
+## PAC (Programmable Automation Controller)
+
+_PAC_ is a term used for high-end controllers that combine the best of a PLC with capabilities close to a
+computer: lots of memory, several tasks in parallel, motion control, heavy data handling and advanced
+communications.
+
+In practice, the line between a “high-end PLC” and a “PAC” is blurry and depends a lot on how each
+manufacturer names its products.
+
+### What about PC-based control?
+
+There is also the **software PLC** (_soft PLC_): a program that turns an industrial computer into a PLC,
+running the same kind of IEC 61131-3 languages. It is used when a lot of computing power or integration
+with other systems on the same device is needed.
+
+## Quick comparison
+
+| Type               | Typical size (I/O)    | Scalability       | Typical use                          |
+| ------------------ | --------------------- | ----------------- | ------------------------------------ |
+| Programmable relay | Few (tens or fewer)   | Very low          | Simple automation                    |
+| Compact PLC        | Tens                  | Low to medium     | Small and medium machines            |
+| Modular PLC        | Tens to hundreds      | High              | Complex machines, production lines   |
+| Rack PLC           | Hundreds to thousands | Very high         | Plants and continuous processes      |
+| Safety PLC         | Depends on design     | Depends on design | Machine and process safety functions |
+| PAC                | Hundreds to thousands | Very high         | Complex, data-heavy systems          |
+
+## Which one to choose?
+
+Some questions integrators ask before choosing a PLC:
+
+- How many inputs and outputs do I need today, and how many might I need in the future?
+- Are there analog signals, fast pulses or motion control?
+- Which other devices must it talk to, and over which protocol?
+- Are there safety functions to protect people?
+- Which brands have good technical support and spare parts in my country?
+- What equipment is already in the plant? Sticking to one brand simplifies maintenance.
+
+<Callout type="tip">
+  To learn, a compact PLC —or a simulator like the one on this platform— is the best starting point.
+  The concepts you learn are the same ones you will use in a rack system with thousands of signals.
+</Callout>
+
+## Summary
+
+- From smallest to largest: **programmable relay → compact → modular → rack**.
+- **Safety PLCs** are certified to protect people.
+- **PACs** and **soft PLCs** are controllers with computer-like capabilities.
+- The choice depends on I/O, communications, safety, local support and expected growth.

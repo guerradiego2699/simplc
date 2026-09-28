@@ -18,8 +18,8 @@ const locale = Astro.params.lang as Locale;
 const t = getTranslator(locale);
 
 const routes = [
-  { key: 'fundamentals', Icon: BookOpen, href: '/learn' },
-  { key: 'hardware', Icon: Cable, href: '/learn' },
+  { key: 'fundamentals', Icon: BookOpen, href: '/learn#fundamentals' },
+  { key: 'hardware', Icon: Cable, href: '/learn#hardware' },
   { key: 'brands', Icon: Factory, href: '/brands' },
   { key: 'practice', Icon: FlaskConical, href: '/challenges' },
 ] as const;

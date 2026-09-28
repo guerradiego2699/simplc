@@ -21,6 +21,7 @@
   --wire-off: #8a97ab;
   --wire-on: #16a34a;
   --led-on: #22c55e;
+  --on-led: #052e16;
   --warning: #d97706;
   --danger: #dc2626;
   --on-danger: #ffffff;
@@ -42,6 +43,7 @@
     --wire-off: #5e6d86;
     --wire-on: #22c55e;
     --led-on: #4ade80;
+    --on-led: #052e16;
     --warning: #f59e0b;
     --danger: #f87171;
     --on-danger: #1f0a0a;
@@ -63,6 +65,7 @@
   --wire-off: #5e6d86;
   --wire-on: #22c55e;
   --led-on: #4ade80;
+  --on-led: #052e16;
   --warning: #f59e0b;
   --danger: #f87171;
   --on-danger: #1f0a0a;

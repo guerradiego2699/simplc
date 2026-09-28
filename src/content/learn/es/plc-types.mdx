@@ -1,0 +1,125 @@
+---
+title: Tipos de PLC
+description: Relé programable, PLC compacto, modular y de rack, PLC de seguridad y PAC. Qué los diferencia y cuándo conviene cada uno.
+updated: 2026-09-28
+---
+
+## Cómo se clasifican
+
+No existe una única clasificación oficial, pero en la práctica los PLC se distinguen por tres cosas:
+
+- **Tamaño**: cuántas entradas y salidas pueden manejar.
+- **Arquitectura**: si todo viene en una sola caja o se arma con módulos.
+- **Función especial**: por ejemplo, si están certificados para seguridad.
+
+Veamos los tipos más comunes, de menor a mayor.
+
+## Relé programable
+
+También llamado _relé inteligente_ o _smart relay_. Es el escalón más pequeño: un equipo compacto con pocas
+entradas y salidas, a menudo con una pequeña pantalla y botones en el frente para programarlo directamente.
+
+- **Ideal para**: tareas simples como control de iluminación, una bomba, un portón o una ventilación.
+- **Limitaciones**: poca memoria, pocas E/S, funciones y comunicaciones básicas.
+
+## PLC compacto
+
+La CPU, la fuente y un conjunto fijo de entradas y salidas vienen en **una sola carcasa**. Muchos modelos
+permiten agregar algunos módulos de expansión al costado.
+
+- **Ideal para**: máquinas pequeñas y medianas, proyectos con presupuesto acotado y para aprender.
+- **Ventajas**: económico, fácil de instalar, ocupa poco espacio en el tablero.
+- **Limitaciones**: la cantidad de expansiones y el rendimiento tienen un techo.
+
+## PLC modular
+
+La CPU, la fuente y cada módulo de entradas, salidas o comunicación son **piezas separadas** que se
+montan una al lado de la otra, normalmente sobre riel DIN.
+
+- **Ideal para**: máquinas complejas y líneas de producción.
+- **Ventajas**: eliges exactamente los módulos que necesitas y puedes crecer después; si un módulo falla,
+  se reemplaza solo ese.
+- **Limitaciones**: más costoso y requiere más planificación que un compacto.
+
+## PLC de rack (o de chasis)
+
+Los módulos se insertan en un **rack** con una placa posterior (_backplane_) que los conecta entre sí.
+Es la arquitectura de los sistemas grandes.
+
+- **Ideal para**: plantas completas y procesos continuos, con cientos o miles de puntos de E/S.
+- **Características típicas**: racks de E/S remotas distribuidos por la planta, reemplazo de módulos con
+  el sistema energizado (_hot swap_) y **redundancia**: dos CPU trabajando en paralelo, donde una toma el
+  control si la otra falla.
+
+<Callout type="industry">
+  En procesos continuos —minería, generación eléctrica, agua potable— detener la planta es muy
+  costoso o incluso peligroso. Por eso es común encontrar CPU, fuentes y redes **redundantes**,
+  capaces de seguir funcionando aunque falle un componente.
+</Callout>
+
+## PLC de seguridad
+
+Es un PLC **certificado para seguridad funcional** según normas como IEC 61508, IEC 62061 o ISO 13849.
+Internamente usa procesamiento redundante, diagnóstico continuo y entradas y salidas especiales capaces
+de detectar un cable cortado o un contacto pegado.
+
+- **Se usa para**: paros de emergencia, cortinas de luz, puertas de seguridad, mandos bimanuales,
+  sistemas de parada de hornos y calderas.
+- Muchos modelos actuales ejecutan en la misma CPU un programa estándar y un programa de seguridad,
+  separados y protegidos entre sí.
+
+<Callout type="safety">
+  Un PLC estándar **no** reemplaza a un sistema de seguridad certificado. La protección de las
+  personas debe diseñarse con equipos de seguridad (relés o PLC de seguridad) y validarse según las
+  normas aplicables. Lo verás en el tema de buenas prácticas.
+</Callout>
+
+## PAC (controlador de automatización programable)
+
+_PAC_ (del inglés _Programmable Automation Controller_) es un término que se usa para controladores de
+gama alta que combinan lo mejor de un PLC con capacidades cercanas a un computador: mucha memoria, varias
+tareas en paralelo, control de movimiento, manejo intensivo de datos y comunicaciones avanzadas.
+
+En la práctica, la frontera entre un “PLC de gama alta” y un “PAC” es difusa y depende mucho de cómo cada
+fabricante nombra sus productos.
+
+### ¿Y el control basado en PC?
+
+También existe el **PLC por software** (_soft PLC_): un programa que convierte un computador industrial en
+un PLC, ejecutando el mismo tipo de lenguajes IEC 61131-3. Se usa cuando se necesita mucha capacidad de
+cálculo o integración con otros sistemas en el mismo equipo.
+
+## Comparación rápida
+
+| Tipo             | Tamaño típico (E/S)     | Escalabilidad         | Uso típico                                    |
+| ---------------- | ----------------------- | --------------------- | --------------------------------------------- |
+| Relé programable | Pocas (decenas o menos) | Muy baja              | Automatismos simples                          |
+| PLC compacto     | Decenas                 | Baja a media          | Máquinas pequeñas y medianas                  |
+| PLC modular      | Decenas a cientos       | Alta                  | Máquinas complejas, líneas de producción      |
+| PLC de rack      | Cientos a miles         | Muy alta              | Plantas y procesos continuos                  |
+| PLC de seguridad | Según la arquitectura   | Según la arquitectura | Funciones de seguridad de máquinas y procesos |
+| PAC              | Cientos a miles         | Muy alta              | Sistemas complejos con mucho manejo de datos  |
+
+## ¿Cuál elegir?
+
+Algunas preguntas que se hacen los integradores antes de elegir un PLC:
+
+- ¿Cuántas entradas y salidas necesito hoy, y cuántas podría necesitar en el futuro?
+- ¿Hay señales analógicas, pulsos rápidos o control de movimiento?
+- ¿Con qué otros equipos debe comunicarse y por qué protocolo?
+- ¿Hay funciones de seguridad para proteger a las personas?
+- ¿Qué marcas tienen buen soporte técnico y repuestos en mi país?
+- ¿Qué equipos ya existen en la planta? Mantener una misma marca simplifica el mantenimiento.
+
+<Callout type="tip">
+  Para aprender, un PLC compacto —o un simulador como el de esta plataforma— es el mejor punto de
+  partida. Los conceptos que aprendas son los mismos que usarás en un sistema de rack con miles de
+  señales.
+</Callout>
+
+## Resumen
+
+- De menor a mayor: **relé programable → compacto → modular → rack**.
+- Los **PLC de seguridad** están certificados para proteger a las personas.
+- **PAC** y **soft PLC** son controladores con capacidades cercanas a un computador.
+- La elección depende de las E/S, las comunicaciones, la seguridad, el soporte local y el crecimiento esperado.

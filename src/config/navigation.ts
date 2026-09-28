@@ -27,7 +27,6 @@ export const FOOTER_NAV: readonly NavItem[] = [
  * Remove a slug from here when its real page is created in a later phase.
  */
 export const PLACEHOLDER_SECTIONS = [
-  'learn',
   'brands',
   'simulator',
   'examples',

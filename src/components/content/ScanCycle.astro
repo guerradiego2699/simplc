@@ -1,0 +1,9 @@
+---
+/** MDX wrapper: <ScanCycle /> hydrates the interactive scan cycle diagram when visible. */
+import ScanCycleDiagram from './widgets/ScanCycleDiagram';
+import { getDictionary, localeFromUrl } from '@/i18n';
+
+const strings = getDictionary(localeFromUrl(Astro.url)).widgets.scan;
+---
+
+<ScanCycleDiagram client:visible strings={strings} />

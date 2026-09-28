@@ -1,0 +1,134 @@
+---
+title: ¿Qué es un PLC?
+description: Qué es un controlador lógico programable, dónde se usa y en qué se diferencia de un tablero de relés o de un Arduino.
+example: lamp-switch
+updated: 2026-09-28
+---
+
+## Una definición simple
+
+Un **PLC** (del inglés _Programmable Logic Controller_, controlador lógico programable) es un computador
+industrial diseñado para controlar máquinas y procesos. Su trabajo se resume en tres verbos:
+
+1. **Leer** señales del mundo real: botones, sensores, interruptores de nivel, transmisores.
+2. **Decidir** qué hacer, siguiendo un programa escrito por una persona.
+3. **Actuar** sobre la máquina: encender motores, abrir válvulas, prender luces de aviso.
+
+Y lo repite una y otra vez, cientos o miles de veces por segundo, durante años.
+
+Una forma fácil de imaginarlo: los sensores son los _sentidos_ de la máquina, los motores y válvulas
+son sus _músculos_, y el PLC es el _cerebro_ que sigue las reglas del programa. Una regla típica sería:
+“si se presiona el botón de marcha **y** la puerta de seguridad está cerrada, enciende el motor”.
+
+## ¿Qué lo hace “industrial”?
+
+Un PLC no es un computador de escritorio con otro nombre. Está pensado para condiciones muy distintas:
+
+- **Resiste el ambiente**: temperaturas extremas, vibración, polvo y ruido eléctrico de motores y soldadoras.
+- **Habla el idioma de la industria**: sus entradas y salidas trabajan directamente con señales como
+  24 VDC, 220 VAC o 4–20 mA, sin circuitos adicionales.
+- **Es predecible**: ejecuta su programa en un ciclo repetitivo y controlado (el _ciclo de scan_),
+  así que su comportamiento es siempre el mismo.
+- **Está hecho para durar**: funciona sin detenerse durante años, y los fabricantes mantienen soporte
+  y repuestos por mucho tiempo.
+- **Se programa con lenguajes estándar**: la norma IEC 61131-3 define lenguajes pensados para técnicos
+  y electricistas. El más clásico, **Ladder**, se parece a un plano eléctrico.
+
+## ¿Dónde se usa?
+
+Prácticamente en cualquier lugar donde algo se mueva, se llene, se mezcle o se transporte de forma automática:
+
+- Líneas de producción: embotelladoras, envasadoras, ensambladoras.
+- Minería: correas transportadoras, chancadores, bombas y plantas de proceso.
+- Agua potable y tratamiento de aguas: estaciones de bombeo y control de estanques.
+- Industria alimentaria y agroindustria: packing de fruta, frigoríficos, riego tecnificado.
+- Energía: subestaciones, generación y distribución.
+- Edificios e infraestructura: climatización, bombas de presurización, control de accesos.
+
+<Callout type="industry">
+  En Chile y el resto de Latinoamérica los PLC están en el corazón de la gran minería, las plantas
+  de celulosa, el agua potable y la agroindustria. Saber leer y modificar un programa de PLC es una
+  de las habilidades más buscadas en mantenimiento eléctrico e instrumentación.
+</Callout>
+
+## Del tablero de relés al PLC
+
+Antes de los PLC, la lógica de las máquinas se construía con **relés**, temporizadores y contactores
+cableados entre sí. Cada “regla” era un cable físico. Si había que cambiar el funcionamiento de la
+máquina, había que **recablear el tablero**.
+
+El PLC nació a fines de los años sesenta, en la industria automotriz, justamente para reemplazar esos
+tableros: la lógica pasó de los cables al programa.
+
+| Aspecto                         | Lógica de relés                         | PLC                                               |
+| ------------------------------- | --------------------------------------- | ------------------------------------------------- |
+| Cambiar el funcionamiento       | Recablear el tablero                    | Modificar el programa                             |
+| Tamaño                          | Crece con cada nueva función            | Compacto; la lógica no ocupa espacio físico       |
+| Temporizadores y contadores     | Un dispositivo físico por cada uno      | Cientos o miles, en software                      |
+| Desgaste                        | Los contactos mecánicos se desgastan    | La lógica interna no se desgasta                  |
+| Búsqueda de fallas              | Revisar con multímetro, cable por cable | El estado de cada señal se ve en pantalla         |
+| Comunicación con otros sistemas | No                                      | Redes industriales, pantallas HMI, sistemas SCADA |
+
+<Callout type="note">
+  Los relés no desaparecieron. El PLC maneja la **bobina** de un contactor, y es el contactor el que
+  conmuta la potencia del motor. Además, los circuitos de seguridad suelen usar relés de seguridad
+  certificados.
+</Callout>
+
+## PLC versus microcontrolador (Arduino)
+
+Si has usado un Arduino, ya conoces la idea: un programa que lee entradas y escribe salidas. La diferencia
+está en **para qué** fue diseñado cada uno.
+
+| Aspecto             | Placa de desarrollo (por ejemplo, Arduino)      | PLC                                                  |
+| ------------------- | ----------------------------------------------- | ---------------------------------------------------- |
+| Señales             | 5 V o 3,3 V; necesita circuitos extra para 24 V | 24 VDC, 220 VAC y 4–20 mA directos, con aislamiento  |
+| Robustez            | Placa expuesta, sensible al ruido eléctrico     | Diseñado y certificado para ambientes industriales   |
+| Programación        | C/C++                                           | Lenguajes IEC 61131-3 (Ladder, texto estructurado…)  |
+| Diagnóstico         | Limitado                                        | Monitoreo en línea y cambios con la máquina operando |
+| Soporte y repuestos | Variable                                        | Ciclos de vida largos y soporte del fabricante       |
+| Costo               | Muy bajo                                        | Mayor                                                |
+
+Hoy existen también controladores industriales basados en microcontroladores que se programan con
+lenguajes IEC, así que la frontera se ha ido difuminando. Lo que define a un PLC es que está **pensado,
+probado y certificado** para trabajar en la industria.
+
+<Callout type="tip">
+  ¿Aprendiste con Arduino? Te servirá: la función `loop()` se parece mucho al ciclo de scan de un
+  PLC. La gran diferencia es que el PLC lee **todas** sus entradas juntas al comienzo de cada ciclo.
+  Lo verás en el próximo tema.
+</Callout>
+
+## Las piezas de un sistema con PLC
+
+Un PLC nunca trabaja solo. Alrededor de él siempre encontrarás:
+
+- **Dispositivos de entrada**: botones, selectores, finales de carrera, sensores de proximidad,
+  transmisores de presión o temperatura.
+- **El PLC**: la CPU, su memoria y los módulos de entradas y salidas.
+- **Dispositivos de salida (actuadores)**: contactores, válvulas solenoides, pilotos luminosos,
+  variadores de frecuencia.
+- **El programa**: se escribe en un computador con el software del fabricante y se descarga al PLC.
+- **La interfaz con las personas**: pantallas HMI para que los operadores vean y controlen el proceso.
+
+## Un primer ejemplo
+
+El programa más simple posible: un interruptor conectado a la entrada `I0.0` enciende una ampolleta
+conectada a la salida `Q0.0`. En Ladder se ve así:
+
+```
+   I0.0                          Q0.0
+──┤ ├──────────────────────────( )──
+```
+
+Se lee de izquierda a derecha: “si la entrada `I0.0` está activa, activa la salida `Q0.0`”. El símbolo
+`┤ ├` es un **contacto** (una condición) y `( )` es una **bobina** (una acción).
+
+<TrySimulator example="lamp-switch" />
+
+## Resumen
+
+- Un PLC es un computador industrial que **lee** entradas, **decide** según un programa y **actúa** sobre salidas.
+- Reemplazó a los tableros de relés porque cambiar un programa es mucho más fácil que recablear.
+- Frente a un microcontrolador, su ventaja es la robustez, las señales industriales y los lenguajes estándar.
+- En el próximo tema verás qué hay dentro de un PLC y cómo funciona su ciclo de scan.

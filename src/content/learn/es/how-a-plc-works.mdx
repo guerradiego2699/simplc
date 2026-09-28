@@ -1,0 +1,131 @@
+---
+title: Cómo funciona un PLC por dentro
+description: Las partes de un PLC —fuente, CPU, memoria y módulos de E/S— y el ciclo de scan que repite sin parar.
+example: scan-cycle
+updated: 2026-09-28
+---
+
+## Las partes principales
+
+Por fuera, un PLC puede ser una sola caja o varios módulos montados en un riel. Por dentro, todos siguen
+el mismo esquema:
+
+<PlcBlockDiagram />
+
+### Fuente de poder
+
+Convierte la alimentación de la red (por ejemplo, 220 VAC) en la tensión continua que necesitan la CPU y
+los módulos, normalmente **24 VDC**. En algunos equipos viene integrada; en otros es un módulo separado o
+una fuente externa montada en el mismo tablero.
+
+### CPU
+
+Es el procesador del PLC. Ejecuta el programa, administra la memoria, atiende las comunicaciones y
+vigila su propio funcionamiento. En su frente suele tener indicadores de estado como **RUN** (ejecutando),
+**STOP** (detenido) y **ERROR**, y a veces un selector físico de modo.
+
+### Memoria
+
+Se divide, a grandes rasgos, en dos zonas:
+
+- **Memoria de programa**: guarda las instrucciones que escribiste. No se borra al cortar la energía.
+- **Memoria de datos**: guarda el estado de las entradas y salidas, las marcas internas, los temporizadores,
+  los contadores y otras variables. Una parte puede configurarse como **remanente** (conserva su valor
+  al perder la energía) y el resto vuelve a cero al reiniciar.
+
+Profundizaremos en esto en el tema de memoria y direccionamiento.
+
+### Módulos de entradas y salidas
+
+Son la interfaz entre el mundo eléctrico del tablero y el mundo digital de la CPU. Adaptan las señales
+(por ejemplo, de 24 VDC a niveles lógicos) y las **aíslan eléctricamente**, normalmente con optoacopladores,
+para que un pico de tensión en terreno no dañe la CPU. Cada canal suele tener un LED que muestra su estado:
+es la primera herramienta de diagnóstico de un técnico.
+
+### Comunicaciones
+
+Todo PLC tiene al menos un puerto para conectarse al computador de programación. La mayoría suma puertos
+de red para comunicarse con pantallas HMI, otros PLC, variadores o sistemas de supervisión.
+
+## El ciclo de scan
+
+Un PLC no ejecuta su programa una sola vez: lo ejecuta **en un bucle infinito**. Cada vuelta del bucle se
+llama **ciclo de scan** (o simplemente _scan_) y tiene cuatro fases:
+
+1. **Leer entradas**: copia el estado de todas las entradas físicas en una zona de memoria llamada
+   _imagen de proceso de entradas_.
+2. **Ejecutar el programa**: recorre el programa de arriba hacia abajo usando esa imagen y deja los
+   resultados en la _imagen de proceso de salidas_.
+3. **Escribir salidas**: copia la imagen de salidas a las salidas físicas.
+4. **Diagnóstico y comunicación**: atiende comunicaciones, revisa su estado y vuelve a empezar.
+
+Pruébalo tú mismo: pausa el diagrama, acciona el interruptor en distintas fases y observa cuándo el cambio
+llega realmente a la salida.
+
+<ScanCycle />
+
+### ¿Para qué sirve la imagen de proceso?
+
+Copiar las entradas al inicio tiene una ventaja muy importante: **durante todo el ciclo, el programa ve
+las entradas congeladas**. Si un sensor cambia justo mientras el programa se ejecuta, el cambio no afecta
+a la mitad del programa sí y a la otra mitad no. Todo el programa trabaja con la misma “fotografía”.
+
+<Callout type="warning">
+  La otra cara de la moneda: si una señal dura **menos que un ciclo de scan**, el PLC podría no
+  verla nunca. Para pulsos muy rápidos (por ejemplo, un encoder) se usan entradas rápidas,
+  contadores de alta velocidad o interrupciones, que funcionan fuera del ciclo normal.
+</Callout>
+
+### Tiempo de ciclo
+
+El tiempo que tarda una vuelta completa se llama **tiempo de ciclo**. Depende de la CPU y del tamaño del
+programa, y suele ir desde menos de un milisegundo hasta algunas decenas de milisegundos. Para una máquina
+con botones, sensores y motores, eso es prácticamente instantáneo.
+
+La CPU vigila este tiempo con un **watchdog** (perro guardián). Si un ciclo tarda más que el máximo
+configurado —por ejemplo, porque el programa quedó atrapado en un bucle—, el PLC se detiene y pasa a STOP
+en vez de seguir controlando la máquina con información vieja.
+
+### El orden importa
+
+Como el programa se ejecuta de arriba hacia abajo, **el orden de las instrucciones cambia el resultado**.
+Un caso clásico: si dos peldaños distintos escriben la misma salida, la que queda al final del ciclo es
+la del **último** peldaño.
+
+```
+Peldaño 1:   I0.0 ──┤ ├─────────( Q0.0 )
+Peldaño 2:   I0.1 ──┤ ├─────────( Q0.0 )   ← este decide el valor final de Q0.0
+```
+
+<Callout type="industry">
+  Escribir la misma salida en dos lugares (“bobina duplicada”) es uno de los errores más comunes al
+  modificar programas en terreno. La máquina parece ignorar la primera condición y cuesta mucho
+  encontrar por qué. Los buenos editores lo advierten, y el simulador de esta plataforma también lo
+  hará.
+</Callout>
+
+## Modos de operación
+
+- **RUN**: el PLC ejecuta el ciclo de scan y controla las salidas.
+- **STOP**: el programa no se ejecuta y las salidas pasan a un estado seguro, normalmente apagadas (en
+  muchos equipos este estado se puede configurar).
+
+Muchos PLC permiten además **monitorear en línea**: ver desde el computador, en tiempo real, qué contactos
+están cerrados y qué valores tienen los temporizadores. Algunos también aceptan cambios del programa sin
+detener la máquina, algo que se usa con mucho cuidado.
+
+## Qué ocurre al energizar el PLC
+
+Al encender, la CPU realiza un autodiagnóstico, verifica los módulos conectados, restaura las variables
+remanentes y pone en cero el resto. Si el selector está en RUN, comienza el primer ciclo de scan. Muchos
+PLC ofrecen además un bit o bloque especial que solo está activo en ese **primer ciclo**, útil para
+inicializar valores.
+
+<TrySimulator example="scan-cycle" />
+
+## Resumen
+
+- Un PLC tiene fuente de poder, CPU, memoria, módulos de E/S y puertos de comunicación.
+- Funciona en un bucle: **leer entradas → ejecutar programa → escribir salidas → diagnóstico**.
+- La imagen de proceso congela las entradas durante el ciclo; por eso el orden de las instrucciones importa.
+- Un watchdog detiene el PLC si un ciclo tarda demasiado.

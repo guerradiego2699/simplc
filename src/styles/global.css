@@ -28,6 +28,7 @@
   --color-wire-off: var(--wire-off);
   --color-wire-on: var(--wire-on);
   --color-led-on: var(--led-on);
+  --color-on-led: var(--on-led);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
   --color-on-danger: var(--on-danger);

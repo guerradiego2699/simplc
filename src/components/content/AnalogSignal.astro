@@ -1,0 +1,9 @@
+---
+/** MDX wrapper: <AnalogSignal /> hydrates the 4–20 mA / 0–10 V demo when visible. */
+import AnalogSignalDemo from './widgets/AnalogSignalDemo';
+import { getDictionary, localeFromUrl } from '@/i18n';
+
+const strings = getDictionary(localeFromUrl(Astro.url)).widgets.analog;
+---
+
+<AnalogSignalDemo client:visible strings={strings} />

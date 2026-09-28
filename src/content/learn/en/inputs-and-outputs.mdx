@@ -1,0 +1,169 @@
+---
+title: Inputs and outputs
+description: Digital and analog signals, PNP and NPN sensors, output types, actuators and why the emergency stop is wired normally closed.
+example: motor-start-stop
+updated: 2026-09-28
+---
+
+## What inputs and outputs are
+
+- An **input** carries information from the field to the PLC: a pressed button, a sensor detecting a part,
+  the temperature of an oven.
+- An **output** carries an order from the PLC to the field: start a motor, open a valve, turn on a beacon.
+
+Each input and output has an **address** that identifies it in the program. On this platform we use a
+generic style by default: `I0.0` is the first digital input and `Q0.0` the first digital output. Each brand
+names its addresses its own way; we will see this in the memory and addressing topic.
+
+## Digital and analog
+
+### Digital signals
+
+They have only **two states**: 0 or 1, off or on. They are the most common: push buttons, selector
+switches, limit switches, proximity sensors, auxiliary contacts.
+
+The most common voltage is **24 VDC**, although 110 or 230 VAC inputs also exist. The module decides what
+is a 0 and what is a 1 using thresholds defined in the IEC 61131-2 standard. For example, a typical 24 VDC
+input reads **1** from about 15 V (11 V for type 3 inputs) and **0** below 5 V. Between those values the
+state is not guaranteed, so a loose connection can cause erratic readings.
+
+### Analog signals
+
+They represent a **continuous** value: level, pressure, temperature, speed. The most common are:
+
+- **Voltage**: 0–10 V (also ±10 V).
+- **Current**: 4–20 mA (also 0–20 mA).
+- **Temperature sensors** wired directly to special modules (RTDs such as Pt100, or thermocouples).
+
+The analog module turns the signal into an **integer** using an analog-to-digital converter. The program
+then **scales** it to engineering units: for example, from 0–27648 to 0–100 % level. The range of that
+integer depends on the module and the manufacturer.
+
+### Why 4–20 mA and not 0–20 mA?
+
+The 4–20 mA current signal is the standard in industrial instrumentation for three reasons:
+
+1. **Current is not lost along the cable**: in a series loop, the current is the same everywhere, even if
+   the cable is hundreds of metres long.
+2. **It is more immune to electrical noise** than a voltage signal.
+3. **It has a “live zero”**: 0 % of the range is 4 mA, not 0 mA. If the PLC measures 0 mA, it knows
+   something is wrong: a broken wire or an unpowered instrument. Following the NAMUR NE 43 recommendation,
+   values below 3.6 mA or above 21 mA indicate a fault.
+
+Move the level and then simulate a broken wire. Compare what the PLC sees with each signal type:
+
+<AnalogSignal />
+
+<Callout type="industry">
+  Most process transmitters (pressure, level, flow, temperature) output 4–20 mA, and many are
+  **two-wire** devices: they are powered by the same current loop they use to send the measurement.
+</Callout>
+
+## PNP and NPN sensors
+
+Inductive, capacitive and photoelectric proximity sensors are usually **three-wire** devices: two wires for
+power and one for the signal. According to IEC 60947-5-2, the colours are:
+
+- **Brown (BN)**: +24 V
+- **Blue (BU)**: 0 V
+- **Black (BK)**: output or signal
+
+The sensor's output is a transistor, and here is the key difference:
+
+- A **PNP** sensor connects the signal wire to **+24 V** when it detects. It supplies current (_sourcing_).
+- An **NPN** sensor connects the signal wire to **0 V** when it detects. It sinks current (_sinking_).
+
+### Sinking and sourcing: how to wire the common
+
+For current to flow, the PLC input has to “close the circuit” on the other side. That is set by the input
+group's **common (COM)**:
+
+| Sensor | Signal goes to… | Module common | Input type |
+| ------ | --------------- | ------------- | ---------- |
+| PNP    | +24 V           | 0 V           | Sinking    |
+| NPN    | 0 V             | +24 V         | Sourcing   |
+
+Change the sensor type, put an object in front of it and follow the current:
+
+<SensorWiring />
+
+<Callout type="warning">
+  Do not mix PNP and NPN sensors in the same input group: all inputs in a group share one common,
+  and that common decides whether the group works as sinking or sourcing.
+</Callout>
+
+<Callout type="tip">
+  PNP is the most common in European equipment and across most of Latin America; NPN is frequent in
+  machinery of Asian origin. When replacing a sensor, check its label for **PNP or NPN** and whether
+  its output is **NO or NC**: a sensor of the wrong type will not work, or will work backwards.
+</Callout>
+
+## Types of digital outputs
+
+Digital outputs are built with three different technologies, and choosing the right one avoids a lot of
+trouble:
+
+| Type       | Load type | Switching speed     | Service life                | When to use it                               |
+| ---------- | --------- | ------------------- | --------------------------- | -------------------------------------------- |
+| Relay      | AC or DC  | Slow (milliseconds) | Limited by contact wear     | Mixed loads, isolation, infrequent switching |
+| Transistor | DC only   | Very fast           | Very long (no moving parts) | Frequent switching, pulses, 24 VDC loads     |
+| Triac      | AC only   | Fast                | Long                        | AC loads that switch often                   |
+
+Like sensors, transistor outputs can be **sourcing** (they supply +24 V) or **sinking** (they switch to 0 V).
+
+Each output also has a **maximum current** per point and per group. Large loads, such as a motor, are never
+connected directly: they are driven through a **contactor** or an interposing relay.
+
+<Callout type="note">
+  Coils (of contactors, relays or valves) produce a voltage spike when switched off. Outputs are
+  protected with diodes on DC loads and RC snubbers or varistors on AC loads.
+</Callout>
+
+## Typical actuators
+
+- **Contactors**: the PLC energises the coil and the contactor switches the motor's power.
+- **Solenoid valves**: control the air or oil of pneumatic and hydraulic cylinders.
+- **Pilot lights and beacons**: show states and alarms.
+- **Variable frequency drives**: control a motor's speed. The PLC gives them the run command (digital),
+  the speed (analog) or both over a communication network.
+- **Interposing relays**: adapt a PLC output to another voltage or a bigger load.
+
+## Normally open and normally closed buttons
+
+- A **normally open (NO)** contact closes when the button is pressed. Used for **start**.
+- A **normally closed (NC)** contact opens when the button is pressed. Used for **stop**.
+
+### Why is the stop button wired NC?
+
+For fail-safe behaviour. Imagine the stop button's wire breaks:
+
+- If the stop were **NO**, the machine would keep running and **could no longer be stopped** with that
+  button. Nobody would notice until they needed it.
+- With an **NC** stop, a broken wire looks exactly like a pressed button: the input drops to 0 and the
+  machine **stops**. The fault becomes obvious immediately.
+
+This has a consequence in the program that confuses many beginners. With an NC stop button, the input is
+**1 when nobody touches it**, so in Ladder it is examined with an **NO** contact: the contact conducts while
+the input is 1 and opens when someone presses the button or the wire breaks.
+
+| Physical button | Input at rest | Input when pressed | Contact in the program |
+| --------------- | ------------- | ------------------ | ---------------------- |
+| Start (NO)      | 0             | 1                  | NO `┤ ├`               |
+| Stop (NC)       | 1             | 0                  | NO `┤ ├`               |
+
+<Callout type="safety">
+  The **emergency stop** (red mushroom head on a yellow background, which latches when pressed) uses
+  positive-opening NC contacts and is governed by standards such as ISO 13850 and IEC 60204-1. It
+  must act through a safety circuit —a safety relay or safety PLC— that removes power from the
+  actuators, **not just** as one more input of a standard PLC.
+</Callout>
+
+<TrySimulator example="motor-start-stop" />
+
+## Summary
+
+- **Digital** signals have two states; **analog** signals represent a continuous value.
+- 4–20 mA is the instrumentation standard because it resists noise and reveals a broken wire.
+- A **PNP** sensor outputs +24 V and needs the common at 0 V; an **NPN** outputs 0 V and needs the common at +24 V.
+- **Relay** outputs for mixed loads, **transistor** for fast DC, **triac** for AC.
+- The stop button is wired **NC** so that a broken wire stops the machine.

@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
 import tailwindcss from '@tailwindcss/vite';
 
@@ -17,7 +18,9 @@ export default defineConfig({
       redirectToDefaultLocale: false,
     },
   },
-  integrations: [react()],
+  // Code blocks in Learn pages are ASCII diagrams; themed highlighting arrives with ST (Phase 11).
+  markdown: { syntaxHighlight: false },
+  integrations: [react(), mdx()],
   vite: {
     plugins: [tailwindcss()],
   },

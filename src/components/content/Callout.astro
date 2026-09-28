@@ -1,0 +1,60 @@
+---
+/**
+ * Highlighted box for MDX content.
+ * <Callout type="industry">…</Callout> — types: industry | tip | note | warning | safety
+ */
+import Factory from '@lucide/astro/icons/factory';
+import Lightbulb from '@lucide/astro/icons/lightbulb';
+import Info from '@lucide/astro/icons/info';
+import TriangleAlert from '@lucide/astro/icons/triangle-alert';
+import ShieldAlert from '@lucide/astro/icons/shield-alert';
+import { getTranslator, localeFromUrl } from '@/i18n';
+
+type CalloutType = 'industry' | 'tip' | 'note' | 'warning' | 'safety';
+
+interface Props {
+  type?: CalloutType;
+  /** Optional title; defaults to the translated type name. */
+  title?: string;
+}
+
+const { type = 'note', title } = Astro.props;
+const t = getTranslator(localeFromUrl(Astro.url));
+
+const variants = {
+  industry: { Icon: Factory, tone: 'border-primary text-primary' },
+  tip: { Icon: Lightbulb, tone: 'border-primary text-primary' },
+  note: { Icon: Info, tone: 'border-text-muted text-text-muted' },
+  warning: { Icon: TriangleAlert, tone: 'border-warning text-warning' },
+  safety: { Icon: ShieldAlert, tone: 'border-danger text-danger' },
+} as const;
+
+const { Icon, tone } = variants[type];
+---
+
+<aside class:list={['callout not-prose my-7 rounded-r-lg border-l-4 bg-surface px-5 py-4', tone]}>
+  <p class="flex items-center gap-2 text-sm font-semibold">
+    <Icon size={16} aria-hidden="true" />
+    {title ?? t(`learn.callout.${type}`)}
+  </p>
+  <div class="callout-body mt-2 text-[0.95rem] leading-relaxed text-text">
+    <slot />
+  </div>
+</aside>
+
+<style>
+  .callout-body :global(p) {
+    margin: 0.5rem 0 0;
+  }
+  .callout-body :global(p:first-child) {
+    margin-top: 0;
+  }
+  .callout-body :global(strong) {
+    font-weight: 600;
+  }
+  .callout-body :global(ul) {
+    margin: 0.5rem 0 0;
+    padding-left: 1.25rem;
+    list-style: disc;
+  }
+</style>

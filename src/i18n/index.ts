@@ -69,3 +69,15 @@ export function pickLocale(preferred: readonly string[]): Locale {
   }
   return defaultLocale;
 }
+
+/** Locale of the page being rendered, from its URL (used by components inside MDX). */
+export function localeFromUrl(url: URL): Locale {
+  return parsePath(url.pathname).locale ?? defaultLocale;
+}
+
+/** Replaces {name} placeholders: format('{n} min', { n: 5 }) → '5 min'. */
+export function format(template: string, values: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (match, key: string) =>
+    key in values ? String(values[key]) : match,
+  );
+}

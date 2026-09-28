@@ -46,7 +46,7 @@
       "explore": "Explorar",
       "fundamentals": {
         "title": "Fundamentos",
-        "description": "Qué es un PLC, cómo funciona el ciclo de scan y cómo se organiza su memoria."
+        "description": "Qué es un PLC, cómo funciona por dentro, el ciclo de scan y los tipos que existen."
       },
       "hardware": {
         "title": "Hardware y conexiones",
@@ -92,5 +92,121 @@
     "title": "Página no encontrada",
     "body": "La página que buscas no existe o fue movida.",
     "back": "Volver al inicio"
+  },
+  "learn": {
+    "indexTitle": "Aprende PLC paso a paso",
+    "indexDescription": "Curso gratuito de PLC desde cero: qué es un PLC, cómo funciona el ciclo de scan, tipos de PLC, entradas y salidas, sensores PNP y NPN, y más.",
+    "intro": "Un recorrido ordenado desde qué es un PLC hasta las buenas prácticas de la industria. Cada tema incluye diagramas interactivos y, cuando corresponde, un ejemplo para probar en el simulador.",
+    "groups": {
+      "fundamentals": {
+        "title": "Fundamentos",
+        "description": "Qué es un PLC, cómo trabaja por dentro y qué tipos existen."
+      },
+      "hardware": {
+        "title": "Hardware y conexiones",
+        "description": "Entradas, salidas, cableado y comunicaciones."
+      },
+      "programming": {
+        "title": "Programación",
+        "description": "Memoria, lenguajes, instrucciones y buenas prácticas."
+      }
+    },
+    "comingSoon": "Próximamente",
+    "readingTime": "{n} min de lectura",
+    "onThisPage": "En esta página",
+    "courseContents": "Contenido del curso",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "fallbackNotice": "Esta página aún no está traducida a tu idioma; se muestra la versión en español.",
+    "reviewed": "Revisado: {date}",
+    "upcoming": {
+      "wiring": "Conexiones y cableado",
+      "ports-and-communications": "Puertos y comunicaciones",
+      "memory-and-addressing": "Memoria y direccionamiento",
+      "iec-61131-3-languages": "Lenguajes IEC 61131-3",
+      "basic-instructions": "Instrucciones fundamentales",
+      "best-practices": "Buenas prácticas reales"
+    },
+    "callout": {
+      "industry": "En la industria",
+      "tip": "Consejo",
+      "note": "Nota",
+      "warning": "Atención",
+      "safety": "Seguridad"
+    },
+    "trySimulator": {
+      "title": "Probar en el simulador",
+      "body": "Abre un ejemplo precargado y experimenta tú mismo."
+    }
+  },
+  "widgets": {
+    "scan": {
+      "label": "Diagrama interactivo del ciclo de scan",
+      "play": "Reproducir",
+      "pause": "Pausar",
+      "step": "Siguiente fase",
+      "cycle": "Ciclo",
+      "phases": {
+        "read": {
+          "name": "Leer entradas",
+          "description": "El PLC copia el estado de todas las entradas físicas en la imagen de entradas. Desde aquí hasta el próximo ciclo, el programa trabaja con esa copia."
+        },
+        "execute": {
+          "name": "Ejecutar programa",
+          "description": "Se ejecuta el programa de arriba hacia abajo usando la imagen de entradas. Los resultados se escriben en la imagen de salidas, no todavía en los bornes."
+        },
+        "write": {
+          "name": "Escribir salidas",
+          "description": "La imagen de salidas se copia a las salidas físicas: recién ahora se enciende o apaga la ampolleta."
+        },
+        "housekeeping": {
+          "name": "Diagnóstico y comunicación",
+          "description": "El PLC atiende comunicaciones (HMI, programador), revisa su estado y reinicia el vigilante de tiempo de ciclo (watchdog). Luego vuelve a empezar."
+        }
+      },
+      "physicalInput": "Entrada física",
+      "inputImage": "Imagen de entradas",
+      "program": "Programa",
+      "outputImage": "Imagen de salidas",
+      "physicalOutput": "Salida física",
+      "toggleInput": "Accionar interruptor",
+      "hint": "Cambia el interruptor en cualquier momento: el PLC solo lo notará en la próxima fase «Leer entradas»."
+    },
+    "sensor": {
+      "label": "Diagrama de cableado de un sensor de tres hilos a una entrada del PLC",
+      "sensorType": "Tipo de sensor",
+      "object": "Objeto frente al sensor",
+      "supply": "Fuente 24 VDC",
+      "sensor": "Sensor",
+      "inputModule": "Módulo de entradas",
+      "legend": "BN = café (+24 V) · BU = azul (0 V) · BK = negro (señal)",
+      "pnpCom": "COM a 0 V: entrada tipo sink (sumidero).",
+      "npnCom": "COM a +24 V: entrada tipo source (fuente).",
+      "pnpOn": "El sensor PNP conecta el cable negro a +24 V. La corriente entra al PLC por I0.0 y vuelve a 0 V por el común.",
+      "npnOn": "El sensor NPN conecta el cable negro a 0 V. La corriente entra al PLC por el común desde +24 V, sale por I0.0 y llega al sensor.",
+      "off": "Sin objeto, el interruptor interno del sensor está abierto: no circula corriente por la entrada y el PLC lee 0."
+    },
+    "analog": {
+      "label": "Simulador de señal analógica de nivel",
+      "level": "Nivel del estanque",
+      "current": "Señal 4–20 mA",
+      "voltage": "Señal 0–10 V",
+      "wireBreak": "Simular cable cortado",
+      "ok": "Señal válida",
+      "currentFault": "0 mA está fuera del rango 4–20 mA: el PLC detecta la falla.",
+      "voltageFault": "0 V parece un estanque vacío: la falla pasa inadvertida."
+    },
+    "plcBlock": {
+      "label": "Diagrama de bloques de un PLC",
+      "sensors": "Sensores y botones",
+      "inputs": "Módulo de entradas",
+      "cpu": "CPU",
+      "program": "Memoria de programa",
+      "data": "Memoria de datos",
+      "outputs": "Módulo de salidas",
+      "actuators": "Actuadores",
+      "psu": "Fuente de poder",
+      "comms": "Comunicaciones: PC, HMI, red"
+    }
   }
 }

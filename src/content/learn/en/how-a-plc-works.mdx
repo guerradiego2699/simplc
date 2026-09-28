@@ -1,0 +1,129 @@
+---
+title: How a PLC works inside
+description: The parts of a PLC —power supply, CPU, memory and I/O modules— and the scan cycle it repeats endlessly.
+example: scan-cycle
+updated: 2026-09-28
+---
+
+## The main parts
+
+From the outside, a PLC can be a single box or several modules mounted on a rail. On the inside, they all
+follow the same scheme:
+
+<PlcBlockDiagram />
+
+### Power supply
+
+Converts mains power (for example, 230 VAC) into the DC voltage the CPU and modules need, usually
+**24 VDC**. Some units have it built in; in others it is a separate module or an external supply mounted
+in the same panel.
+
+### CPU
+
+The PLC's processor. It runs the program, manages memory, handles communications and monitors its own
+operation. Its front usually shows status indicators such as **RUN**, **STOP** and **ERROR**, and
+sometimes a physical mode switch.
+
+### Memory
+
+Broadly speaking, it has two areas:
+
+- **Program memory**: stores the instructions you wrote. It is not erased when power is lost.
+- **Data memory**: stores the state of inputs and outputs, internal bits, timers, counters and other
+  variables. Part of it can be configured as **retentive** (it keeps its value through a power loss) and
+  the rest is reset on restart.
+
+We will go deeper into this in the memory and addressing topic.
+
+### Input and output modules
+
+They are the interface between the electrical world of the panel and the digital world of the CPU. They
+adapt signals (for example, from 24 VDC to logic levels) and **electrically isolate** them, usually with
+optocouplers, so that a voltage spike in the field does not damage the CPU. Each channel usually has an LED
+showing its state: a technician's first diagnostic tool.
+
+### Communications
+
+Every PLC has at least one port to connect to the programming computer. Most add network ports to talk to
+HMI panels, other PLCs, drives or supervisory systems.
+
+## The scan cycle
+
+A PLC does not run its program just once: it runs it **in an endless loop**. Each pass is called a
+**scan cycle** (or simply a _scan_) and has four phases:
+
+1. **Read inputs**: copies the state of every physical input into a memory area called the
+   _process image of inputs_.
+2. **Execute the program**: runs the program from top to bottom using that image and leaves the results
+   in the _process image of outputs_.
+3. **Write outputs**: copies the output image to the physical outputs.
+4. **Diagnostics and communication**: serves communications, checks its health and starts again.
+
+Try it yourself: pause the diagram, flip the switch in different phases and watch when the change actually
+reaches the output.
+
+<ScanCycle />
+
+### What is the process image for?
+
+Copying the inputs at the start has a very important advantage: **during the whole cycle, the program sees
+frozen inputs**. If a sensor changes right while the program is running, the change does not affect half of
+the program and not the other half. The whole program works with the same “snapshot”.
+
+<Callout type="warning">
+  The flip side: if a signal lasts **less than one scan cycle**, the PLC might never see it. For
+  very fast pulses (an encoder, for example) there are fast inputs, high-speed counters or
+  interrupts that work outside the normal cycle.
+</Callout>
+
+### Cycle time
+
+The time a full pass takes is called the **cycle time** (or scan time). It depends on the CPU and the size
+of the program, and typically ranges from under a millisecond to a few tens of milliseconds. For a machine
+with buttons, sensors and motors, that is practically instantaneous.
+
+The CPU monitors this time with a **watchdog**. If a cycle takes longer than the configured maximum —for
+example, because the program got stuck in a loop— the PLC stops and goes to STOP rather than keep
+controlling the machine with stale information.
+
+### Order matters
+
+Because the program runs from top to bottom, **the order of instructions changes the result**. A classic
+case: if two different rungs write the same output, the value left at the end of the cycle is the one from
+the **last** rung.
+
+```
+Rung 1:   I0.0 ──┤ ├─────────( Q0.0 )
+Rung 2:   I0.1 ──┤ ├─────────( Q0.0 )   ← this one decides the final value of Q0.0
+```
+
+<Callout type="industry">
+  Writing the same output in two places (a “duplicate coil”) is one of the most common mistakes when
+  modifying programs in the field. The machine seems to ignore the first condition and it is hard to
+  find out why. Good editors warn about it, and this platform's simulator will too.
+</Callout>
+
+## Operating modes
+
+- **RUN**: the PLC executes the scan cycle and controls the outputs.
+- **STOP**: the program is not executed and outputs go to a safe state, usually off (on many devices this
+  state can be configured).
+
+Many PLCs also allow **online monitoring**: seeing from the computer, in real time, which contacts are
+closed and what values the timers hold. Some even accept program changes without stopping the machine,
+something that is used with great care.
+
+## What happens at power-up
+
+When powered on, the CPU runs a self-test, checks the connected modules, restores retentive variables and
+resets the rest. If the mode switch is in RUN, the first scan cycle begins. Many PLCs also provide a special
+bit or block that is only active during that **first scan**, handy for initialising values.
+
+<TrySimulator example="scan-cycle" />
+
+## Summary
+
+- A PLC has a power supply, CPU, memory, I/O modules and communication ports.
+- It works in a loop: **read inputs → execute program → write outputs → diagnostics**.
+- The process image freezes inputs during the cycle; that is why instruction order matters.
+- A watchdog stops the PLC if a cycle takes too long.

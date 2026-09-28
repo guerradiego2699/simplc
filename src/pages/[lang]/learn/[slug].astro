@@ -1,0 +1,55 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { render } from 'astro:content';
+import DocsLayout from '@/layouts/DocsLayout.astro';
+import { mdxComponents } from '@/components/content/mdx-components';
+import { getTranslator, locales, localizePath } from '@/i18n';
+import { getLearnPages, type LearnPage } from '@/lib/learn';
+import type { Locale } from '@/config/site';
+
+export const getStaticPaths = (async () => {
+  const paths = await Promise.all(
+    locales.map(async (lang) => {
+      const pages = await getLearnPages(lang);
+      return pages.map((page, i) => ({
+        params: { lang, slug: page.slug },
+        props: { page, pages, prev: pages[i - 1], next: pages[i + 1] },
+      }));
+    }),
+  );
+  return paths.flat();
+}) satisfies GetStaticPaths;
+
+interface Props {
+  page: LearnPage;
+  pages: LearnPage[];
+  prev: LearnPage | undefined;
+  next: LearnPage | undefined;
+}
+
+const locale = Astro.params.lang as Locale;
+const { page, pages, prev, next } = Astro.props;
+const t = getTranslator(locale);
+const { Content, headings } = await render(page.entry);
+
+const link = (p: LearnPage | undefined) =>
+  p && { href: localizePath(locale, `/learn/${p.slug}`), title: p.entry.data.title };
+---
+
+<DocsLayout
+  locale={locale}
+  title={page.entry.data.title}
+  description={page.entry.data.description}
+  path={`/learn/${page.slug}`}
+  groupTitle={t(`learn.groups.${page.group}.title`)}
+  minutes={page.minutes}
+  reviewed={page.entry.data.updated}
+  headings={headings}
+  pages={pages}
+  currentSlug={page.slug}
+  isFallback={page.isFallback}
+  prev={link(prev)}
+  next={link(next)}
+>
+  <Content components={mdxComponents} />
+</DocsLayout>

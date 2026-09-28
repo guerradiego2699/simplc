@@ -1,0 +1,86 @@
+---
+import type { GetStaticPaths } from 'astro';
+import ArrowRight from '@lucide/astro/icons/arrow-right';
+import Clock from '@lucide/astro/icons/clock';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { LEARN_GROUPS } from '@/config/learn';
+import { format, getTranslator, locales, localizePath, type TranslationKey } from '@/i18n';
+import { getLearnTopics } from '@/lib/learn';
+import type { Locale } from '@/config/site';
+
+export const getStaticPaths = (() =>
+  locales.map((lang) => ({ params: { lang } }))) satisfies GetStaticPaths;
+
+const locale = Astro.params.lang as Locale;
+const t = getTranslator(locale);
+const topics = await getLearnTopics(locale);
+---
+
+<BaseLayout
+  locale={locale}
+  title={t('learn.indexTitle')}
+  description={t('learn.indexDescription')}
+  path="/learn"
+>
+  <div class="mx-auto max-w-4xl px-4 py-14 sm:px-6 lg:py-20">
+    <h1 class="text-3xl font-semibold tracking-tight text-text sm:text-4xl">
+      {t('learn.indexTitle')}
+    </h1>
+    <p class="mt-4 max-w-2xl text-lg text-text-muted">{t('learn.intro')}</p>
+
+    {LEARN_GROUPS.map((group) => (
+      <section id={group} class="mt-14 scroll-mt-24">
+        <h2 class="text-xl font-semibold text-text">{t(`learn.groups.${group}.title`)}</h2>
+        <p class="mt-1 text-sm text-text-muted">{t(`learn.groups.${group}.description`)}</p>
+        <ol class="mt-5 divide-y divide-border rounded-lg border border-border">
+          {topics
+            .map((topic, index) => ({ topic, number: index + 1 }))
+            .filter(({ topic }) => topic.group === group)
+            .map(({ topic, number }) => (
+              <li>
+                {topic.page ? (
+                  <a
+                    href={localizePath(locale, `/learn/${topic.slug}`)}
+                    class="group flex items-start gap-4 p-5 no-underline transition-colors hover:bg-surface"
+                  >
+                    <span class="mt-0.5 font-mono text-sm font-semibold text-primary">
+                      {String(number).padStart(2, '0')}
+                    </span>
+                    <span class="flex-1">
+                      <span class="block font-semibold text-text group-hover:text-primary">
+                        {topic.page.entry.data.title}
+                      </span>
+                      <span class="mt-1 block text-sm text-text-muted">
+                        {topic.page.entry.data.description}
+                      </span>
+                      <span class="mt-2 inline-flex items-center gap-1.5 text-xs text-text-muted">
+                        <Clock size={12} aria-hidden="true" />
+                        {format(t('learn.readingTime'), { n: topic.page.minutes })}
+                      </span>
+                    </span>
+                    <ArrowRight
+                      size={18}
+                      aria-hidden="true"
+                      class="mt-1 text-text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
+                    />
+                  </a>
+                ) : (
+                  <div class="flex items-start gap-4 p-5">
+                    <span class="mt-0.5 font-mono text-sm text-text-muted">
+                      {String(number).padStart(2, '0')}
+                    </span>
+                    <span class="flex-1 text-text-muted">
+                      {t(`learn.upcoming.${topic.slug}` as TranslationKey)}
+                    </span>
+                    <span class="rounded-full border border-border px-2 py-0.5 text-xs text-text-muted">
+                      {t('learn.comingSoon')}
+                    </span>
+                  </div>
+                )}
+              </li>
+            ))}
+        </ol>
+      </section>
+    ))}
+  </div>
+</BaseLayout>

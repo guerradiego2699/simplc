@@ -1,0 +1,173 @@
+---
+title: Entradas y salidas
+description: Señales digitales y analógicas, sensores PNP y NPN, tipos de salidas, actuadores y por qué el paro de emergencia se cablea normalmente cerrado.
+example: motor-start-stop
+updated: 2026-09-28
+---
+
+## Qué son las entradas y salidas
+
+- Una **entrada** lleva información desde terreno hacia el PLC: un botón presionado, un sensor que detecta
+  una pieza, la temperatura de un horno.
+- Una **salida** lleva una orden desde el PLC hacia terreno: encender un motor, abrir una válvula,
+  prender una baliza.
+
+Cada entrada y salida tiene una **dirección** que la identifica en el programa. En esta plataforma usamos
+por defecto un estilo genérico: `I0.0` es la primera entrada digital y `Q0.0` la primera salida digital.
+Cada marca nombra sus direcciones a su manera; lo veremos en el tema de memoria y direccionamiento.
+
+## Digitales y analógicas
+
+### Señales digitales
+
+Tienen solo **dos estados**: 0 o 1, apagado o encendido. Son las más comunes: botones, selectores,
+finales de carrera, sensores de proximidad, contactos auxiliares.
+
+La tensión más usada es **24 VDC**, aunque también existen entradas de 110 o 220 VAC. El módulo decide
+qué es un 0 y qué es un 1 según umbrales definidos en la norma IEC 61131-2. Por ejemplo, en una entrada
+típica de 24 VDC se considera **1** a partir de unos 15 V (11 V en las entradas de tipo 3) y **0** por
+debajo de 5 V. Entre ambos valores el estado no está garantizado, así que un cable con mala conexión
+puede dar lecturas erráticas.
+
+### Señales analógicas
+
+Representan un valor **continuo**: nivel, presión, temperatura, velocidad. Las más comunes son:
+
+- **Tensión**: 0–10 V (también ±10 V).
+- **Corriente**: 4–20 mA (también 0–20 mA).
+- **Sensores de temperatura** conectados directamente a módulos especiales (RTD como Pt100, o termocuplas).
+
+El módulo analógico convierte la señal en un **número entero** mediante un conversor analógico-digital.
+El programa luego lo **escala** a unidades de ingeniería: por ejemplo, de 0–27648 a 0–100 % de nivel. El
+rango del número depende del módulo y del fabricante.
+
+### ¿Por qué 4–20 mA y no 0–20 mA?
+
+La señal de corriente de 4–20 mA es el estándar de la instrumentación industrial por tres razones:
+
+1. **La corriente no se pierde en el cable**: en un lazo en serie, la corriente es la misma en todo el
+   circuito, aunque el cable mida cientos de metros.
+2. **Es más inmune al ruido eléctrico** que una señal de tensión.
+3. **Tiene un “cero vivo”**: el 0 % del rango son 4 mA, no 0 mA. Si el PLC mide 0 mA, sabe que algo está
+   mal: un cable cortado o un instrumento sin energía. Según la recomendación NAMUR NE 43, valores por
+   debajo de 3,6 mA o por encima de 21 mA indican falla.
+
+Mueve el nivel y luego simula un cable cortado. Compara lo que ve el PLC con cada tipo de señal:
+
+<AnalogSignal />
+
+<Callout type="industry">
+  La mayoría de los transmisores de proceso (presión, nivel, flujo, temperatura) entregan 4–20 mA, y
+  muchos son de **dos hilos**: se alimentan del mismo lazo de corriente por el que envían la
+  medición.
+</Callout>
+
+## Sensores PNP y NPN
+
+Los sensores de proximidad inductivos, capacitivos y fotoeléctricos suelen ser de **tres hilos**:
+dos para su alimentación y uno para la señal. Según la norma IEC 60947-5-2, los colores son:
+
+- **Café (BN)**: +24 V
+- **Azul (BU)**: 0 V
+- **Negro (BK)**: salida o señal
+
+La salida del sensor es un transistor, y aquí aparece la diferencia clave:
+
+- Un sensor **PNP** conecta el cable de señal a **+24 V** cuando detecta. Entrega corriente (_sourcing_).
+- Un sensor **NPN** conecta el cable de señal a **0 V** cuando detecta. Absorbe corriente (_sinking_).
+
+### Sink y source: cómo cablear el común
+
+Para que circule corriente, la entrada del PLC tiene que “cerrar el circuito” por el otro lado. Eso lo
+define el **común (COM)** del grupo de entradas:
+
+| Sensor | La señal va a… | Común del módulo | Tipo de entrada |
+| ------ | -------------- | ---------------- | --------------- |
+| PNP    | +24 V          | 0 V              | Sink (sumidero) |
+| NPN    | 0 V            | +24 V            | Source (fuente) |
+
+Cambia el tipo de sensor, pon un objeto frente a él y sigue el recorrido de la corriente:
+
+<SensorWiring />
+
+<Callout type="warning">
+  No mezcles sensores PNP y NPN en el mismo grupo de entradas: todas las entradas de un grupo
+  comparten el mismo común, y ese común define si el grupo trabaja como sink o como source.
+</Callout>
+
+<Callout type="tip">
+  PNP es el más común en equipos de origen europeo y en gran parte de Latinoamérica; NPN aparece con
+  frecuencia en maquinaria de origen asiático. Al reemplazar un sensor, revisa en su placa si es
+  **PNP o NPN** y si su salida es **NA o NC**: un sensor del tipo equivocado no funcionará o
+  funcionará al revés.
+</Callout>
+
+## Tipos de salidas digitales
+
+Las salidas digitales se fabrican con tres tecnologías distintas, y elegir la correcta evita muchos problemas:
+
+| Tipo       | Tipo de carga | Velocidad de conmutación | Vida útil                                 | Cuándo usarla                                     |
+| ---------- | ------------- | ------------------------ | ----------------------------------------- | ------------------------------------------------- |
+| Relé       | AC o DC       | Lenta (milisegundos)     | Limitada por el desgaste de los contactos | Cargas variadas, aislamiento, pocas conmutaciones |
+| Transistor | Solo DC       | Muy rápida               | Muy larga (sin partes móviles)            | Conmutación frecuente, pulsos, cargas de 24 VDC   |
+| Triac      | Solo AC       | Rápida                   | Larga                                     | Cargas de AC que conmutan con frecuencia          |
+
+Al igual que los sensores, las salidas a transistor pueden ser de tipo **source** (entregan +24 V) o
+**sink** (conectan a 0 V).
+
+Además, cada salida tiene una **corriente máxima** por punto y por grupo. Las cargas grandes, como un motor,
+nunca se conectan directo: se manejan a través de un **contactor** o un relé de interfaz.
+
+<Callout type="note">
+  Las bobinas (de contactores, relés o válvulas) generan un pico de tensión al desconectarse. Para
+  proteger las salidas se usan diodos en cargas de DC y redes RC o varistores en cargas de AC.
+</Callout>
+
+## Actuadores típicos
+
+- **Contactores**: el PLC energiza la bobina y el contactor conmuta la potencia del motor.
+- **Válvulas solenoides**: controlan el aire o aceite de cilindros neumáticos e hidráulicos.
+- **Pilotos y balizas**: indican estados y alarmas.
+- **Variadores de frecuencia**: controlan la velocidad de un motor. El PLC les da la orden de marcha
+  (digital), la velocidad (analógica) o ambas por una red de comunicación.
+- **Relés de interfaz**: adaptan una salida del PLC a otra tensión o a una carga mayor.
+
+## Botones normalmente abiertos y normalmente cerrados
+
+- Un contacto **normalmente abierto (NA)** se cierra al presionar el botón. Se usa para **marcha**.
+- Un contacto **normalmente cerrado (NC)** se abre al presionar el botón. Se usa para **paro**.
+
+### ¿Por qué el paro se cablea NC?
+
+Por seguridad ante fallas. Imagina que el cable del botón de paro se corta:
+
+- Si el paro fuera **NA**, la máquina seguiría funcionando y ya **no se podría detener** con ese botón.
+  Nadie lo notaría hasta necesitarlo.
+- Con el paro **NC**, el cable cortado se ve igual que un botón presionado: la entrada cae a 0 y la máquina
+  **se detiene**. La falla se hace evidente de inmediato.
+
+Esto tiene una consecuencia en el programa que confunde a muchos principiantes. Con un botón de paro NC,
+la entrada está en **1 cuando nadie lo toca**, así que en Ladder se examina con un contacto **NA**: el
+contacto conduce mientras la entrada está en 1 y se abre cuando alguien presiona el botón o se corta el cable.
+
+| Botón físico | Entrada en reposo | Entrada al presionar | Contacto en el programa |
+| ------------ | ----------------- | -------------------- | ----------------------- |
+| Marcha (NA)  | 0                 | 1                    | NA `┤ ├`                |
+| Paro (NC)    | 1                 | 0                    | NA `┤ ├`                |
+
+<Callout type="safety">
+  El **paro de emergencia** (hongo rojo sobre fondo amarillo, que queda enclavado al presionarlo)
+  usa contactos NC de apertura forzada y está regulado por normas como ISO 13850 e IEC 60204-1. Debe
+  actuar a través de un circuito de seguridad —relé o PLC de seguridad— que corte la energía de los
+  actuadores, **no solo** como una entrada más de un PLC estándar.
+</Callout>
+
+<TrySimulator example="motor-start-stop" />
+
+## Resumen
+
+- Las señales **digitales** tienen dos estados; las **analógicas** representan un valor continuo.
+- 4–20 mA es el estándar de la instrumentación porque resiste el ruido y permite detectar un cable cortado.
+- Un sensor **PNP** entrega +24 V y necesita el común a 0 V; un **NPN** entrega 0 V y necesita el común a +24 V.
+- Salidas a **relé** para cargas variadas, a **transistor** para DC rápida, a **triac** para AC.
+- El paro se cablea **NC** para que un cable cortado detenga la máquina.

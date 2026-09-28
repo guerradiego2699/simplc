@@ -1,0 +1,125 @@
+/*
+ * Long-form reading styles for MDX content (Learn pages).
+ * Only direct children of .prose are styled, so embedded components keep their own look.
+ */
+.prose {
+  color: var(--text);
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+
+.prose > * + * {
+  margin-top: 1.1em;
+}
+
+.prose > h2 {
+  margin-top: 2.6em;
+  font-size: 1.5rem;
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  scroll-margin-top: 5.5rem;
+}
+
+.prose > h3 {
+  margin-top: 2em;
+  font-size: 1.2rem;
+  line-height: 1.4;
+  font-weight: 600;
+  scroll-margin-top: 5.5rem;
+}
+
+.prose > h2 + *,
+.prose > h3 + * {
+  margin-top: 0.6em;
+}
+
+/* Links in text only: embedded components (.not-prose) keep their own styles. */
+.prose a:not(:where(.not-prose, .not-prose *)) {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.prose a:not(:where(.not-prose, .not-prose *)):hover {
+  color: var(--primary-hover);
+}
+
+.prose strong {
+  font-weight: 600;
+}
+
+.prose > ul,
+.prose > ol {
+  padding-left: 1.4em;
+}
+.prose > ul {
+  list-style: disc;
+}
+.prose > ol {
+  list-style: decimal;
+}
+.prose li + li {
+  margin-top: 0.35em;
+}
+.prose li > ul,
+.prose li > ol {
+  margin-top: 0.35em;
+  padding-left: 1.25em;
+  list-style: circle;
+}
+.prose li::marker {
+  color: var(--text-muted);
+}
+
+.prose :not(pre) > code {
+  font-family: var(--ff-mono);
+  font-size: 0.88em;
+  background: var(--surface-2);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+}
+
+.prose > pre {
+  font-family: var(--ff-mono);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+}
+
+.prose > blockquote {
+  border-left: 3px solid var(--border);
+  padding-left: 1rem;
+  color: var(--text-muted);
+}
+
+.prose > hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 2.5em 0;
+}
+
+/* Tables scroll horizontally on small screens instead of widening the page. */
+.prose > table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 0.93rem;
+  line-height: 1.5;
+}
+.prose th,
+.prose td {
+  border: 1px solid var(--border);
+  padding: 0.55rem 0.8rem;
+  text-align: left;
+  vertical-align: top;
+}
+.prose th {
+  background: var(--surface);
+  font-weight: 600;
+  white-space: nowrap;
+}
