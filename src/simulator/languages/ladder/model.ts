@@ -7,8 +7,12 @@
  * program and never mutate their input (this is what makes undo/redo trivial).
  */
 
-export type ContactType = 'NO' | 'NC' | 'P' | 'N';
-export type CoilType = 'coil' | 'negated' | 'set' | 'reset';
+import { LOGIC_TYPES, OUTPUT_TYPES, spec, type LogicType, type OutputType } from './catalog';
+
+/** Logic-side instructions: contacts, compare contacts, timer and counter boxes. */
+export type ContactType = LogicType;
+/** Output-side instructions: coils and MOVE / math / SCALE boxes. */
+export type CoilType = OutputType;
 
 export interface Contact {
   kind: 'contact';
@@ -16,6 +20,8 @@ export interface Contact {
   type: ContactType;
   /** Address ("I0.0") or tag name ("START"). Empty until the user assigns it. */
   operand: string;
+  /** Extra operands by key (see catalog.ts), e.g. { pt: 'T#5s' } for a timer. */
+  params?: Record<string, string>;
 }
 
 export interface Coil {
@@ -23,6 +29,8 @@ export interface Coil {
   id: string;
   type: CoilType;
   operand: string;
+  /** Extra operands by key (see catalog.ts), e.g. { pt: 'T#5s' } for a timer. */
+  params?: Record<string, string>;
 }
 
 export interface Series {
@@ -67,18 +75,28 @@ export function newId(prefix: string): string {
 // Factories
 // ---------------------------------------------------------------------------------------------
 
-export const contact = (type: ContactType, operand = ''): Contact => ({
+export const contact = (
+  type: ContactType,
+  operand = '',
+  params: Record<string, string> = { ...spec(type).defaults },
+): Contact => ({
   kind: 'contact',
   id: newId('c'),
   type,
   operand,
+  ...(Object.keys(params).length ? { params } : {}),
 });
 
-export const coil = (type: CoilType, operand = ''): Coil => ({
+export const coil = (
+  type: CoilType,
+  operand = '',
+  params: Record<string, string> = { ...spec(type).defaults },
+): Coil => ({
   kind: 'coil',
   id: newId('o'),
   type,
   operand,
+  ...(Object.keys(params).length ? { params } : {}),
 });
 
 export const series = (items: LogicNode[] = []): Series => ({ id: newId('s'), items });
@@ -360,7 +378,7 @@ export function removeElement(program: LadderProgram, id: string): LadderProgram
 export function updateElement(
   program: LadderProgram,
   id: string,
-  patch: { operand?: string; type?: ContactType | CoilType },
+  patch: { operand?: string; type?: ContactType | CoilType; params?: Record<string, string> },
 ): LadderProgram {
   const where = locate(program, id);
   if (!where || where.node.kind === 'parallel') return program;
@@ -368,7 +386,12 @@ export function updateElement(
 
   if (node.kind === 'coil') {
     const type = patch.type && isCoilType(patch.type) ? patch.type : node.type;
-    const updated: Coil = { ...node, type, operand: patch.operand ?? node.operand };
+    const updated: Coil = {
+      ...node,
+      type,
+      operand: patch.operand ?? node.operand,
+      ...mergeParams(node.params, patch.params),
+    };
     return mapRung(program, where.rung.id, (r) => ({
       ...r,
       coils: r.coils.map((c) => (c.id === id ? updated : c)),
@@ -376,7 +399,12 @@ export function updateElement(
   }
 
   const type = patch.type && isContactType(patch.type) ? patch.type : node.type;
-  const updated: Contact = { ...node, type, operand: patch.operand ?? node.operand };
+  const updated: Contact = {
+    ...node,
+    type,
+    operand: patch.operand ?? node.operand,
+    ...mergeParams(node.params, patch.params),
+  };
   return mapProgramSeries(program, (where.series as Series).id, (s) => ({
     ...s,
     items: s.items.map((n) => (n.id === id ? updated : n)),
@@ -436,8 +464,16 @@ function replaceNode(program: LadderProgram, id: string, node: LogicNode | Coil)
   }));
 }
 
-const CONTACT_TYPES: readonly string[] = ['NO', 'NC', 'P', 'N'];
-const COIL_TYPES: readonly string[] = ['coil', 'negated', 'set', 'reset'];
+const CONTACT_TYPES: readonly string[] = LOGIC_TYPES;
+const COIL_TYPES: readonly string[] = OUTPUT_TYPES;
+
+function mergeParams(
+  current: Record<string, string> | undefined,
+  patch: Record<string, string> | undefined,
+): { params?: Record<string, string> } {
+  const params = { ...current, ...patch };
+  return Object.keys(params).length ? { params } : {};
+}
 export const isContactType = (t: string): t is ContactType => CONTACT_TYPES.includes(t);
 export const isCoilType = (t: string): t is CoilType => COIL_TYPES.includes(t);
 

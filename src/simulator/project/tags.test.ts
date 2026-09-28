@@ -9,7 +9,9 @@ describe('tags', () => {
     expect(isValidTagName('1abc')).toBe(false);
     expect(isValidTagName('my tag')).toBe(false);
     expect(isValidTagName('')).toBe(false);
-    expect(isValidTagName('M0')).toBe(true); // not a bit address
+    expect(isValidTagName('M0')).toBe(true); // not an address
+    expect(isValidTagName('T0')).toBe(false); // timer address
+    expect(isValidTagName('MW1')).toBe(false);
     expect(isValidTagName('I0.0')).toBe(false);
   });
 

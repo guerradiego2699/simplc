@@ -4,7 +4,7 @@ import type { Locale } from '@/config/site';
 import { IoBoard } from '@/simulator/io-panel/IoBoard';
 import { LadderEditor } from '@/simulator/languages/ladder/editor/LadderEditor';
 import { Palette } from '@/simulator/languages/ladder/editor/Palette';
-import { CoilShape, ContactShape } from '@/simulator/languages/ladder/editor/symbols';
+import { InstructionIcon } from '@/simulator/languages/ladder/editor/symbols';
 import { motorStartStopProject } from '@/simulator/project/examples';
 import { SimulationController } from '@/simulator/store/controller';
 import {
@@ -24,6 +24,7 @@ import {
 } from './context';
 import { MonitorPanel } from './MonitorPanel';
 import { PropertiesPanel } from './PropertiesPanel';
+import { ScanPanel } from './ScanPanel';
 import { StatusBar } from './StatusBar';
 import { Toolbar } from './Toolbar';
 import { VariablesPanel } from './VariablesPanel';
@@ -116,6 +117,7 @@ function Workspace() {
           tabs={[
             { id: 'io', label: t.io.title, content: <IoBoard /> },
             { id: 'console', label: t.console.title, content: <ConsolePanel /> },
+            { id: 'scan', label: t.scan.title, content: <ScanPanel /> },
           ]}
         />
       </section>
@@ -224,11 +226,7 @@ function DragGhost() {
     >
       {item.source === 'palette' && (
         <svg width={48} height={30} viewBox="0 0 72 44" aria-hidden="true">
-          {item.kind === 'contact' ? (
-            <ContactShape type={item.type} w={72} h={44} colors={colors} />
-          ) : (
-            <CoilShape type={item.type} w={72} h={44} colors={colors} />
-          )}
+          <InstructionIcon type={item.type} w={72} h={44} colors={colors} />
         </svg>
       )}
       {label}

@@ -235,23 +235,47 @@
       "redo": "Redo (Ctrl+Y)",
       "zoomIn": "Zoom in",
       "zoomOut": "Zoom out",
-      "zoomReset": "Zoom 100 %"
+      "zoomReset": "Zoom 100 %",
+      "addressStyle": "Addresses",
+      "visualize": "Visualize the scan cycle step by step"
     },
     "palette": {
       "title": "Instructions",
       "contacts": "Contacts",
       "coils": "Coils",
-      "hint": "Drag an instruction onto a rung. You can also select an element and click an instruction to insert it right after."
+      "hint": "Drag an instruction onto a rung. You can also select an element and click an instruction to insert it right after.",
+      "compare": "Comparison",
+      "timers": "Timers",
+      "counters": "Counters",
+      "operations": "Operations"
     },
     "elements": {
       "NO": "Normally open contact",
       "NC": "Normally closed contact",
       "P": "Positive edge contact",
       "N": "Negative edge contact",
+      "EQ": "Compare: equal (==)",
+      "NE": "Compare: not equal (<>)",
+      "LT": "Compare: less than (<)",
+      "GT": "Compare: greater than (>)",
+      "LE": "Compare: less or equal (<=)",
+      "GE": "Compare: greater or equal (>=)",
+      "TON": "On-delay timer (TON)",
+      "TOF": "Off-delay timer (TOF)",
+      "TP": "Pulse timer (TP)",
+      "CTU": "Up counter (CTU)",
+      "CTD": "Down counter (CTD)",
+      "CTUD": "Up/down counter (CTUD)",
       "coil": "Coil",
       "negated": "Negated coil",
       "set": "Set coil (latch)",
       "reset": "Reset coil (unlatch)",
+      "MOVE": "Move value (MOVE)",
+      "ADD": "Add (ADD)",
+      "SUB": "Subtract (SUB)",
+      "MUL": "Multiply (MUL)",
+      "DIV": "Divide (DIV)",
+      "SCALE": "Scale analog value (SCALE)",
       "parallel": "Parallel block"
     },
     "editor": {
@@ -303,7 +327,8 @@
       "release": "Release force",
       "toggle": "Toggle value",
       "forcedCount": "{n} forced",
-      "notRunning": "Run the program to see live values."
+      "notRunning": "Run the program to see live values.",
+      "write": "Write value to {address}"
     },
     "io": {
       "title": "I/O panel",
@@ -347,7 +372,11 @@
       "DUPLICATE_EDGE_INSTANCE": "Internal error: duplicate edge memory.",
       "DUPLICATE_NETWORK_ID": "Internal error: duplicate rung.",
       "EMPTY_OPERATION": "Internal error: empty operation.",
-      "UNSUPPORTED_VERSION": "Unsupported program version."
+      "UNSUPPORTED_VERSION": "Unsupported program version.",
+      "MISSING_PARAM": "Parameter “{param}” is missing.",
+      "TYPE_MISMATCH": "Wrong data type: {expected} was expected but {actual} was given.",
+      "INVALID_INSTANCE": "“{instance}” is not a valid instance: use T0–T31 for timers and C0–C31 for counters.",
+      "DUPLICATE_INSTANCE": "{instance} is used in {count} places: they share the same timer or counter."
     },
     "faults": {
       "WATCHDOG": "Cycle time exceeded (watchdog): the PLC went to STOP."
@@ -366,10 +395,103 @@
       "NC": "NC contact",
       "P": "Positive edge",
       "N": "Negative edge",
+      "EQ": "Equal ==",
+      "NE": "Not equal <>",
+      "LT": "Less <",
+      "GT": "Greater >",
+      "LE": "Less or equal <=",
+      "GE": "Greater or equal >=",
+      "TON": "TON on-delay",
+      "TOF": "TOF off-delay",
+      "TP": "TP pulse",
+      "CTU": "CTU up",
+      "CTD": "CTD down",
+      "CTUD": "CTUD up/down",
       "coil": "Coil",
       "negated": "Negated coil",
       "set": "Set",
-      "reset": "Reset"
+      "reset": "Reset",
+      "MOVE": "MOVE",
+      "ADD": "ADD",
+      "SUB": "SUB",
+      "MUL": "MUL",
+      "DIV": "DIV",
+      "SCALE": "SCALE"
+    },
+    "operandLabel": {
+      "contact": "Address or variable",
+      "compare": "Input 1 (IN1)",
+      "timer": "Timer instance",
+      "counter": "Counter instance",
+      "coil": "Address or variable",
+      "box": "Output (OUT)"
+    },
+    "params": {
+      "operand": "operand",
+      "in2": "Input 2 (IN2)",
+      "pt": "Time (PT)",
+      "pv": "Preset value (PV)",
+      "r": "Reset (R)",
+      "ld": "Load PV (LD)",
+      "cd": "Count down (CD)",
+      "in": "Input (IN)",
+      "in1": "Input 1 (IN1)",
+      "inMin": "Input minimum",
+      "inMax": "Input maximum",
+      "outMin": "Output minimum",
+      "outMax": "Output maximum"
+    },
+    "placeholders": {
+      "bit": "E.g. I0.1 or STOP",
+      "bitTarget": "E.g. Q0.0 or MOTOR",
+      "number": "E.g. 10, MW0 or C0.CV",
+      "numberTarget": "E.g. MW0",
+      "time": "E.g. T#5s",
+      "timer": "E.g. T0",
+      "counter": "E.g. C0"
+    },
+    "optional": "optional",
+    "types": {
+      "BOOL": "BOOL (bit)",
+      "INT": "INT (integer)",
+      "REAL": "REAL (decimal)",
+      "TIME": "TIME (duration)",
+      "NUMBER": "a number",
+      "ANY": "?"
+    },
+    "styles": {
+      "generic": "Generic",
+      "siemens": "Siemens",
+      "ab": "Allen-Bradley",
+      "mitsubishi": "Mitsubishi",
+      "omron": "Omron"
+    },
+    "scan": {
+      "title": "Scan cycle",
+      "intro": "Watch the scan cycle step by step: the PLC reads every input, runs the rungs in order, writes the outputs and starts over.",
+      "start": "Visualize",
+      "pause": "Pause",
+      "resume": "Resume",
+      "next": "Next step",
+      "exit": "Exit",
+      "cycle": "Cycle {n}",
+      "phases": {
+        "read": "Read inputs",
+        "execute": "Execute program",
+        "write": "Write outputs",
+        "housekeeping": "Diagnostics"
+      },
+      "explain": {
+        "idle": "Press “Visualize” to walk through the cycle slowly. Meanwhile, you can operate inputs on the panel.",
+        "read": "Input terminals are copied to the input image. From now on the program sees these values, even if you flip a switch.",
+        "execute": "Rung {n} was executed: its results are now in the output image and the markers.",
+        "write": "The output image was copied to the terminals: only now do the output LEDs change.",
+        "housekeeping": "The PLC serves communications and checks itself. Cycle {n} is over; the next one begins."
+      },
+      "inputs": "Inputs",
+      "outputs": "Outputs",
+      "terminal": "Terminal",
+      "image": "Image"
     }
   }
 }

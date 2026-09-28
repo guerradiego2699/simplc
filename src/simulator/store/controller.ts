@@ -5,7 +5,7 @@
  * time by (elapsed real time × speed), and publish a snapshot + power-flow probes to the store
  * (throttled). The engine itself stays pure; timing lives here, in the UI layer.
  */
-import { PlcRuntime } from '@/simulator/engine';
+import { PlcRuntime, type ScanEvent, type Value } from '@/simulator/engine';
 import type { IoPanelSetup } from '@/simulator/project/types';
 import type { SimulatorStoreApi } from './simulator-store';
 
@@ -48,7 +48,10 @@ export class SimulationController {
       if (state.compiled !== prev.compiled && state.status !== 'stopped') this.loadCompiled();
       if (state.ioControls !== prev.ioControls) {
         for (const [address, on] of Object.entries(state.ioControls)) {
-          if (on && !prev.ioControls[address]) this.held.set(address, this.runtime.scanCount);
+          if (on && !prev.ioControls[address])
+            // A press in the middle of a scan (visualize mode) was not read by that scan:
+            // keep it until the next one completes.
+            this.held.set(address, this.runtime.scanCount + (this.scanParts ? 1 : 0));
         }
       }
     });
@@ -57,6 +60,7 @@ export class SimulationController {
 
   dispose(): void {
     cancelAnimationFrame(this.frame);
+    clearTimeout(this.vizTimer);
     this.unsubscribe?.();
   }
 
@@ -65,6 +69,7 @@ export class SimulationController {
   }
 
   run(): void {
+    this.exitVisualize();
     const { status } = this.store.getState();
     if (status === 'stopped' && !this.startProgram()) return;
     this.store.setState({ status: 'running' });
@@ -77,6 +82,7 @@ export class SimulationController {
   }
 
   stop(): void {
+    this.exitVisualize();
     this.runtime.stop();
     cancelAnimationFrame(this.frame);
     this.frame = 0;
@@ -86,6 +92,7 @@ export class SimulationController {
 
   /** Runs exactly one scan cycle and stays paused (starts the PLC if needed). */
   step(): void {
+    this.exitVisualize();
     const { status } = this.store.getState();
     if (status === 'stopped' && !this.startProgram()) return;
     this.store.setState({ status: 'paused' });
@@ -109,10 +116,98 @@ export class SimulationController {
     return this.runtime.isForced(address);
   }
 
-  /** Monitor "modify": write a marker/output once. */
-  write(address: string, value: boolean): void {
+  /** Monitor "modify": write a marker, output or word once. */
+  write(address: string, value: Value): void {
     this.runtime.write(address, value);
     this.publish(true);
+  }
+
+  // -------------------------------------------------------------------------------------------
+  // Visualize scan (spec 6.2): walk through one part of the scan at a time
+  // -------------------------------------------------------------------------------------------
+
+  private scanParts: Generator<ScanEvent, void, void> | null = null;
+  private vizTimer: ReturnType<typeof setTimeout> | undefined;
+
+  /** Starts (or resumes) the automatic, slow walk through the scan cycle. */
+  visualize(): void {
+    if (!this.enterVisualize()) return;
+    this.setScanView({ auto: true });
+    this.scheduleVisualize();
+  }
+
+  pauseVisualize(): void {
+    clearTimeout(this.vizTimer);
+    this.setScanView({ auto: false });
+  }
+
+  /** Performs exactly the next part of the scan (read, one rung, write or housekeeping). */
+  nextPart(): void {
+    if (!this.enterVisualize()) return;
+    clearTimeout(this.vizTimer);
+    this.setScanView({ auto: false });
+    this.visualizeStep();
+  }
+
+  /** Leaves visualize mode, completing the scan in progress so memory stays consistent. */
+  exitVisualize(): void {
+    clearTimeout(this.vizTimer);
+    if (this.scanParts) {
+      while (!this.scanParts.next().done) {
+        /* finish the current scan */
+      }
+      this.scanParts = null;
+      this.afterScans();
+    }
+    if (this.store.getState().scanView.active) {
+      this.store.setState({ scanView: { active: false, auto: true, event: null } });
+      this.publish(true);
+    }
+  }
+
+  private enterVisualize(): boolean {
+    const { status } = this.store.getState();
+    if (status === 'stopped' && !this.startProgram()) return false;
+    if (status !== 'paused') this.store.setState({ status: 'paused' });
+    this.store.setState({ bottomTab: 'scan' });
+    this.setScanView({ active: true });
+    this.loop();
+    return true;
+  }
+
+  private setScanView(patch: Partial<ReturnType<SimulatorStoreApi['getState']>['scanView']>): void {
+    this.store.setState({ scanView: { ...this.store.getState().scanView, ...patch } });
+  }
+
+  private visualizeStep(): void {
+    if (this.runtime.mode !== 'RUN') {
+      this.exitVisualize();
+      return;
+    }
+    if (!this.scanParts) {
+      this.applyInputs();
+      this.scanParts = this.runtime.scanSteps();
+    }
+    const next = this.scanParts.next();
+    if (next.done) {
+      this.scanParts = null;
+      this.visualizeStep();
+      return;
+    }
+    this.afterScans();
+    this.setScanView({ event: next.value });
+    this.publish(true);
+  }
+
+  private scheduleVisualize(): void {
+    clearTimeout(this.vizTimer);
+    const { scanView, speed } = this.store.getState();
+    if (!scanView.active || !scanView.auto) return;
+    const base = scanView.event?.phase === 'execute' ? 1100 : 1600;
+    this.vizTimer = setTimeout(() => {
+      this.visualizeStep();
+      this.scheduleVisualize();
+    }, base / speed);
   }
 
   // -------------------------------------------------------------------------------------------

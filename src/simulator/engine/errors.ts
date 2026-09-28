@@ -21,7 +21,13 @@ export type DiagnosticCode =
   /** An AND/OR/XOR without operands. */
   | 'EMPTY_OPERATION'
   /** The program uses an IR version this engine does not understand. */
-  | 'UNSUPPORTED_VERSION';
+  | 'UNSUPPORTED_VERSION'
+  /** A value of the wrong type (e.g. a number where a BOOL is needed). params: expected, actual. */
+  | 'TYPE_MISMATCH'
+  /** A timer/counter call whose instance is not a valid T<n> / C<n>. */
+  | 'INVALID_INSTANCE'
+  /** The same timer/counter instance is called in more than one place. */
+  | 'DUPLICATE_INSTANCE';
 
 export interface Diagnostic {
   severity: 'error' | 'warning';

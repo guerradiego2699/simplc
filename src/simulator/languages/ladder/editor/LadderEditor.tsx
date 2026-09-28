@@ -1,18 +1,14 @@
-import { useEffect, useMemo, useRef, type PointerEvent as ReactPointerEvent } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { resolveOperand } from '@/simulator/project/tags';
-import type { Tag } from '@/simulator/project/types';
 import { acceptsOf, startDragOrClick } from '@/simulator/ui/drag';
-import { diagnosticMessage, indexDiagnostics, worst } from '@/simulator/ui/diagnostics';
+import { indexDiagnostics, worst } from '@/simulator/ui/diagnostics';
 import { fmt, useSim, useStoreApi, useStrings } from '@/simulator/ui/context';
-import { RAIL, stateProbe, type LadderDiagnostic } from '../compile';
-import { layoutProgram, type PlacedElement } from '../layout';
-import { allElements, locate, type Element } from '../model';
-import { CoilShape, ContactShape } from './symbols';
+import { RAIL } from '../compile';
+import { layoutProgram } from '../layout';
+import { allElements, locate } from '../model';
+import { CELL_H, CELL_W, ElementView } from './ElementView';
 
-/** Geometry in px at zoom 1. */
-export const CELL_W = 96;
-export const CELL_H = 76;
+/** Geometry in px at zoom 1 (cell size lives in ElementView). */
 const MARGIN_LEFT = 64;
 const HEADER_H = 30;
 const RUNG_PAD = 22;
@@ -23,7 +19,19 @@ const clip = (s: string, max = 12) => (s.length > max ? `${s.slice(0, max - 1)}â
 export function LadderEditor() {
   const t = useStrings();
   const store = useStoreApi();
-  const { ladder, tags, diagnostics, selection, drag, status, probes, zoom, forced } = useSim(
+  const {
+    ladder,
+    tags,
+    diagnostics,
+    selection,
+    drag,
+    status,
+    probes,
+    zoom,
+    snapshot,
+    style,
+    executing,
+  } = useSim(
     useShallow((s) => ({
       ladder: s.project.ladder,
       tags: s.project.tags,
@@ -33,7 +41,12 @@ export function LadderEditor() {
       status: s.status,
       probes: s.probes,
       zoom: s.zoom,
-      forced: s.snapshot?.forced,
+      snapshot: s.snapshot,
+      style: s.addressStyle,
+      executing:
+        s.scanView.active && s.scanView.event?.phase === 'execute'
+          ? s.scanView.event.networkId
+          : null,
     })),
   );
 
@@ -203,6 +216,22 @@ export function LadderEditor() {
                 </text>
               </g>
 
+              {/* Rung being executed in "visualize scan" mode */}
+              {executing === rung.id && (
+                <rect
+                  data-executing
+                  x={4}
+                  y={oy - 6}
+                  width={width - 8}
+                  height={bodyH + 12}
+                  rx={6}
+                  fill="color-mix(in srgb, var(--primary) 9%, transparent)"
+                  stroke="var(--primary)"
+                  strokeWidth={1.5}
+                  strokeDasharray="6 4"
+                />
+              )}
+
               {/* Rails */}
               <line
                 x1={MARGIN_LEFT}
@@ -280,7 +309,8 @@ export function LadderEditor() {
                     running={running}
                     power={power}
                     probes={probes}
-                    forced={forced}
+                    snapshot={snapshot}
+                    style={style}
                     diagnostics={diag.byElement.get(pe.id)}
                     tags={tags}
                     onPress={(e) => {
@@ -344,141 +374,5 @@ export function LadderEditor() {
         </button>
       </div>
     </div>
-  );
-}
-
-function ElementView({
-  placed,
-  element,
-  x,
-  y,
-  selected,
-  running,
-  power,
-  probes,
-  forced,
-  diagnostics,
-  tags,
-  onPress,
-  onActivate,
-}: {
-  placed: PlacedElement;
-  element: Element;
-  x: number;
-  y: number;
-  selected: boolean;
-  running: boolean;
-  power: (ref: string) => boolean;
-  probes: Record<string, boolean>;
-  forced: Record<string, boolean> | undefined;
-  diagnostics: LadderDiagnostic[] | undefined;
-  tags: readonly Tag[];
-  onPress: (e: ReactPointerEvent) => void;
-  onActivate: () => void;
-}) {
-  const t = useStrings();
-  const res = resolveOperand(element.operand, tags);
-  const label = res.ok
-    ? res.tag
-      ? res.tag.name
-      : res.address
-    : element.operand.trim() || t.editor.empty;
-  const sub = res.ok && res.tag ? res.address : '';
-  const isForced = res.ok && forced?.[res.address] !== undefined;
-  const severity = worst(diagnostics);
-
-  const on = (ref: string) => (power(ref) ? 'var(--wire-on)' : 'var(--wire-off)');
-  const closed =
-    element.kind === 'contact' ? probes[stateProbe(element.id)] === true : power(placed.powerOut);
-  const body = running ? (closed ? 'var(--wire-on)' : 'var(--text-muted)') : 'var(--text)';
-  const colors = { left: on(placed.powerIn), right: on(placed.powerOut), body };
-
-  const name = t.elements[element.type];
-  const problems = diagnostics?.map((d) => diagnosticMessage(d, t)).join('\n');
-
-  return (
-    <g
-      transform={`translate(${x} ${y})`}
-      role="button"
-      tabIndex={0}
-      aria-label={`${name}: ${label}${sub ? ` (${sub})` : ''}`}
-      aria-pressed={selected}
-      data-element={element.id}
-      className="cursor-pointer outline-none [&:focus-visible>rect.focus]:stroke-primary"
-      onPointerDown={onPress}
-      onDoubleClick={onActivate}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          onActivate();
-        }
-      }}
-    >
-      <title>{problems ? `${name}\n${problems}` : name}</title>
-      <rect
-        className="focus"
-        x={3}
-        y={5}
-        width={CELL_W - 6}
-        height={CELL_H - 10}
-        rx={5}
-        fill={selected ? 'color-mix(in srgb, var(--primary) 10%, transparent)' : 'transparent'}
-        stroke={selected ? 'var(--primary)' : 'transparent'}
-        strokeWidth={1.5}
-      />
-      {element.kind === 'contact' ? (
-        <ContactShape type={element.type} w={CELL_W} h={CELL_H} colors={colors} />
-      ) : (
-        <CoilShape type={element.type} w={CELL_W} h={CELL_H} colors={colors} />
-      )}
-      <text
-        x={CELL_W / 2}
-        y={CELL_H / 2 - 21}
-        textAnchor="middle"
-        fontFamily="var(--ff-mono)"
-        fontSize={12}
-        fontWeight={600}
-        fill={res.ok ? 'var(--text)' : 'var(--danger)'}
-      >
-        {clip(label)}
-      </text>
-      {sub && (
-        <text
-          x={CELL_W / 2}
-          y={CELL_H / 2 + 30}
-          textAnchor="middle"
-          fontFamily="var(--ff-mono)"
-          fontSize={10.5}
-          fill="var(--text-muted)"
-        >
-          {sub}
-        </text>
-      )}
-      {isForced && (
-        <g transform="translate(6 8)">
-          <rect width={14} height={14} rx={3} fill="var(--warning)" />
-          <text
-            x={7}
-            y={11}
-            textAnchor="middle"
-            fontSize={10}
-            fontWeight={700}
-            fill="var(--on-warning)"
-            fontFamily="var(--ff-mono)"
-          >
-            F
-          </text>
-          <title>{t.editor.forced}</title>
-        </g>
-      )}
-      {severity && (
-        <circle
-          cx={CELL_W - 12}
-          cy={14}
-          r={4.5}
-          fill={severity === 'error' ? 'var(--danger)' : 'var(--warning)'}
-        />
-      )}
-    </g>
   );
 }

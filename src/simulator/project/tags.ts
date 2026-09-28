@@ -2,7 +2,7 @@
  * Variable table: validation and operand resolution (tag name or direct address → address).
  * IEC 61131-3 identifiers are case-insensitive, so lookups ignore case.
  */
-import { normalizeBitAddress } from '@/simulator/engine';
+import { normalizeAddress } from '@/simulator/engine';
 import { newId } from '@/simulator/languages/ladder/model';
 import type { Tag } from './types';
 
@@ -19,7 +19,7 @@ export const tag = (name: string, address: string, comment = ''): Tag => ({
 
 /** A name is valid if it is an identifier and cannot be confused with an address. */
 export function isValidTagName(name: string): boolean {
-  return IDENTIFIER.test(name) && normalizeBitAddress(name) === null;
+  return IDENTIFIER.test(name) && normalizeAddress(name) === null;
 }
 
 /** Problems of each tag, by tag id (empty map = table is valid). */
@@ -38,7 +38,7 @@ export function validateTags(tags: readonly Tag[]): Map<string, TagProblem[]> {
     } else {
       seen.set(key, t.id);
     }
-    if (normalizeBitAddress(t.address) === null) add(t.id, 'INVALID_TAG_ADDRESS');
+    if (normalizeAddress(t.address) === null) add(t.id, 'INVALID_TAG_ADDRESS');
   }
   return problems;
 }
@@ -51,14 +51,14 @@ export type Resolution =
 export function resolveOperand(operand: string, tags: readonly Tag[]): Resolution {
   const text = operand.trim();
   if (text === '') return { ok: false, problem: 'MISSING_OPERAND' };
-  const direct = normalizeBitAddress(text);
+  const direct = normalizeAddress(text);
   if (direct) {
-    const known = tags.find((t) => normalizeBitAddress(t.address) === direct);
+    const known = tags.find((t) => normalizeAddress(t.address) === direct);
     return known ? { ok: true, address: direct, tag: known } : { ok: true, address: direct };
   }
   const upper = text.toUpperCase();
   const found = tags.find((t) => t.name.toUpperCase() === upper);
-  const address = found && normalizeBitAddress(found.address);
+  const address = found && normalizeAddress(found.address);
   return address && found
     ? { ok: true, address, tag: found }
     : { ok: false, problem: 'UNKNOWN_SYMBOL' };
@@ -66,6 +66,6 @@ export function resolveOperand(operand: string, tags: readonly Tag[]): Resolutio
 
 /** Tag for an address, if the table has one (for showing symbols next to addresses). */
 export function tagForAddress(address: string, tags: readonly Tag[]): Tag | undefined {
-  const canonical = normalizeBitAddress(address);
-  return canonical ? tags.find((t) => normalizeBitAddress(t.address) === canonical) : undefined;
+  const canonical = normalizeAddress(address);
+  return canonical ? tags.find((t) => normalizeAddress(t.address) === canonical) : undefined;
 }

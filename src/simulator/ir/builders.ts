@@ -3,7 +3,12 @@
  */
 import {
   IR_VERSION,
+  type ArithOp,
   type AssignStmt,
+  type CompareOp,
+  type ConvertExpr,
+  type CounterStmt,
+  type TimerStmt,
   type EdgeExpr,
   type Expr,
   type IfStmt,
@@ -84,3 +89,52 @@ export const network = (id: string, body: Stmt[], label?: string): Network =>
   label ? { id, label, body } : { id, body };
 
 export const program = (...networks: Network[]): IrProgram => ({ version: IR_VERSION, networks });
+
+// ---------------------------------------------------------------------------------------------
+// Numbers, comparisons, arithmetic and function blocks (Phase 5)
+// ---------------------------------------------------------------------------------------------
+
+export const int = (value: number): Expr => ({ kind: 'const', value, type: 'INT' });
+export const real = (value: number): Expr => ({ kind: 'const', value, type: 'REAL' });
+/** TIME constant in milliseconds. */
+export const time = (ms: number): Expr => ({ kind: 'const', value: ms, type: 'TIME' });
+
+export const cmp = (op: CompareOp, left: Expr, right: Expr): Expr => ({
+  kind: 'compare',
+  op,
+  left,
+  right,
+});
+export const arith = (op: ArithOp, left: Expr, right: Expr): Expr => ({
+  kind: 'arith',
+  op,
+  left,
+  right,
+});
+export const add = (l: Expr, r: Expr) => arith('+', l, r);
+export const sub = (l: Expr, r: Expr) => arith('-', l, r);
+export const mul = (l: Expr, r: Expr) => arith('*', l, r);
+export const div = (l: Expr, r: Expr) => arith('/', l, r);
+export const convert = (to: ConvertExpr['to'], arg: Expr): Expr => ({ kind: 'convert', to, arg });
+
+/** MOVE: target := value (numbers or booleans). */
+export const move = assign;
+
+export const timerCall = (
+  type: TimerStmt['type'],
+  instance: string,
+  input: Expr,
+  preset: Expr,
+): TimerStmt => ({ kind: 'timer', type, instance, input, preset });
+export const ton = (instance: string, input: Expr, preset: Expr) =>
+  timerCall('TON', instance, input, preset);
+export const tof = (instance: string, input: Expr, preset: Expr) =>
+  timerCall('TOF', instance, input, preset);
+export const tp = (instance: string, input: Expr, preset: Expr) =>
+  timerCall('TP', instance, input, preset);
+
+export const counterCall = (
+  type: CounterStmt['type'],
+  instance: string,
+  pins: { up?: Expr; down?: Expr; reset?: Expr; load?: Expr; preset: Expr },
+): CounterStmt => ({ kind: 'counter', type, instance, ...pins });

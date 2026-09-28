@@ -95,7 +95,9 @@ test.describe('simulator on desktop', () => {
     await expect(page.locator('[data-rung]')).toHaveCount(2);
 
     const dragTo = async (paletteType: string, accepts: 'contact' | 'coil') => {
-      const source = await page.locator(`[data-palette="${paletteType}"]`).boundingBox();
+      const item = page.locator(`[data-palette="${paletteType}"]`);
+      await item.scrollIntoViewIfNeeded();
+      const source = await item.boundingBox();
       if (!source) throw new Error('palette item not visible');
       await page.mouse.move(source.x + 20, source.y + 10);
       await page.mouse.down();

@@ -235,23 +235,47 @@
       "redo": "Rehacer (Ctrl+Y)",
       "zoomIn": "Acercar",
       "zoomOut": "Alejar",
-      "zoomReset": "Zoom 100 %"
+      "zoomReset": "Zoom 100 %",
+      "addressStyle": "Direcciones",
+      "visualize": "Visualizar el ciclo de scan paso a paso"
     },
     "palette": {
       "title": "Instrucciones",
       "contacts": "Contactos",
       "coils": "Bobinas",
-      "hint": "Arrastra una instrucción al peldaño. También puedes seleccionar un elemento y hacer clic en una instrucción para insertarla a continuación."
+      "hint": "Arrastra una instrucción al peldaño. También puedes seleccionar un elemento y hacer clic en una instrucción para insertarla a continuación.",
+      "compare": "Comparación",
+      "timers": "Temporizadores",
+      "counters": "Contadores",
+      "operations": "Operaciones"
     },
     "elements": {
       "NO": "Contacto normalmente abierto",
       "NC": "Contacto normalmente cerrado",
       "P": "Contacto de flanco positivo",
       "N": "Contacto de flanco negativo",
+      "EQ": "Comparar: igual (==)",
+      "NE": "Comparar: distinto (<>)",
+      "LT": "Comparar: menor que (<)",
+      "GT": "Comparar: mayor que (>)",
+      "LE": "Comparar: menor o igual (<=)",
+      "GE": "Comparar: mayor o igual (>=)",
+      "TON": "Temporizador a la conexión (TON)",
+      "TOF": "Temporizador a la desconexión (TOF)",
+      "TP": "Temporizador de pulso (TP)",
+      "CTU": "Contador ascendente (CTU)",
+      "CTD": "Contador descendente (CTD)",
+      "CTUD": "Contador ascendente/descendente (CTUD)",
       "coil": "Bobina",
       "negated": "Bobina negada",
       "set": "Bobina Set (activar)",
       "reset": "Bobina Reset (desactivar)",
+      "MOVE": "Mover valor (MOVE)",
+      "ADD": "Sumar (ADD)",
+      "SUB": "Restar (SUB)",
+      "MUL": "Multiplicar (MUL)",
+      "DIV": "Dividir (DIV)",
+      "SCALE": "Escalar valor analógico (SCALE)",
       "parallel": "Bloque paralelo"
     },
     "editor": {
@@ -303,7 +327,8 @@
       "release": "Liberar forzado",
       "toggle": "Cambiar valor",
       "forcedCount": "{n} forzados",
-      "notRunning": "Ejecuta el programa para ver los valores en vivo."
+      "notRunning": "Ejecuta el programa para ver los valores en vivo.",
+      "write": "Escribir valor en {address}"
     },
     "io": {
       "title": "Tablero E/S",
@@ -347,7 +372,11 @@
       "DUPLICATE_EDGE_INSTANCE": "Error interno: memoria de flanco duplicada.",
       "DUPLICATE_NETWORK_ID": "Error interno: peldaño duplicado.",
       "EMPTY_OPERATION": "Error interno: operación vacía.",
-      "UNSUPPORTED_VERSION": "Versión de programa no compatible."
+      "UNSUPPORTED_VERSION": "Versión de programa no compatible.",
+      "MISSING_PARAM": "Falta el parámetro «{param}».",
+      "TYPE_MISMATCH": "Tipo de dato incorrecto: se esperaba {expected} y se recibió {actual}.",
+      "INVALID_INSTANCE": "«{instance}» no es una instancia válida: usa T0–T31 para temporizadores y C0–C31 para contadores.",
+      "DUPLICATE_INSTANCE": "{instance} se usa en {count} lugares: comparten el mismo temporizador o contador."
     },
     "faults": {
       "WATCHDOG": "Tiempo de ciclo excedido (watchdog): el PLC pasó a STOP."
@@ -366,10 +395,103 @@
       "NC": "Contacto NC",
       "P": "Flanco positivo",
       "N": "Flanco negativo",
+      "EQ": "Igual ==",
+      "NE": "Distinto <>",
+      "LT": "Menor <",
+      "GT": "Mayor >",
+      "LE": "Menor o igual <=",
+      "GE": "Mayor o igual >=",
+      "TON": "TON a la conexión",
+      "TOF": "TOF a la desconexión",
+      "TP": "TP pulso",
+      "CTU": "CTU ascendente",
+      "CTD": "CTD descendente",
+      "CTUD": "CTUD asc./desc.",
       "coil": "Bobina",
       "negated": "Bobina negada",
       "set": "Set",
-      "reset": "Reset"
+      "reset": "Reset",
+      "MOVE": "MOVE mover",
+      "ADD": "ADD sumar",
+      "SUB": "SUB restar",
+      "MUL": "MUL multiplicar",
+      "DIV": "DIV dividir",
+      "SCALE": "SCALE escalar"
+    },
+    "operandLabel": {
+      "contact": "Dirección o variable",
+      "compare": "Entrada 1 (IN1)",
+      "timer": "Instancia del temporizador",
+      "counter": "Instancia del contador",
+      "coil": "Dirección o variable",
+      "box": "Salida (OUT)"
+    },
+    "params": {
+      "operand": "operando",
+      "in2": "Entrada 2 (IN2)",
+      "pt": "Tiempo (PT)",
+      "pv": "Valor de preselección (PV)",
+      "r": "Reset (R)",
+      "ld": "Cargar PV (LD)",
+      "cd": "Contar hacia abajo (CD)",
+      "in": "Entrada (IN)",
+      "in1": "Entrada 1 (IN1)",
+      "inMin": "Mínimo de entrada",
+      "inMax": "Máximo de entrada",
+      "outMin": "Mínimo de salida",
+      "outMax": "Máximo de salida"
+    },
+    "placeholders": {
+      "bit": "Ej.: I0.1 o PARO",
+      "bitTarget": "Ej.: Q0.0 o MOTOR",
+      "number": "Ej.: 10, MW0 o C0.CV",
+      "numberTarget": "Ej.: MW0",
+      "time": "Ej.: T#5s",
+      "timer": "Ej.: T0",
+      "counter": "Ej.: C0"
+    },
+    "optional": "opcional",
+    "types": {
+      "BOOL": "BOOL (bit)",
+      "INT": "INT (entero)",
+      "REAL": "REAL (decimal)",
+      "TIME": "TIME (tiempo)",
+      "NUMBER": "un número",
+      "ANY": "?"
+    },
+    "styles": {
+      "generic": "Genérico",
+      "siemens": "Siemens",
+      "ab": "Allen-Bradley",
+      "mitsubishi": "Mitsubishi",
+      "omron": "Omron"
+    },
+    "scan": {
+      "title": "Ciclo de scan",
+      "intro": "Observa el ciclo de scan paso a paso: el PLC lee todas las entradas, ejecuta los peldaños en orden, escribe las salidas y vuelve a empezar.",
+      "start": "Visualizar",
+      "pause": "Pausar",
+      "resume": "Continuar",
+      "next": "Siguiente paso",
+      "exit": "Salir",
+      "cycle": "Ciclo {n}",
+      "phases": {
+        "read": "Leer entradas",
+        "execute": "Ejecutar programa",
+        "write": "Escribir salidas",
+        "housekeeping": "Diagnóstico"
+      },
+      "explain": {
+        "idle": "Pulsa «Visualizar» para recorrer el ciclo lentamente. Mientras tanto, puedes accionar entradas del tablero.",
+        "read": "Se copian los bornes de entrada a la imagen de entradas. Desde ahora, el programa verá estos valores aunque cambies un interruptor.",
+        "execute": "Se ejecutó el peldaño {n}: sus resultados quedaron en la imagen de salidas y en las marcas.",
+        "write": "La imagen de salidas se copió a los bornes: recién ahora cambian los LED de salida.",
+        "housekeeping": "El PLC atiende comunicaciones y revisa su estado. El ciclo {n} terminó; empieza el siguiente."
+      },
+      "inputs": "Entradas",
+      "outputs": "Salidas",
+      "terminal": "Borne",
+      "image": "Imagen"
     }
   }
 }

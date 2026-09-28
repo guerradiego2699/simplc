@@ -12,6 +12,10 @@
  * - Temporaries (`let` / `temp`) live only inside the network that declares them.
  */
 
+import type { DataType } from '@/simulator/engine/address';
+
+export type { DataType };
+
 export const IR_VERSION = 1;
 
 /** Optional metadata any node can carry. */
@@ -23,15 +27,20 @@ export interface NodeMeta {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Expressions (Phase 3: BOOL only; numbers, comparisons and function blocks arrive in Phase 5)
+// Expressions
 // ---------------------------------------------------------------------------------------------
 
 export interface ConstExpr extends NodeMeta {
   kind: 'const';
-  value: boolean;
+  value: boolean | number;
+  /** Required for numbers (INT, REAL or TIME in ms); BOOL for booleans. */
+  type?: DataType;
 }
 
-/** Reads a bit address in generic notation: "I0.0", "Q1.7", "M10.3", "S0.1". */
+/**
+ * Reads an address in generic notation: bits ("I0.0", "M10.3", "S0.1"), words ("MW3", "MD0",
+ * "IW0"), timer/counter members ("T0" = Q, "T0.ET", "C1.CV").
+ */
 export interface ReadExpr extends NodeMeta {
   kind: 'read';
   address: string;
@@ -66,13 +75,51 @@ export interface EdgeExpr extends NodeMeta {
   instance: string;
 }
 
-export type Expr = ConstExpr | ReadExpr | TempExpr | NotExpr | LogicExpr | EdgeExpr;
+export type CompareOp = '=' | '<>' | '<' | '>' | '<=' | '>=';
+export type ArithOp = '+' | '-' | '*' | '/' | 'MOD';
+
+/** Comparison of two numbers (or two BOOLs for = and <>). */
+export interface CompareExpr extends NodeMeta {
+  kind: 'compare';
+  op: CompareOp;
+  left: Expr;
+  right: Expr;
+}
+
+/**
+ * Arithmetic. Result type: REAL if any operand is REAL, else TIME if any is TIME, else INT.
+ * INT division truncates toward zero; division by zero yields 0.
+ */
+export interface ArithExpr extends NodeMeta {
+  kind: 'arith';
+  op: ArithOp;
+  left: Expr;
+  right: Expr;
+}
+
+/** Explicit numeric conversion (e.g. INT_TO_REAL). REAL → INT truncates toward zero. */
+export interface ConvertExpr extends NodeMeta {
+  kind: 'convert';
+  to: Exclude<DataType, 'BOOL'>;
+  arg: Expr;
+}
+
+export type Expr =
+  | ConstExpr
+  | ReadExpr
+  | TempExpr
+  | NotExpr
+  | LogicExpr
+  | EdgeExpr
+  | CompareExpr
+  | ArithExpr
+  | ConvertExpr;
 
 // ---------------------------------------------------------------------------------------------
 // Statements
 // ---------------------------------------------------------------------------------------------
 
-/** target := value (a Ladder coil). */
+/** target := value (a Ladder coil, or MOVE for numbers). */
 export interface AssignStmt extends NodeMeta {
   kind: 'assign';
   target: string;
@@ -113,7 +160,35 @@ export interface WhileStmt extends NodeMeta {
   body: Stmt[];
 }
 
-export type Stmt = AssignStmt | SetStmt | ResetStmt | LetStmt | IfStmt | WhileStmt;
+/**
+ * Timer call (IEC TON / TOF / TP). `instance` is a timer address ("T0"). The preset is TIME
+ * (or INT, read as milliseconds). Q, ET and PT are then readable as T0, T0.ET, T0.PT.
+ */
+export interface TimerStmt extends NodeMeta {
+  kind: 'timer';
+  type: 'TON' | 'TOF' | 'TP';
+  instance: string;
+  input: Expr;
+  preset: Expr;
+}
+
+/**
+ * Counter call (IEC CTU / CTD / CTUD). Counting happens on rising edges of up/down.
+ * Reset has priority over load. Outputs readable as C0 (Q), C0.QU, C0.QD, C0.CV, C0.PV.
+ */
+export interface CounterStmt extends NodeMeta {
+  kind: 'counter';
+  type: 'CTU' | 'CTD' | 'CTUD';
+  instance: string;
+  up?: Expr;
+  down?: Expr;
+  reset?: Expr;
+  load?: Expr;
+  preset: Expr;
+}
+
+export type Stmt =
+  AssignStmt | SetStmt | ResetStmt | LetStmt | IfStmt | WhileStmt | TimerStmt | CounterStmt;
 
 // ---------------------------------------------------------------------------------------------
 // Program

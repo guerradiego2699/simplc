@@ -3,10 +3,13 @@
  * simulation status and UI layout. The PLC runtime itself lives in `controller.ts`.
  */
 import { create } from 'zustand';
-import type { MemorySnapshot } from '@/simulator/engine';
+import { parseInstance, type MemorySnapshot, type ScanEvent, type Value } from '@/simulator/engine';
+import { ADDRESS_STYLES, type AddressStyle } from '@/simulator/addressing/styles';
+import { spec } from '@/simulator/languages/ladder/catalog';
 import { compileLadder, type LadderCompileResult } from '@/simulator/languages/ladder/compile';
 import {
   addRung,
+  allElements,
   coil,
   contact,
   deleteRung,
@@ -20,6 +23,7 @@ import {
   type Element,
   type InsertTarget,
 } from '@/simulator/languages/ladder/model';
+import { resolveOperand } from '@/simulator/project/tags';
 import type { Project } from '@/simulator/project/types';
 
 export type SimStatus = 'stopped' | 'running' | 'paused';
@@ -47,7 +51,16 @@ export interface DragState {
 }
 
 export type RightTab = 'properties' | 'variables' | 'monitor';
-export type BottomTab = 'io' | 'console';
+export type BottomTab = 'io' | 'console' | 'scan';
+
+/** State of the "visualize scan" mode (spec 6.2). */
+export interface ScanView {
+  active: boolean;
+  /** Advances automatically (true) or only with "next step". */
+  auto: boolean;
+  /** Last completed part of the scan. */
+  event: ScanEvent | null;
+}
 
 export const SPEEDS = [0.25, 0.5, 1, 2, 4] as const;
 export const ZOOM = { min: 0.5, max: 2, step: 0.1 } as const;
@@ -67,7 +80,9 @@ export interface SimulatorState {
   status: SimStatus;
   speed: number;
   snapshot: MemorySnapshot | null;
-  probes: Record<string, boolean>;
+  probes: Record<string, Value>;
+  scanView: ScanView;
+  addressStyle: AddressStyle;
   /** RUN/PAUSE with a program that has errors: the PLC keeps the last good program. */
   notLoaded: boolean;
   /** Physical state of each panel control (switch on / button pressed), by input address. */
@@ -94,6 +109,7 @@ interface Actions {
   setDrag(drag: DragState | null): void;
   setIoControl(address: string, value: boolean): void;
   setZoom(zoom: number): void;
+  setAddressStyle(style: AddressStyle): void;
   setLayout(
     patch: Partial<Pick<SimulatorState, 'rightWidth' | 'bottomHeight' | 'rightTab' | 'bottomTab'>>,
   ): void;
@@ -103,8 +119,42 @@ export type SimulatorStore = SimulatorState & Actions;
 
 let lastCommit: { key: string; at: number } | null = null;
 
-const newElement = (item: PaletteItem): Element =>
-  item.kind === 'contact' ? contact(item.type) : coil(item.type);
+const STYLE_KEY = 'plcampus:addressStyle';
+
+function loadAddressStyle(): AddressStyle {
+  try {
+    const v = localStorage.getItem(STYLE_KEY);
+    return (ADDRESS_STYLES as readonly string[]).includes(v ?? '')
+      ? (v as AddressStyle)
+      : 'generic';
+  } catch {
+    return 'generic';
+  }
+}
+
+/** First timer (T) or counter (C) instance not used by any element of the project. */
+export function nextFreeInstance(project: Project, kind: 'timer' | 'counter'): string {
+  const used = new Set<number>();
+  for (const el of allElements(project.ladder)) {
+    const family = spec(el.type).family;
+    if (family !== kind) continue;
+    const res = resolveOperand(el.operand, project.tags);
+    const index = res.ok ? parseInstance(res.address, kind) : null;
+    if (index !== null) used.add(index);
+  }
+  let n = 0;
+  while (used.has(n)) n++;
+  return `${kind === 'timer' ? 'T' : 'C'}${n}`;
+}
+
+/** A new element from the palette; timers and counters get the first free instance. */
+function newElement(item: PaletteItem, project: Project): Element {
+  if (item.kind === 'coil') return coil(item.type);
+  const family = spec(item.type).family;
+  const operand =
+    family === 'timer' || family === 'counter' ? nextFreeInstance(project, family) : '';
+  return contact(item.type, operand);
+}
 
 /** Where a palette click inserts, given the current selection. */
 function clickTarget(
@@ -185,6 +235,8 @@ export function createSimulatorStore(initial: Project) {
       probes: {},
       notLoaded: false,
       ioControls: {},
+      scanView: { active: false, auto: true, event: null },
+      addressStyle: loadAddressStyle(),
 
       zoom: 1,
       rightWidth: 320,
@@ -222,14 +274,14 @@ export function createSimulatorStore(initial: Project) {
         const { project, selection } = get();
         const target = clickTarget(project, selection, item);
         if (!target) return;
-        const element = newElement(item);
+        const element = newElement(item, get().project);
         get().commit((p) => ({ ...p, ladder: insertAt(p.ladder, target, element) }));
         selectInserted(element.id);
       },
 
       dropAt(target, item) {
         if (item.source === 'palette') {
-          const element = newElement(item);
+          const element = newElement(item, get().project);
           get().commit((p) => ({ ...p, ladder: insertAt(p.ladder, target, element) }));
           selectInserted(element.id);
         } else {
@@ -303,6 +355,15 @@ export function createSimulatorStore(initial: Project) {
 
       setLayout(patch) {
         set(patch);
+      },
+
+      setAddressStyle(addressStyle) {
+        set({ addressStyle });
+        try {
+          localStorage.setItem(STYLE_KEY, addressStyle);
+        } catch {
+          // Storage blocked: the choice lasts for this page view.
+        }
       },
     };
   });

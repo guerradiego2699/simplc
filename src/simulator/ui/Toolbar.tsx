@@ -6,6 +6,7 @@ import {
   Pause,
   Play,
   Redo2,
+  Footprints,
   SkipForward,
   Square,
   Undo2,
@@ -15,6 +16,7 @@ import {
 import { useShallow } from 'zustand/react/shallow';
 import { emptyProject, motorStartStopProject } from '@/simulator/project/examples';
 import { SPEEDS, ZOOM } from '@/simulator/store/simulator-store';
+import { ADDRESS_STYLES, type AddressStyle } from '@/simulator/addressing/styles';
 import type { Language } from '@/simulator/project/types';
 import { useController, useSim, useStoreApi, useStrings } from './context';
 
@@ -27,7 +29,7 @@ export function Toolbar() {
   const t = useStrings();
   const store = useStoreApi();
   const controller = useController();
-  const { status, speed, canUndo, canRedo, zoom, language } = useSim(
+  const { status, speed, canUndo, canRedo, zoom, language, style, visualizing } = useSim(
     useShallow((s) => ({
       status: s.status,
       speed: s.speed,
@@ -35,6 +37,8 @@ export function Toolbar() {
       canRedo: s.future.length > 0,
       zoom: s.zoom,
       language: s.project.language,
+      style: s.addressStyle,
+      visualizing: s.scanView.active,
     })),
   );
 
@@ -120,6 +124,17 @@ export function Toolbar() {
       >
         <SkipForward size={17} aria-hidden="true" />
       </button>
+      <button
+        type="button"
+        className={`${iconBtn} aria-pressed:bg-primary/15 aria-pressed:text-primary`}
+        title={t.toolbar.visualize}
+        aria-label={t.toolbar.visualize}
+        aria-pressed={visualizing}
+        data-testid="visualize-scan"
+        onClick={() => (visualizing ? controller.exitVisualize() : controller.visualize())}
+      >
+        <Footprints size={17} aria-hidden="true" />
+      </button>
 
       <label className="ml-1 flex items-center gap-1.5 text-xs text-text-muted">
         {t.toolbar.speed}
@@ -131,6 +146,24 @@ export function Toolbar() {
           {SPEEDS.map((s) => (
             <option key={s} value={s}>
               ×{s}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <Divider />
+
+      <label className="flex items-center gap-1.5 text-xs text-text-muted">
+        {t.toolbar.addressStyle}
+        <select
+          data-testid="address-style"
+          className="h-7 rounded-md border border-border bg-bg px-1.5 text-xs text-text"
+          value={style}
+          onChange={(e) => store.getState().setAddressStyle(e.target.value as AddressStyle)}
+        >
+          {ADDRESS_STYLES.map((s) => (
+            <option key={s} value={s}>
+              {t.styles[s]}
             </option>
           ))}
         </select>

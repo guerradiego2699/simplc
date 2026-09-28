@@ -2,7 +2,6 @@ import { useEffect, useId, useRef } from 'react';
 import { ArrowDown, ArrowUp, GitFork, ListPlus, Trash2 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import {
-  isCoilType,
   locate,
   moveRung,
   setRungComment,
@@ -10,12 +9,11 @@ import {
   type CoilType,
   type ContactType,
 } from '@/simulator/languages/ladder/model';
+import { formatAddressStyled } from '@/simulator/addressing/styles';
+import { siblingTypes, spec } from '@/simulator/languages/ladder/catalog';
 import { resolveOperand } from '@/simulator/project/tags';
 import { diagnosticMessage } from './diagnostics';
 import { fmt, useSim, useStoreApi, useStrings } from './context';
-
-const CONTACT_TYPES: ContactType[] = ['NO', 'NC', 'P', 'N'];
-const COIL_TYPES: CoilType[] = ['coil', 'negated', 'set', 'reset'];
 
 const field =
   'w-full rounded-md border border-border bg-bg px-2.5 py-1.5 text-sm text-text focus:border-primary focus:outline-none';
@@ -25,13 +23,14 @@ const button =
 export function PropertiesPanel() {
   const t = useStrings();
   const store = useStoreApi();
-  const { selection, ladder, tags, diagnostics, focusOperand } = useSim(
+  const { selection, ladder, tags, diagnostics, focusOperand, style } = useSim(
     useShallow((s) => ({
       selection: s.selection,
       ladder: s.project.ladder,
       tags: s.project.tags,
       diagnostics: s.compiled.diagnostics,
       focusOperand: s.focusOperand,
+      style: s.addressStyle,
     })),
   );
   const operandRef = useRef<HTMLInputElement>(null);
@@ -163,8 +162,9 @@ export function PropertiesPanel() {
     );
   }
 
-  const types: string[] = node.kind === 'contact' ? CONTACT_TYPES : COIL_TYPES;
-  const res = resolveOperand(node.operand, tags);
+  const info = spec(node.type);
+  const types = siblingTypes(node.type);
+  const fields = [info.main, ...info.params];
   const problems = diagnostics.filter((d) => d.elementId === node.id);
 
   return (
@@ -177,6 +177,7 @@ export function PropertiesPanel() {
         <select
           className={`${field} mt-1`}
           value={node.type}
+          disabled={types.length < 2}
           onChange={(e) =>
             store.getState().commit((p) => ({
               ...p,
@@ -188,48 +189,67 @@ export function PropertiesPanel() {
         >
           {types.map((type) => (
             <option key={type} value={type}>
-              {t.elements[type as ContactType | CoilType]}
+              {t.elements[type]}
             </option>
           ))}
         </select>
       </label>
 
-      <label className="block text-xs font-medium text-text-muted">
-        {t.properties.operand}
-        <input
-          ref={operandRef}
-          data-testid="operand-input"
-          className={`${field} mt-1 font-mono uppercase placeholder:normal-case`}
-          value={node.operand}
-          placeholder={t.properties.operandPlaceholder}
-          list={listId}
-          spellCheck={false}
-          autoComplete="off"
-          onChange={(e) =>
-            store.getState().commit(
-              (p) => ({
-                ...p,
-                ladder: updateElement(p.ladder, node.id, { operand: e.target.value }),
-              }),
-              `operand:${node.id}`,
-            )
-          }
-        />
-        <datalist id={listId}>
-          {tags.map((tg) => (
-            <option key={tg.id} value={tg.name}>
-              {tg.address}
-              {tg.comment ? ` — ${tg.comment}` : ''}
-            </option>
-          ))}
-        </datalist>
-      </label>
-      {res.ok && (
-        <p className="-mt-2 font-mono text-xs text-text-muted">
-          {fmt(t.properties.resolvesTo, { address: res.address })}
-          {res.tag?.comment ? ` · ${res.tag.comment}` : ''}
-        </p>
-      )}
+      {fields.map((param, i) => {
+        const isMain = param.key === 'operand';
+        const value = isMain ? node.operand : (node.params?.[param.key] ?? '');
+        const res = value.trim() ? resolveOperand(value, tags) : null;
+        const label = isMain
+          ? t.operandLabel[info.family]
+          : (t.params as Record<string, string>)[param.key];
+        return (
+          <div key={param.key}>
+            <label className="block text-xs font-medium text-text-muted">
+              {label}
+              {param.optional && <span className="font-normal"> ({t.optional})</span>}
+              <input
+                ref={i === 0 ? operandRef : undefined}
+                data-testid={isMain ? 'operand-input' : `param-${param.key}`}
+                className={`${field} mt-1 font-mono placeholder:font-sans`}
+                value={value}
+                placeholder={t.placeholders[param.kind]}
+                list={listId}
+                spellCheck={false}
+                autoComplete="off"
+                onChange={(e) =>
+                  store.getState().commit(
+                    (p) => ({
+                      ...p,
+                      ladder: updateElement(
+                        p.ladder,
+                        node.id,
+                        isMain
+                          ? { operand: e.target.value }
+                          : { params: { [param.key]: e.target.value } },
+                      ),
+                    }),
+                    `param:${node.id}:${param.key}`,
+                  )
+                }
+              />
+            </label>
+            {res?.ok && (
+              <p className="mt-1 font-mono text-xs text-text-muted">
+                {fmt(t.properties.resolvesTo, { address: formatAddressStyled(res.address, style) })}
+                {res.tag?.comment ? ` · ${res.tag.comment}` : ''}
+              </p>
+            )}
+          </div>
+        );
+      })}
+      <datalist id={listId}>
+        {tags.map((tg) => (
+          <option key={tg.id} value={tg.name}>
+            {tg.address}
+            {tg.comment ? ` — ${tg.comment}` : ''}
+          </option>
+        ))}
+      </datalist>
 
       {problems.length > 0 && (
         <ul className="space-y-1 text-xs">
@@ -264,7 +284,7 @@ export function PropertiesPanel() {
           {t.properties.delete}
         </button>
       </div>
-      {isCoilType(node.type) ? null : (
+      {spec(node.type).side === 'output' ? null : (
         <p className="text-xs text-text-muted">{t.properties.rangeHint}</p>
       )}
     </div>

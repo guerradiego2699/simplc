@@ -12,11 +12,26 @@
  * so a UI can run it in real time and the challenge validator can run it as fast as possible.
  */
 import type { IrProgram } from '@/simulator/ir/types';
-import { bitIndex, parseBitAddress, SYSTEM_BITS, type BitArea, type BitRef } from './address';
+import {
+  bitIndex,
+  parseAddress,
+  parseBitAddress,
+  SYSTEM_BITS,
+  type BitArea,
+  type BitRef,
+  type WordArea,
+} from './address';
 import { analyze, hasErrors, type AnalyzeOptions } from './analyze';
 import { compileProgram, type CompiledNetwork, type ExecContext } from './compile';
 import { ProgramLoadError, WatchdogError, type Diagnostic, type PlcFault } from './errors';
-import { DEFAULT_LAYOUT, Memory, type MemoryLayout } from './memory';
+import type { Value } from './instructions/math';
+import {
+  DEFAULT_LAYOUT,
+  Memory,
+  type CounterType,
+  type MemoryLayout,
+  type TimerType,
+} from './memory';
 
 export type RunMode = 'STOP' | 'RUN';
 
@@ -45,6 +60,10 @@ export interface MemorySnapshot {
   bits: Record<BitArea, boolean[]>;
   physicalInputs: boolean[];
   physicalOutputs: boolean[];
+  /** Word images (MW INT, MD REAL, IW / QW analog). */
+  words: Record<WordArea, number[]>;
+  timers: { type: TimerType | null; in: boolean; q: boolean; et: number; pt: number }[];
+  counters: { type: CounterType | null; cv: number; pv: number; qu: boolean; qd: boolean }[];
   forced: Record<string, boolean>;
 }
 
@@ -78,6 +97,7 @@ export class PlcRuntime {
       probes: options.trace ? new Map() : null,
       steps: 0,
       maxSteps: options.maxStepsPerScan ?? 100_000,
+      now: 0,
     };
   }
 
@@ -120,6 +140,7 @@ export class PlcRuntime {
   stop(): void {
     this.mode = 'STOP';
     this.memory.physicalOutputs.fill(0);
+    this.memory.physicalAnalogOutputs.fill(0);
     this.applyOutputForcesOnly();
   }
 
@@ -143,15 +164,32 @@ export class PlcRuntime {
   }
 
   /** Value as seen by the program (process image or marker). */
-  read(address: string): boolean {
-    return this.memory.get(this.ref(address));
+  read(address: string): Value {
+    return this.memory.read(this.anyRef(address));
   }
 
   /** Writes a value once (monitor "modify"). The program may overwrite it in the next scan. */
-  write(address: string, value: boolean): void {
-    const ref = this.ref(address);
-    if (ref.area === 'S') throw new RangeError(`${address} is read-only`);
-    this.memory.set(ref, value);
+  write(address: string, value: Value): void {
+    const ref = this.anyRef(address);
+    if (ref.kind === 'bit' && ref.area !== 'S') this.memory.set(ref, value === true || value === 1);
+    else if (ref.kind === 'word') this.memory.words[ref.area][ref.index] = Number(value);
+    else throw new RangeError(`${address} is read-only`);
+  }
+
+  /** Sets an analog input terminal (IW0…), raw INT value. Read at the next scan. */
+  setAnalogInput(address: string, value: number): void {
+    const ref = this.anyRef(address);
+    if (ref.kind !== 'word' || ref.area !== 'IW')
+      throw new RangeError(`Invalid address: ${address}`);
+    this.memory.physicalAnalogInputs[ref.index] = value;
+  }
+
+  /** Analog output terminal (QW0…), raw INT value. */
+  getAnalogOutput(address: string): number {
+    const ref = this.anyRef(address);
+    if (ref.kind !== 'word' || ref.area !== 'QW')
+      throw new RangeError(`Invalid address: ${address}`);
+    return this.memory.physicalAnalogOutputs[ref.index] ?? 0;
   }
 
   /**
@@ -175,7 +213,7 @@ export class PlcRuntime {
   }
 
   /** Last value of each probe (power flow). Empty unless created with `trace: true`. */
-  get probes(): ReadonlyMap<string, boolean> {
+  get probes(): ReadonlyMap<string, Value> {
     return this.ctx.probes ?? new Map();
   }
 
@@ -205,6 +243,7 @@ export class PlcRuntime {
     yield { phase: 'read' };
 
     this.ctx.steps = 0;
+    this.ctx.now = this.timeMs;
     for (let index = 0; index < this.networks.length; index++) {
       const network = this.networks[index];
       if (!network) continue;
@@ -251,6 +290,20 @@ export class PlcRuntime {
       bits: { I: toBools(bits.I), Q: toBools(bits.Q), M: toBools(bits.M), S: toBools(bits.S) },
       physicalInputs: toBools(this.memory.physicalInputs),
       physicalOutputs: toBools(this.memory.physicalOutputs),
+      words: {
+        MW: Array.from(this.memory.words.MW),
+        MD: Array.from(this.memory.words.MD),
+        IW: Array.from(this.memory.words.IW),
+        QW: Array.from(this.memory.words.QW),
+      },
+      timers: this.memory.timers.map(({ type, in: input, q, et, pt }) => ({
+        type,
+        in: input,
+        q,
+        et,
+        pt,
+      })),
+      counters: this.memory.counters.map(({ type, cv, pv, qu, qd }) => ({ type, cv, pv, qu, qd })),
       forced,
     };
   }
@@ -262,6 +315,7 @@ export class PlcRuntime {
   private readInputs(): void {
     const { bits, physicalInputs } = this.memory;
     bits.I.set(physicalInputs);
+    this.memory.words.IW.set(this.memory.physicalAnalogInputs);
     for (const { ref, value } of this.forces.values()) {
       if (ref.area === 'I') bits.I[bitIndex(ref)] = value ? 1 : 0;
     }
@@ -272,6 +326,7 @@ export class PlcRuntime {
 
   private writeOutputs(): void {
     this.memory.physicalOutputs.set(this.memory.bits.Q);
+    this.memory.physicalAnalogOutputs.set(this.memory.words.QW);
     this.applyOutputForcesOnly();
   }
 
@@ -295,6 +350,13 @@ export class PlcRuntime {
   private trip(fault: PlcFault): void {
     this.fault = fault;
     this.stop();
+  }
+
+  private anyRef(address: string) {
+    const ref = parseAddress(address);
+    if (!ref || !this.memory.containsAddress(ref))
+      throw new RangeError(`Invalid address: ${address}`);
+    return ref;
   }
 
   private ref(address: string, expected?: BitArea): BitRef {
