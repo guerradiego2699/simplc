@@ -41,5 +41,7 @@ light/dark (desktop always, mobile only for content pages); short Spanish summar
 
 ## Environment notes
 
-- Windows + project inside OneDrive. If `npm install` fails with EPERM/EBUSY, pause OneDrive sync
-  and retry.
+- Windows. Project lives in `C:\dev\simplc` (kept out of OneDrive on purpose: node_modules sync
+  caused slowness/locks). Remote: https://github.com/guerradiego2699/simplc (branch `main`).
+- Playwright uses the installed Microsoft Edge (`channel: 'msedge'`) because downloading
+  Playwright's Chromium times out on this machine.
