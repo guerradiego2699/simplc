@@ -1,0 +1,198 @@
+/**
+ * Connects the store to the PLC engine and drives it in real time.
+ *
+ * Every animation frame: push the I/O panel state into the physical inputs, advance simulated
+ * time by (elapsed real time × speed), and publish a snapshot + power-flow probes to the store
+ * (throttled). The engine itself stays pure; timing lives here, in the UI layer.
+ */
+import { PlcRuntime } from '@/simulator/engine';
+import type { IoPanelSetup } from '@/simulator/project/types';
+import type { SimulatorStoreApi } from './simulator-store';
+
+/** Inputs of the training panel: 2 bytes × 8 bits (spec 6.6). */
+export const PANEL_INPUTS = Array.from({ length: 16 }, (_, i) => `I${Math.floor(i / 8)}.${i % 8}`);
+export const PANEL_OUTPUTS = Array.from({ length: 16 }, (_, i) => `Q${Math.floor(i / 8)}.${i % 8}`);
+
+const PUBLISH_EVERY_MS = 50;
+const MAX_FRAME_MS = 250;
+
+/** Terminal state of an input given its control and mode (an NC button is 1 at rest). */
+export function physicalInput(
+  address: string,
+  io: IoPanelSetup,
+  controls: Record<string, boolean>,
+): boolean {
+  const active = controls[address] ?? false;
+  return io.inputs[address]?.mode === 'button-nc' ? !active : active;
+}
+
+export class SimulationController {
+  private readonly store: SimulatorStoreApi;
+  private readonly runtime = new PlcRuntime({ trace: true });
+  private frame = 0;
+  private lastFrame = 0;
+  private lastPublish = 0;
+  private carry = 0;
+  private unsubscribe: (() => void) | null = null;
+  /**
+   * Controls activated recently, with the scan count at that moment. A quick click can be
+   * shorter than one scan; we keep the contact "pressed" until at least one full scan has read
+   * it, so every click is seen by the program (at any simulation speed).
+   */
+  private readonly held = new Map<string, number>();
+
+  constructor(store: SimulatorStoreApi) {
+    this.store = store;
+    this.unsubscribe = store.subscribe((state, prev) => {
+      // Online change: reload the program while running whenever it compiles.
+      if (state.compiled !== prev.compiled && state.status !== 'stopped') this.loadCompiled();
+      if (state.ioControls !== prev.ioControls) {
+        for (const [address, on] of Object.entries(state.ioControls)) {
+          if (on && !prev.ioControls[address]) this.held.set(address, this.runtime.scanCount);
+        }
+      }
+    });
+    this.publish();
+  }
+
+  dispose(): void {
+    cancelAnimationFrame(this.frame);
+    this.unsubscribe?.();
+  }
+
+  get cycleTimeMs(): number {
+    return this.runtime.cycleTimeMs;
+  }
+
+  run(): void {
+    const { status } = this.store.getState();
+    if (status === 'stopped' && !this.startProgram()) return;
+    this.store.setState({ status: 'running' });
+    this.loop();
+  }
+
+  pause(): void {
+    if (this.store.getState().status !== 'running') return;
+    this.store.setState({ status: 'paused' });
+  }
+
+  stop(): void {
+    this.runtime.stop();
+    cancelAnimationFrame(this.frame);
+    this.frame = 0;
+    this.store.setState({ status: 'stopped', notLoaded: false, probes: {} });
+    this.publish(true);
+  }
+
+  /** Runs exactly one scan cycle and stays paused (starts the PLC if needed). */
+  step(): void {
+    const { status } = this.store.getState();
+    if (status === 'stopped' && !this.startProgram()) return;
+    this.store.setState({ status: 'paused' });
+    this.applyInputs();
+    this.runtime.scan();
+    this.afterScans();
+    this.publish(true);
+    this.loop();
+  }
+
+  setSpeed(speed: number): void {
+    this.store.setState({ speed });
+  }
+
+  force(address: string, value: boolean | null): void {
+    this.runtime.force(address, value);
+    this.publish(true);
+  }
+
+  isForced(address: string): boolean {
+    return this.runtime.isForced(address);
+  }
+
+  /** Monitor "modify": write a marker/output once. */
+  write(address: string, value: boolean): void {
+    this.runtime.write(address, value);
+    this.publish(true);
+  }
+
+  // -------------------------------------------------------------------------------------------
+
+  private startProgram(): boolean {
+    const { compiled } = this.store.getState();
+    if (!compiled.ir) {
+      this.store.setState({ bottomTab: 'console' });
+      return false;
+    }
+    this.runtime.load(compiled.ir);
+    this.runtime.start();
+    this.carry = 0;
+    this.store.setState({ notLoaded: false });
+    return true;
+  }
+
+  private loadCompiled(): void {
+    const { compiled } = this.store.getState();
+    if (compiled.ir) {
+      this.runtime.load(compiled.ir);
+      this.store.setState({ notLoaded: false });
+    } else {
+      this.store.setState({ notLoaded: true });
+    }
+  }
+
+  private applyInputs(): void {
+    const { project, ioControls } = this.store.getState();
+    let controls = ioControls;
+    for (const [address, since] of this.held) {
+      // Released only after a scan that started after the press has completed.
+      if (this.runtime.scanCount > since || this.runtime.mode !== 'RUN') this.held.delete(address);
+      else if (!controls[address]) controls = { ...controls, [address]: true };
+    }
+    for (const address of PANEL_INPUTS) {
+      this.runtime.setInput(address, physicalInput(address, project.io, controls));
+    }
+  }
+
+  /** A watchdog fault stops the PLC by itself: reflect it in the UI. */
+  private afterScans(): void {
+    if (this.runtime.mode === 'STOP' && this.store.getState().status !== 'stopped') {
+      cancelAnimationFrame(this.frame);
+      this.frame = 0;
+      this.store.setState({ status: 'stopped', probes: {}, bottomTab: 'console' });
+    }
+  }
+
+  private loop(): void {
+    if (this.frame) return;
+    this.lastFrame = performance.now();
+    const tick = (now: number) => {
+      const state = this.store.getState();
+      if (state.status === 'stopped') {
+        this.frame = 0;
+        return;
+      }
+      this.applyInputs();
+      if (state.status === 'running') {
+        this.carry += Math.min(now - this.lastFrame, MAX_FRAME_MS) * state.speed;
+        const scans = this.runtime.advance(this.carry);
+        this.carry -= scans * this.runtime.cycleTimeMs;
+        this.afterScans();
+      }
+      this.lastFrame = now;
+      if (now - this.lastPublish >= PUBLISH_EVERY_MS) this.publish();
+      this.frame = this.store.getState().status === 'stopped' ? 0 : requestAnimationFrame(tick);
+    };
+    this.frame = requestAnimationFrame(tick);
+  }
+
+  private publish(force = false): void {
+    const now = performance.now();
+    if (!force && now - this.lastPublish < PUBLISH_EVERY_MS) return;
+    this.lastPublish = now;
+    const running = this.store.getState().status !== 'stopped';
+    this.store.setState({
+      snapshot: this.runtime.snapshot(),
+      probes: running ? Object.fromEntries(this.runtime.probes) : {},
+    });
+  }
+}

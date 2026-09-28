@@ -208,5 +208,168 @@
       "psu": "Power supply",
       "comms": "Communication: PC, HMI, network"
     }
+  },
+  "simulator": {
+    "metaTitle": "PLC simulator",
+    "metaDescription": "Free in-browser PLC simulator: program in Ladder, run the scan cycle, watch the power flow and test with an input/output training panel.",
+    "loading": "Loading simulator…",
+    "desktopOnly": {
+      "title": "The simulator is designed for desktop",
+      "body": "Open it on a screen at least 1024 pixels wide. Meanwhile, you can keep learning the theory on your phone.",
+      "cta": "Go to Learn"
+    },
+    "toolbar": {
+      "label": "Toolbar",
+      "file": "File",
+      "newProject": "New project",
+      "loadExample": "Example: motor start and stop",
+      "confirmDiscard": "Discard the current program? You can undo this with Ctrl+Z.",
+      "language": "Language",
+      "comingSoon": "Coming soon",
+      "run": "Run (F5)",
+      "pause": "Pause",
+      "stop": "Stop (F6)",
+      "step": "Run one scan (F10)",
+      "speed": "Speed",
+      "undo": "Undo (Ctrl+Z)",
+      "redo": "Redo (Ctrl+Y)",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "zoomReset": "Zoom 100 %"
+    },
+    "palette": {
+      "title": "Instructions",
+      "contacts": "Contacts",
+      "coils": "Coils",
+      "hint": "Drag an instruction onto a rung. You can also select an element and click an instruction to insert it right after."
+    },
+    "elements": {
+      "NO": "Normally open contact",
+      "NC": "Normally closed contact",
+      "P": "Positive edge contact",
+      "N": "Negative edge contact",
+      "coil": "Coil",
+      "negated": "Negated coil",
+      "set": "Set coil (latch)",
+      "reset": "Reset coil (unlatch)",
+      "parallel": "Parallel block"
+    },
+    "editor": {
+      "label": "Ladder editor",
+      "rung": "Rung {n}",
+      "noComment": "No comment",
+      "addRung": "Add rung",
+      "empty": "unassigned",
+      "forced": "Forced"
+    },
+    "properties": {
+      "title": "Properties",
+      "nothingSelected": "Select an element or a rung to see its properties.",
+      "type": "Type",
+      "operand": "Address or variable",
+      "operandPlaceholder": "E.g. I0.0 or START",
+      "resolvesTo": "Address: {address}",
+      "comment": "Comment",
+      "delete": "Delete",
+      "moveUp": "Move rung up",
+      "moveDown": "Move rung down",
+      "deleteRung": "Delete rung",
+      "insertRungBelow": "Insert rung below",
+      "wrapBranch": "Create parallel branch",
+      "rangeSelected": "{n} contacts selected",
+      "rangeHint": "Use Shift + click to select consecutive contacts and create a parallel branch around them.",
+      "parallelHint": "Drag contacts into the branches, or drop one below the block to add a branch."
+    },
+    "variables": {
+      "title": "Variables",
+      "name": "Name",
+      "address": "Address",
+      "comment": "Comment",
+      "add": "Add variable",
+      "remove": "Delete variable",
+      "empty": "No variables yet. Add one to use names like START instead of addresses.",
+      "problems": {
+        "INVALID_TAG_NAME": "Invalid name: use letters, digits and _, no spaces, and it must not look like an address.",
+        "DUPLICATE_TAG": "Another variable already has this name.",
+        "INVALID_TAG_ADDRESS": "Invalid address (e.g. I0.0, Q0.0, M0.0)."
+      }
+    },
+    "monitor": {
+      "title": "Monitor",
+      "value": "Value",
+      "empty": "The program does not use any address yet.",
+      "force1": "Force to 1",
+      "force0": "Force to 0",
+      "release": "Release force",
+      "toggle": "Toggle value",
+      "forcedCount": "{n} forced",
+      "notRunning": "Run the program to see live values."
+    },
+    "io": {
+      "title": "I/O panel",
+      "inputs": "Digital inputs",
+      "outputs": "Digital outputs",
+      "edit": "Edit labels",
+      "done": "Done",
+      "labelPlaceholder": "Label",
+      "modes": {
+        "switch": "Switch",
+        "button-no": "NO push button",
+        "button-nc": "NC push button"
+      }
+    },
+    "console": {
+      "title": "Console",
+      "ok": "No errors or warnings.",
+      "location": "Rung {n}",
+      "notLoaded": "The program has errors: the latest changes were not loaded into the PLC."
+    },
+    "status": {
+      "RUN": "RUN",
+      "STOP": "STOP",
+      "PAUSE": "PAUSE",
+      "cycle": "Cycle {ms} ms",
+      "time": "Time {s} s",
+      "errors": "{n} errors",
+      "warnings": "{n} warnings",
+      "zoom": "Zoom {n} %"
+    },
+    "diagnostics": {
+      "MISSING_OPERAND": "An address or variable must be assigned.",
+      "UNKNOWN_SYMBOL": "“{operand}” is neither a valid address nor a variable in the table.",
+      "RUNG_WITHOUT_OUTPUT": "The rung has no output coil.",
+      "EMPTY_BRANCH": "A parallel branch is empty: it acts as a bridge that always conducts.",
+      "INVALID_ADDRESS": "Address {address} does not exist in this PLC.",
+      "READ_ONLY_TARGET": "{address} is a system bit: it can only be read.",
+      "INPUT_WRITE": "Input {address} is written: the value will be overwritten in the next scan.",
+      "DUPLICATE_OUTPUT": "Output {address} is written in {count} places: only the last one counts (duplicate coil).",
+      "UNDEFINED_TEMP": "Internal error: temporary {name} is not defined.",
+      "DUPLICATE_EDGE_INSTANCE": "Internal error: duplicate edge memory.",
+      "DUPLICATE_NETWORK_ID": "Internal error: duplicate rung.",
+      "EMPTY_OPERATION": "Internal error: empty operation.",
+      "UNSUPPORTED_VERSION": "Unsupported program version."
+    },
+    "faults": {
+      "WATCHDOG": "Cycle time exceeded (watchdog): the PLC went to STOP."
+    },
+    "example": {
+      "start": "START",
+      "stop": "STOP",
+      "motor": "MOTOR",
+      "startComment": "Start push button (NO)",
+      "stopComment": "Stop push button (NC: 1 at rest)",
+      "motorComment": "Motor contactor",
+      "rungComment": "Start and stop with seal-in. STOP is wired NC, so it is examined with an NO contact."
+    },
+    "elementsShort": {
+      "NO": "NO contact",
+      "NC": "NC contact",
+      "P": "Positive edge",
+      "N": "Negative edge",
+      "coil": "Coil",
+      "negated": "Negated coil",
+      "set": "Set",
+      "reset": "Reset"
+    }
   }
 }

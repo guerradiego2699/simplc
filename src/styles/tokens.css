@@ -23,6 +23,7 @@
   --led-on: #22c55e;
   --on-led: #052e16;
   --warning: #d97706;
+  --on-warning: #1f1300;
   --danger: #dc2626;
   --on-danger: #ffffff;
 }
@@ -45,6 +46,7 @@
     --led-on: #4ade80;
     --on-led: #052e16;
     --warning: #f59e0b;
+    --on-warning: #1f1300;
     --danger: #f87171;
     --on-danger: #1f0a0a;
   }
@@ -67,6 +69,7 @@
   --led-on: #4ade80;
   --on-led: #052e16;
   --warning: #f59e0b;
+  --on-warning: #1f1300;
   --danger: #f87171;
   --on-danger: #1f0a0a;
 }

@@ -15,9 +15,11 @@ interface Props {
   /** Locale-less path of this page, used for canonical and hreflang links. */
   path?: string;
   noindex?: boolean;
+  /** Full-height application page (simulator): no footer, main fills the viewport. */
+  app?: boolean;
 }
 
-const { locale, title, description, path = '/', noindex = false } = Astro.props;
+const { locale, title, description, path = '/', noindex = false, app = false } = Astro.props;
 const t = getTranslator(locale);
 
 const fullTitle = title ? `${title} · ${SITE.name}` : `${SITE.name} — ${t('meta.homeTitle')}`;
@@ -58,7 +60,12 @@ const ogLocale = { es: 'es_CL', en: 'en_US' }[locale];
       }
     </script>
   </head>
-  <body class="flex min-h-screen flex-col">
+  <body
+    class:list={[
+      'flex flex-col',
+      app ? 'min-h-screen lg:h-dvh lg:min-h-0 lg:overflow-hidden' : 'min-h-screen',
+    ]}
+  >
     <a
       href="#main"
       class="sr-only z-50 rounded-md bg-primary px-4 py-2 text-on-primary focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
@@ -66,9 +73,9 @@ const ogLocale = { es: 'es_CL', en: 'en_US' }[locale];
       {t('a11y.skipToContent')}
     </a>
     <Header locale={locale} />
-    <main id="main" class="flex-1">
+    <main id="main" class:list={['flex-1', { 'min-h-0': app }]}>
       <slot />
     </main>
-    <Footer locale={locale} />
+    {!app && <Footer locale={locale} />}
   </body>
 </html>

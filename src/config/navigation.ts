@@ -28,7 +28,6 @@ export const FOOTER_NAV: readonly NavItem[] = [
  */
 export const PLACEHOLDER_SECTIONS = [
   'brands',
-  'simulator',
   'examples',
   'challenges',
   'glossary',

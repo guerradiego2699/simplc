@@ -208,5 +208,168 @@
       "psu": "Fuente de poder",
       "comms": "Comunicaciones: PC, HMI, red"
     }
+  },
+  "simulator": {
+    "metaTitle": "Simulador PLC",
+    "metaDescription": "Simulador de PLC gratuito en el navegador: programa en Ladder, ejecuta el ciclo de scan, observa el flujo de potencia y prueba con un tablero de entradas y salidas.",
+    "loading": "Cargando simulador…",
+    "desktopOnly": {
+      "title": "El simulador está diseñado para escritorio",
+      "body": "Ábrelo en una pantalla de al menos 1024 píxeles de ancho. Mientras tanto, puedes seguir aprendiendo la teoría desde tu celular.",
+      "cta": "Ir a Aprender"
+    },
+    "toolbar": {
+      "label": "Barra de herramientas",
+      "file": "Archivo",
+      "newProject": "Nuevo proyecto",
+      "loadExample": "Ejemplo: partida y parada de motor",
+      "confirmDiscard": "¿Descartar el programa actual? Esta acción se puede deshacer con Ctrl+Z.",
+      "language": "Lenguaje",
+      "comingSoon": "Próximamente",
+      "run": "Ejecutar (F5)",
+      "pause": "Pausar",
+      "stop": "Detener (F6)",
+      "step": "Ejecutar un ciclo (F10)",
+      "speed": "Velocidad",
+      "undo": "Deshacer (Ctrl+Z)",
+      "redo": "Rehacer (Ctrl+Y)",
+      "zoomIn": "Acercar",
+      "zoomOut": "Alejar",
+      "zoomReset": "Zoom 100 %"
+    },
+    "palette": {
+      "title": "Instrucciones",
+      "contacts": "Contactos",
+      "coils": "Bobinas",
+      "hint": "Arrastra una instrucción al peldaño. También puedes seleccionar un elemento y hacer clic en una instrucción para insertarla a continuación."
+    },
+    "elements": {
+      "NO": "Contacto normalmente abierto",
+      "NC": "Contacto normalmente cerrado",
+      "P": "Contacto de flanco positivo",
+      "N": "Contacto de flanco negativo",
+      "coil": "Bobina",
+      "negated": "Bobina negada",
+      "set": "Bobina Set (activar)",
+      "reset": "Bobina Reset (desactivar)",
+      "parallel": "Bloque paralelo"
+    },
+    "editor": {
+      "label": "Editor Ladder",
+      "rung": "Peldaño {n}",
+      "noComment": "Sin comentario",
+      "addRung": "Agregar peldaño",
+      "empty": "sin asignar",
+      "forced": "Forzado"
+    },
+    "properties": {
+      "title": "Propiedades",
+      "nothingSelected": "Selecciona un elemento o un peldaño para ver sus propiedades.",
+      "type": "Tipo",
+      "operand": "Dirección o variable",
+      "operandPlaceholder": "Ej.: I0.0 o MARCHA",
+      "resolvesTo": "Dirección: {address}",
+      "comment": "Comentario",
+      "delete": "Eliminar",
+      "moveUp": "Subir peldaño",
+      "moveDown": "Bajar peldaño",
+      "deleteRung": "Eliminar peldaño",
+      "insertRungBelow": "Insertar peldaño debajo",
+      "wrapBranch": "Crear rama paralela",
+      "rangeSelected": "{n} contactos seleccionados",
+      "rangeHint": "Usa Mayús + clic para seleccionar contactos seguidos y crear una rama paralela alrededor de ellos.",
+      "parallelHint": "Arrastra contactos a las ramas, o suelta uno bajo el bloque para agregar una rama."
+    },
+    "variables": {
+      "title": "Variables",
+      "name": "Nombre",
+      "address": "Dirección",
+      "comment": "Comentario",
+      "add": "Agregar variable",
+      "remove": "Eliminar variable",
+      "empty": "Aún no hay variables. Agrega una para usar nombres como MARCHA en lugar de direcciones.",
+      "problems": {
+        "INVALID_TAG_NAME": "Nombre no válido: usa letras, números y _, sin espacios, y que no parezca una dirección.",
+        "DUPLICATE_TAG": "Ya existe otra variable con este nombre.",
+        "INVALID_TAG_ADDRESS": "Dirección no válida (ej.: I0.0, Q0.0, M0.0)."
+      }
+    },
+    "monitor": {
+      "title": "Monitor",
+      "value": "Valor",
+      "empty": "El programa no usa direcciones todavía.",
+      "force1": "Forzar a 1",
+      "force0": "Forzar a 0",
+      "release": "Liberar forzado",
+      "toggle": "Cambiar valor",
+      "forcedCount": "{n} forzados",
+      "notRunning": "Ejecuta el programa para ver los valores en vivo."
+    },
+    "io": {
+      "title": "Tablero E/S",
+      "inputs": "Entradas digitales",
+      "outputs": "Salidas digitales",
+      "edit": "Editar etiquetas",
+      "done": "Listo",
+      "labelPlaceholder": "Etiqueta",
+      "modes": {
+        "switch": "Interruptor",
+        "button-no": "Pulsador NA",
+        "button-nc": "Pulsador NC"
+      }
+    },
+    "console": {
+      "title": "Consola",
+      "ok": "Sin errores ni advertencias.",
+      "location": "Peldaño {n}",
+      "notLoaded": "El programa tiene errores: los últimos cambios no se cargaron en el PLC."
+    },
+    "status": {
+      "RUN": "RUN",
+      "STOP": "STOP",
+      "PAUSE": "PAUSA",
+      "cycle": "Ciclo {ms} ms",
+      "time": "Tiempo {s} s",
+      "errors": "{n} errores",
+      "warnings": "{n} advertencias",
+      "zoom": "Zoom {n} %"
+    },
+    "diagnostics": {
+      "MISSING_OPERAND": "Falta asignar una dirección o variable.",
+      "UNKNOWN_SYMBOL": "«{operand}» no es una dirección válida ni una variable de la tabla.",
+      "RUNG_WITHOUT_OUTPUT": "El peldaño no tiene ninguna bobina de salida.",
+      "EMPTY_BRANCH": "Una rama paralela está vacía: actúa como un puente que siempre conduce.",
+      "INVALID_ADDRESS": "La dirección {address} no existe en este PLC.",
+      "READ_ONLY_TARGET": "{address} es un bit de sistema: solo se puede leer.",
+      "INPUT_WRITE": "Se escribe en la entrada {address}: el valor se sobrescribirá en el próximo ciclo.",
+      "DUPLICATE_OUTPUT": "La salida {address} se escribe en {count} lugares: solo vale la última (bobina duplicada).",
+      "UNDEFINED_TEMP": "Error interno: variable temporal {name} no definida.",
+      "DUPLICATE_EDGE_INSTANCE": "Error interno: memoria de flanco duplicada.",
+      "DUPLICATE_NETWORK_ID": "Error interno: peldaño duplicado.",
+      "EMPTY_OPERATION": "Error interno: operación vacía.",
+      "UNSUPPORTED_VERSION": "Versión de programa no compatible."
+    },
+    "faults": {
+      "WATCHDOG": "Tiempo de ciclo excedido (watchdog): el PLC pasó a STOP."
+    },
+    "example": {
+      "start": "MARCHA",
+      "stop": "PARO",
+      "motor": "MOTOR",
+      "startComment": "Pulsador de marcha (NA)",
+      "stopComment": "Pulsador de paro (NC: 1 en reposo)",
+      "motorComment": "Contactor del motor",
+      "rungComment": "Partida y parada con autorretención. PARO se cablea NC, por eso se examina con un contacto NA."
+    },
+    "elementsShort": {
+      "NO": "Contacto NA",
+      "NC": "Contacto NC",
+      "P": "Flanco positivo",
+      "N": "Flanco negativo",
+      "coil": "Bobina",
+      "negated": "Bobina negada",
+      "set": "Set",
+      "reset": "Reset"
+    }
   }
 }

@@ -34,15 +34,15 @@ function Meter({
   message: string;
 }) {
   return (
-    <div className={`bg-bg rounded-md border p-3 ${fault ? 'border-danger' : 'border-border'}`}>
-      <p className="text-text-muted text-xs">{title}</p>
-      <p className="text-text mt-1 font-mono text-2xl font-semibold tabular-nums">
-        {value.toFixed(1)} <span className="text-text-muted text-base">{unit}</span>
+    <div className={`rounded-md border bg-bg p-3 ${fault ? 'border-danger' : 'border-border'}`}>
+      <p className="text-xs text-text-muted">{title}</p>
+      <p className="mt-1 font-mono text-2xl font-semibold text-text tabular-nums">
+        {value.toFixed(1)} <span className="text-base text-text-muted">{unit}</span>
       </p>
-      <div className="bg-surface-2 mt-2 h-1.5 overflow-hidden rounded-full">
-        <div className="bg-primary h-full" style={{ width: `${(value / max) * 100}%` }} />
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-2">
+        <div className="h-full bg-primary" style={{ width: `${(value / max) * 100}%` }} />
       </div>
-      <p className={`mt-2 text-xs ${fault ? 'text-danger font-medium' : 'text-text-muted'}`}>
+      <p className={`mt-2 text-xs ${fault ? 'font-medium text-danger' : 'text-text-muted'}`}>
         {message}
       </p>
     </div>
@@ -60,7 +60,7 @@ export default function AnalogSignalDemo({ strings }: { strings: Strings }) {
 
   return (
     <figure
-      className="not-prose border-border bg-surface my-8 rounded-lg border p-4 sm:p-6"
+      className="not-prose my-8 rounded-lg border border-border bg-surface p-4 sm:p-6"
       aria-label={strings.label}
     >
       <div className="grid gap-6 sm:grid-cols-[120px_1fr]">
@@ -109,7 +109,7 @@ export default function AnalogSignalDemo({ strings }: { strings: Strings }) {
         </svg>
 
         <div>
-          <label htmlFor={sliderId} className="text-text text-sm font-medium">
+          <label htmlFor={sliderId} className="text-sm font-medium text-text">
             {strings.level}: <span className="font-mono">{level}%</span>
           </label>
           <input
@@ -141,7 +141,7 @@ export default function AnalogSignalDemo({ strings }: { strings: Strings }) {
             />
           </div>
 
-          <label className="text-text mt-4 flex cursor-pointer items-center gap-2 text-sm">
+          <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-text">
             <input
               type="checkbox"
               checked={broken}

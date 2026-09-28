@@ -81,6 +81,25 @@ type="industry|tip|note|warning|safety">`, `<TrySimulator example="…">`, `<Plc
 - ESLint forbids React/DOM/timers/`Date` inside engine and IR. Keep it that way.
 - `npm run engine:demo` prints a scan-by-scan table; `npm run test:coverage` for coverage.
 
+## Ladder editor & simulator UI (Phase 4)
+
+- `src/simulator/languages/ladder/`: `model.ts` (rung = series–parallel tree of contacts + parallel
+  coils; pure immutable ops: insertAt/moveElement/removeElement/wrapInParallel…), `layout.ts`
+  (grid cells, wires tagged with the probe id of their power, drop zones), `compile.ts` (LD → IR,
+  one `let` per element so edges run once; probes `<id>` = power after, `<id>:state` = contact
+  closed; diagnostics mapped to rung/element), `editor/` (SVG `LadderEditor`, `Palette`, `symbols`).
+- `src/simulator/project/`: `Project` type (language, ladder, tags, io panel setup), tags
+  (case-insensitive resolution, validation), operations (rename tag updates operands), examples.
+- `src/simulator/store/`: Zustand store (`createSimulatorStore`: project + undo/redo with
+  coalescing, selection, drag, UI layout) and `SimulationController` (RAF loop, speed, step,
+  online change, forcing; holds each panel press for ≥1 scan so quick clicks are never lost).
+- `src/simulator/ui/`: `SimulatorApp` (client:only island; gets only `simulator.*` strings),
+  panels (Properties, Variables, Monitor, Console), Toolbar, StatusBar, pointer-based drag & drop
+  (`drag.ts`: zones carry `data-drop` JSON). `src/simulator/io-panel/IoBoard.tsx`: 16 in / 16 out.
+- Page `src/pages/[lang]/simulator.astro` uses `BaseLayout app` (no footer, full height); < 1024 px
+  shows the desktop-only notice. E2E: `tests/e2e/phase4.spec.ts` (runs at 1440×900).
+- The in-app browser pane may run at ~3 fps when hidden; verify simulator timing with Playwright.
+
 ## Environment notes
 
 - Windows. Project lives in `C:\dev\simplc` (kept out of OneDrive on purpose: node_modules sync

@@ -30,6 +30,7 @@
   --color-led-on: var(--led-on);
   --color-on-led: var(--on-led);
   --color-warning: var(--warning);
+  --color-on-warning: var(--on-warning);
   --color-danger: var(--danger);
   --color-on-danger: var(--on-danger);
 

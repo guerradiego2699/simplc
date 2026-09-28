@@ -107,7 +107,7 @@ export default function ScanCycleDiagram({ strings }: { strings: Strings }) {
 
   return (
     <figure
-      className="not-prose border-border bg-surface my-8 rounded-lg border p-4 sm:p-6"
+      className="not-prose my-8 rounded-lg border border-border bg-surface p-4 sm:p-6"
       aria-label={strings.label}
     >
       <div className="grid items-center gap-6 md:grid-cols-[minmax(0,280px)_1fr]">
@@ -203,18 +203,18 @@ export default function ScanCycleDiagram({ strings }: { strings: Strings }) {
 
         {/* Explanation + I/O chain */}
         <div>
-          <p className="text-text-muted font-mono text-xs">
+          <p className="font-mono text-xs text-text-muted">
             {phaseIndex + 1} / {PHASES.length}
           </p>
-          <p className="text-text mt-1 text-lg font-semibold" aria-live="polite">
+          <p className="mt-1 text-lg font-semibold text-text" aria-live="polite">
             {strings.phases[phase].name}
           </p>
-          <p className="text-text-muted mt-2 min-h-[4.5rem] text-sm leading-relaxed">
+          <p className="mt-2 min-h-[4.5rem] text-sm leading-relaxed text-text-muted">
             {strings.phases[phase].description}
           </p>
 
           <ol className="mt-4 space-y-1.5 text-sm">
-            <li className={`${ROW} ring-border ring-1`}>
+            <li className={`${ROW} ring-1 ring-border`}>
               <span className="text-text-muted">{strings.physicalInput}</span>
               <button
                 type="button"
@@ -227,7 +227,7 @@ export default function ScanCycleDiagram({ strings }: { strings: Strings }) {
                 }`}
               >
                 <span
-                  className={`bg-bg absolute top-0.5 left-0.5 size-5 rounded-full shadow transition-transform ${
+                  className={`absolute top-0.5 left-0.5 size-5 rounded-full bg-bg shadow transition-transform ${
                     io.physIn ? 'translate-x-5' : ''
                   }`}
                 />
@@ -235,17 +235,17 @@ export default function ScanCycleDiagram({ strings }: { strings: Strings }) {
             </li>
             <li className={`${ROW} ${highlight('read')}`}>
               <span className="text-text-muted">{strings.inputImage}</span>
-              <span className="text-text flex items-center gap-2 font-mono">
+              <span className="flex items-center gap-2 font-mono text-text">
                 I0.0 <Bit value={io.inputImage} />
               </span>
             </li>
             <li className={`${ROW} ${highlight('execute')}`}>
               <span className="text-text-muted">{strings.program}</span>
-              <span className="text-text font-mono">Q0.0 := I0.0</span>
+              <span className="font-mono text-text">Q0.0 := I0.0</span>
             </li>
             <li className={`${ROW} ${highlight('execute')}`}>
               <span className="text-text-muted">{strings.outputImage}</span>
-              <span className="text-text flex items-center gap-2 font-mono">
+              <span className="flex items-center gap-2 font-mono text-text">
                 Q0.0 <Bit value={io.outputImage} />
               </span>
             </li>
@@ -265,7 +265,7 @@ export default function ScanCycleDiagram({ strings }: { strings: Strings }) {
             <button
               type="button"
               onClick={() => setUserPlaying(!playing)}
-              className="bg-primary text-on-primary hover:bg-primary-hover inline-flex h-9 items-center rounded-md px-3 text-sm font-semibold"
+              className="inline-flex h-9 items-center rounded-md bg-primary px-3 text-sm font-semibold text-on-primary hover:bg-primary-hover"
             >
               {playing ? strings.pause : strings.play}
             </button>
@@ -275,12 +275,12 @@ export default function ScanCycleDiagram({ strings }: { strings: Strings }) {
                 setUserPlaying(false);
                 dispatch({ type: 'advance' });
               }}
-              className="border-border bg-bg text-text hover:border-primary inline-flex h-9 items-center rounded-md border px-3 text-sm font-semibold"
+              className="inline-flex h-9 items-center rounded-md border border-border bg-bg px-3 text-sm font-semibold text-text hover:border-primary"
             >
               {strings.step}
             </button>
           </div>
-          <p className="text-text-muted mt-3 text-xs">{strings.hint}</p>
+          <p className="mt-3 text-xs text-text-muted">{strings.hint}</p>
         </div>
       </div>
     </figure>

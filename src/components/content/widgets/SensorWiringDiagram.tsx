@@ -34,14 +34,14 @@ export default function SensorWiringDiagram({ strings }: { strings: Strings }) {
   const diodeDown = type === 'pnp';
 
   return (
-    <figure className="not-prose border-border bg-surface my-8 rounded-lg border p-4 sm:p-6">
+    <figure className="not-prose my-8 rounded-lg border border-border bg-surface p-4 sm:p-6">
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
         <div className="flex items-center gap-2 text-sm">
           <span className="text-text-muted">{strings.sensorType}</span>
           <div
             role="group"
             aria-label={strings.sensorType}
-            className="border-border bg-bg inline-flex rounded-md border p-0.5"
+            className="inline-flex rounded-md border border-border bg-bg p-0.5"
           >
             {(['pnp', 'npn'] as const).map((t) => (
               <button
@@ -49,14 +49,14 @@ export default function SensorWiringDiagram({ strings }: { strings: Strings }) {
                 type="button"
                 aria-pressed={type === t}
                 onClick={() => setType(t)}
-                className="text-text-muted aria-pressed:bg-primary aria-pressed:text-on-primary h-8 rounded px-3 font-mono text-sm font-semibold uppercase"
+                className="h-8 rounded px-3 font-mono text-sm font-semibold text-text-muted uppercase aria-pressed:bg-primary aria-pressed:text-on-primary"
               >
                 {t}
               </button>
             ))}
           </div>
         </div>
-        <label className="text-text flex cursor-pointer items-center gap-2 text-sm">
+        <label className="flex cursor-pointer items-center gap-2 text-sm text-text">
           <button
             type="button"
             role="switch"
@@ -67,7 +67,7 @@ export default function SensorWiringDiagram({ strings }: { strings: Strings }) {
             }`}
           >
             <span
-              className={`bg-bg absolute top-0.5 left-0.5 size-5 rounded-full shadow transition-transform ${
+              className={`absolute top-0.5 left-0.5 size-5 rounded-full bg-bg shadow transition-transform ${
                 detected ? 'translate-x-5' : ''
               }`}
             />
@@ -80,7 +80,7 @@ export default function SensorWiringDiagram({ strings }: { strings: Strings }) {
         viewBox="0 0 620 290"
         role="img"
         aria-label={strings.label}
-        className="bg-bg mt-4 h-auto w-full rounded-md"
+        className="mt-4 h-auto w-full rounded-md bg-bg"
       >
         {/* Supply */}
         <rect
@@ -227,8 +227,8 @@ export default function SensorWiringDiagram({ strings }: { strings: Strings }) {
         )}
       </svg>
 
-      <figcaption className="text-text-muted mt-4 space-y-1 text-sm">
-        <p className="text-text font-medium">{type === 'pnp' ? strings.pnpCom : strings.npnCom}</p>
+      <figcaption className="mt-4 space-y-1 text-sm text-text-muted">
+        <p className="font-medium text-text">{type === 'pnp' ? strings.pnpCom : strings.npnCom}</p>
         <p aria-live="polite">
           {detected ? (type === 'pnp' ? strings.pnpOn : strings.npnOn) : strings.off}
         </p>
