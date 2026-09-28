@@ -1,0 +1,19 @@
+---
+// Phase 0 placeholder. Real home with i18n routes (/es, /en) arrives in Phase 1.
+import '@/styles/global.css';
+import { SITE } from '@/config/site';
+import HelloIsland from '@/components/ui/HelloIsland';
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{SITE.name}</title>
+  </head>
+  <body class="flex min-h-screen flex-col items-center justify-center gap-4 font-sans">
+    <h1 class="text-3xl font-semibold">{SITE.name}</h1>
+    <p class="text-slate-600">Fase 0 — base del proyecto</p>
+    <HelloIsland client:load />
+  </body>
+</html>

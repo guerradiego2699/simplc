@@ -1,0 +1,30 @@
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# tests
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# env
+.env
+.env.*
+!.env.example
+
+# logs
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/*
+!.vscode/extensions.json
+
+# local Claude settings
+.claude/settings.local.json
