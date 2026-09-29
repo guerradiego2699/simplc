@@ -3,13 +3,15 @@
 import Play from '@lucide/astro/icons/play';
 import ArrowRight from '@lucide/astro/icons/arrow-right';
 import { getTranslator, localeFromUrl, localizePath } from '@/i18n';
+import { getExample } from '@/simulator/examples';
 
 interface Props {
-  /** Example id the simulator will preload (examples arrive in Phase 7). */
+  /** Id of an example in src/content/examples/ that the simulator will preload. */
   example: string;
 }
 
 const { example } = Astro.props;
+if (!getExample(example)) throw new Error(`TrySimulator: unknown example "${example}"`);
 const locale = localeFromUrl(Astro.url);
 const t = getTranslator(locale);
 const href = `${localizePath(locale, '/simulator')}?example=${encodeURIComponent(example)}`;

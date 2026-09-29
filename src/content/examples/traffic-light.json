@@ -1,0 +1,157 @@
+{
+  "id": "traffic-light",
+  "order": 4,
+  "level": 2,
+  "plant": "traffic",
+  "title": {
+    "es": "Semáforo de un cruce",
+    "en": "Crossroad traffic lights"
+  },
+  "summary": {
+    "es": "Dos semáforos coordinados con un solo temporizador de ciclo y contactos de comparación sobre su tiempo transcurrido.",
+    "en": "Two coordinated traffic lights driven by a single cycle timer and compare contacts on its elapsed time."
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": { "es": "MARCHA", "en": "ON" },
+      "description": { "es": "Interruptor de funcionamiento", "en": "Operation switch" },
+      "mode": "switch"
+    },
+    {
+      "address": "Q0.0",
+      "name": { "es": "ROJO_A", "en": "RED_A" },
+      "description": { "es": "Luz roja, calle A", "en": "Red light, street A" }
+    },
+    {
+      "address": "Q0.1",
+      "name": { "es": "AMBAR_A", "en": "AMBER_A" },
+      "description": { "es": "Luz ámbar, calle A", "en": "Amber light, street A" }
+    },
+    {
+      "address": "Q0.2",
+      "name": { "es": "VERDE_A", "en": "GREEN_A" },
+      "description": { "es": "Luz verde, calle A", "en": "Green light, street A" }
+    },
+    {
+      "address": "Q0.3",
+      "name": { "es": "ROJO_B", "en": "RED_B" },
+      "description": { "es": "Luz roja, calle B", "en": "Red light, street B" }
+    },
+    {
+      "address": "Q0.4",
+      "name": { "es": "AMBAR_B", "en": "AMBER_B" },
+      "description": { "es": "Luz ámbar, calle B", "en": "Amber light, street B" }
+    },
+    {
+      "address": "Q0.5",
+      "name": { "es": "VERDE_B", "en": "GREEN_B" },
+      "description": { "es": "Luz verde, calle B", "en": "Green light, street B" }
+    },
+    {
+      "address": "T0",
+      "name": { "es": "CICLO", "en": "CYCLE" },
+      "description": { "es": "Temporizador del ciclo de 20 s", "en": "20 s cycle timer" }
+    },
+    {
+      "address": "M0.0",
+      "name": { "es": "FIN_CICLO", "en": "CYCLE_END" },
+      "description": {
+        "es": "Pulso al terminar cada ciclo",
+        "en": "Pulse at the end of each cycle"
+      }
+    }
+  ],
+  "steps": {
+    "es": [
+      "Pulsa ▶ Ejecutar (F5) y activa el interruptor MARCHA (I0.0).",
+      "El peldaño 1 es un temporizador de 20 s que se reinicia solo: cuando termina, FIN_CICLO se activa, su contacto NC abre el temporizador y todo vuelve a empezar.",
+      "Los demás peldaños comparan el tiempo transcurrido (CICLO.ET) con límites fijos: verde A de 0 a 8 s, ámbar A de 8 a 10 s, rojo A de 10 a 20 s; la calle B hace lo opuesto.",
+      "Revisa en el monitor el valor de T0.ET y comprueba que nunca hay dos luces verdes a la vez. Prueba cambiando los tiempos de los contactos de comparación."
+    ],
+    "en": [
+      "Press ▶ Run (F5) and turn on the ON switch (I0.0).",
+      "Rung 1 is a 20 s timer that restarts itself: when it finishes, CYCLE_END turns on, its NC contact resets the timer and everything starts over.",
+      "The other rungs compare the elapsed time (CYCLE.ET) with fixed limits: green A from 0 to 8 s, amber A from 8 to 10 s, red A from 10 to 20 s; street B does the opposite.",
+      "Watch T0.ET in the monitor and check that two green lights are never on together. Try changing the times in the compare contacts."
+    ]
+  },
+  "rungs": [
+    {
+      "comment": {
+        "es": "Temporizador de ciclo de 20 s que se reinicia solo.",
+        "en": "Self-restarting 20 s cycle timer."
+      },
+      "logic": {
+        "items": [
+          { "kind": "contact", "type": "NO", "operand": "I0.0" },
+          { "kind": "contact", "type": "NC", "operand": "M0.0" },
+          { "kind": "contact", "type": "TON", "operand": "T0", "params": { "pt": "T#20s" } }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "M0.0" }]
+    },
+    {
+      "comment": { "es": "Calle A: verde de 0 a 8 s.", "en": "Street A: green from 0 to 8 s." },
+      "logic": {
+        "items": [
+          { "kind": "contact", "type": "NO", "operand": "I0.0" },
+          { "kind": "contact", "type": "LT", "operand": "T0.ET", "params": { "in2": "T#8s" } }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.2" }]
+    },
+    {
+      "comment": { "es": "Calle A: ámbar de 8 a 10 s.", "en": "Street A: amber from 8 to 10 s." },
+      "logic": {
+        "items": [
+          { "kind": "contact", "type": "NO", "operand": "I0.0" },
+          { "kind": "contact", "type": "GE", "operand": "T0.ET", "params": { "in2": "T#8s" } },
+          { "kind": "contact", "type": "LT", "operand": "T0.ET", "params": { "in2": "T#10s" } }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.1" }]
+    },
+    {
+      "comment": { "es": "Calle A: rojo de 10 a 20 s.", "en": "Street A: red from 10 to 20 s." },
+      "logic": {
+        "items": [
+          { "kind": "contact", "type": "NO", "operand": "I0.0" },
+          { "kind": "contact", "type": "GE", "operand": "T0.ET", "params": { "in2": "T#10s" } }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.0" }]
+    },
+    {
+      "comment": { "es": "Calle B: rojo de 0 a 10 s.", "en": "Street B: red from 0 to 10 s." },
+      "logic": {
+        "items": [
+          { "kind": "contact", "type": "NO", "operand": "I0.0" },
+          { "kind": "contact", "type": "LT", "operand": "T0.ET", "params": { "in2": "T#10s" } }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.3" }]
+    },
+    {
+      "comment": { "es": "Calle B: verde de 10 a 18 s.", "en": "Street B: green from 10 to 18 s." },
+      "logic": {
+        "items": [
+          { "kind": "contact", "type": "NO", "operand": "I0.0" },
+          { "kind": "contact", "type": "GE", "operand": "T0.ET", "params": { "in2": "T#10s" } },
+          { "kind": "contact", "type": "LT", "operand": "T0.ET", "params": { "in2": "T#18s" } }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.5" }]
+    },
+    {
+      "comment": { "es": "Calle B: ámbar de 18 a 20 s.", "en": "Street B: amber from 18 to 20 s." },
+      "logic": {
+        "items": [
+          { "kind": "contact", "type": "NO", "operand": "I0.0" },
+          { "kind": "contact", "type": "GE", "operand": "T0.ET", "params": { "in2": "T#18s" } }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.4" }]
+    }
+  ]
+}

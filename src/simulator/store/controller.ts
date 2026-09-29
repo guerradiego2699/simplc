@@ -4,8 +4,14 @@
  * Every animation frame: push the I/O panel state into the physical inputs, advance simulated
  * time by (elapsed real time × speed), and publish a snapshot + power-flow probes to the store
  * (throttled). The engine itself stays pure; timing lives here, in the UI layer.
+ *
+ * With a virtual plant, every scan is coupled to it: panel → plant sensors (they override the
+ * panel for their inputs) → scan → plant physics for one cycle of simulated time.
  */
 import { PlcRuntime, type ScanEvent, type Value } from '@/simulator/engine';
+import { applySensors, stepPlant } from '@/simulator/plants/coupling';
+import { PLANTS } from '@/simulator/plants/models';
+import { isPlantId, type PlantModel } from '@/simulator/plants/types';
 import type { IoPanelSetup } from '@/simulator/project/types';
 import type { SimulatorStoreApi } from './simulator-store';
 
@@ -40,6 +46,7 @@ export class SimulationController {
    * it, so every click is seen by the program (at any simulation speed).
    */
   private readonly held = new Map<string, number>();
+  private plantState: unknown = null;
 
   constructor(store: SimulatorStoreApi) {
     this.store = store;
@@ -54,8 +61,9 @@ export class SimulationController {
             this.held.set(address, this.runtime.scanCount + (this.scanParts ? 1 : 0));
         }
       }
+      if (state.project.plant !== prev.project.plant) this.resetPlant();
     });
-    this.publish();
+    this.resetPlant();
   }
 
   dispose(): void {
@@ -66,6 +74,28 @@ export class SimulationController {
 
   get cycleTimeMs(): number {
     return this.runtime.cycleTimeMs;
+  }
+
+  /** The plant model of the current project (null = no plant). */
+  private get plant(): PlantModel | null {
+    const id = this.store.getState().project.plant;
+    return isPlantId(id) ? PLANTS[id] : null;
+  }
+
+  /** Operator action on the plant (simulate overload, turn the consumer off…). */
+  plantCommand(name: string): void {
+    const plant = this.plant;
+    if (!plant?.command) return;
+    this.plantState = plant.command(this.plantState, name);
+    this.applyInputs();
+    this.publish(true);
+  }
+
+  /** Puts the plant back in its initial state (new plant, PLC start or stop). */
+  resetPlant(): void {
+    this.plantState = this.plant?.initial() ?? null;
+    this.applyInputs();
+    this.publish(true);
   }
 
   run(): void {
@@ -87,7 +117,7 @@ export class SimulationController {
     cancelAnimationFrame(this.frame);
     this.frame = 0;
     this.store.setState({ status: 'stopped', notLoaded: false, probes: {} });
-    this.publish(true);
+    this.resetPlant();
   }
 
   /** Runs exactly one scan cycle and stays paused (starts the PLC if needed). */
@@ -96,8 +126,7 @@ export class SimulationController {
     const { status } = this.store.getState();
     if (status === 'stopped' && !this.startProgram()) return;
     this.store.setState({ status: 'paused' });
-    this.applyInputs();
-    this.runtime.scan();
+    this.scanOnce();
     this.afterScans();
     this.publish(true);
     this.loop();
@@ -191,6 +220,7 @@ export class SimulationController {
     const next = this.scanParts.next();
     if (next.done) {
       this.scanParts = null;
+      this.afterPlantScan();
       this.visualizeStep();
       return;
     }
@@ -221,6 +251,7 @@ export class SimulationController {
     this.runtime.load(compiled.ir);
     this.runtime.start();
     this.carry = 0;
+    this.plantState = this.plant?.initial() ?? null;
     this.store.setState({ notLoaded: false });
     return true;
   }
@@ -246,6 +277,21 @@ export class SimulationController {
     for (const address of PANEL_INPUTS) {
       this.runtime.setInput(address, physicalInput(address, project.io, controls));
     }
+    const plant = this.plant;
+    if (plant) applySensors(this.runtime, plant, this.plantState);
+  }
+
+  /** One scan with fresh inputs, followed by one cycle of plant physics. */
+  private scanOnce(): void {
+    this.applyInputs();
+    this.runtime.scan();
+    this.afterPlantScan();
+  }
+
+  private afterPlantScan(): void {
+    const plant = this.plant;
+    if (plant && this.runtime.mode === 'RUN')
+      this.plantState = stepPlant(this.runtime, plant, this.plantState);
   }
 
   /** A watchdog fault stops the PLC by itself: reflect it in the UI. */
@@ -269,8 +315,14 @@ export class SimulationController {
       this.applyInputs();
       if (state.status === 'running') {
         this.carry += Math.min(now - this.lastFrame, MAX_FRAME_MS) * state.speed;
-        const scans = this.runtime.advance(this.carry);
-        this.carry -= scans * this.runtime.cycleTimeMs;
+        const cycle = this.runtime.cycleTimeMs;
+        if (this.plant) {
+          // The plant needs its sensors refreshed before every scan.
+          for (; this.carry >= cycle && this.runtime.mode === 'RUN'; this.carry -= cycle)
+            this.scanOnce();
+        } else {
+          this.carry -= this.runtime.advance(this.carry) * cycle;
+        }
         this.afterScans();
       }
       this.lastFrame = now;
@@ -287,6 +339,7 @@ export class SimulationController {
     const running = this.store.getState().status !== 'stopped';
     this.store.setState({
       snapshot: this.runtime.snapshot(),
+      plantState: this.plantState,
       probes: running ? Object.fromEntries(this.runtime.probes) : {},
     });
   }

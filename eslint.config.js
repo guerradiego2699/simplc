@@ -34,7 +34,11 @@ export default defineConfig(
   },
   {
     // The PLC engine and IR must stay pure TypeScript (spec section 2): no UI, no DOM, no timers.
-    files: ['src/simulator/engine/**/*.ts', 'src/simulator/ir/**/*.ts'],
+    files: [
+      'src/simulator/engine/**/*.ts',
+      'src/simulator/ir/**/*.ts',
+      'src/simulator/plants/*.ts',
+    ],
     ignores: ['**/__tests__/**', '**/*.test.ts'],
     rules: {
       'no-restricted-imports': [

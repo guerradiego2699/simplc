@@ -1,0 +1,82 @@
+{
+  "id": "tank-filling",
+  "order": 6,
+  "level": 2,
+  "plant": "tank",
+  "title": {
+    "es": "Llenado de estanque con sensores de nivel",
+    "en": "Tank filling with level switches"
+  },
+  "summary": {
+    "es": "Una bomba mantiene el nivel entre dos sensores: arranca con nivel bajo y se detiene con nivel alto (control por histéresis).",
+    "en": "A pump keeps the level between two switches: it starts at low level and stops at high level (hysteresis control)."
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": { "es": "SISTEMA", "en": "SYSTEM" },
+      "description": {
+        "es": "Interruptor de funcionamiento del sistema",
+        "en": "System on/off switch"
+      },
+      "mode": "switch"
+    },
+    {
+      "address": "I0.2",
+      "name": { "es": "NIVEL_BAJO", "en": "LEVEL_LOW" },
+      "description": {
+        "es": "Sensor de nivel bajo: 1 si el agua lo cubre (≥ 20 %)",
+        "en": "Low level switch: 1 when covered by water (≥ 20 %)"
+      }
+    },
+    {
+      "address": "I0.3",
+      "name": { "es": "NIVEL_ALTO", "en": "LEVEL_HIGH" },
+      "description": {
+        "es": "Sensor de nivel alto: 1 si el agua lo cubre (≥ 80 %)",
+        "en": "High level switch: 1 when covered by water (≥ 80 %)"
+      }
+    },
+    {
+      "address": "Q0.0",
+      "name": { "es": "BOMBA", "en": "PUMP" },
+      "description": { "es": "Bomba de llenado", "en": "Filling pump" }
+    }
+  ],
+  "steps": {
+    "es": [
+      "Pulsa ▶ Ejecutar (F5) y activa el interruptor SISTEMA (I0.0). El estanque parte casi vacío, así que la bomba arranca.",
+      "Mientras el nivel sube, el sensor bajo se cubre, pero la bomba sigue: la rama del contacto BOMBA la mantiene funcionando (autorretención).",
+      "Al llegar al 80 % el sensor alto se activa y su contacto NC detiene la bomba. El consumo hace bajar el nivel hasta que el sensor bajo se descubre y el ciclo se repite.",
+      "En la pestaña «Planta virtual» puedes cortar el consumo y ver qué ocurre. Sube la velocidad a ×4 para ver varios ciclos rápidamente."
+    ],
+    "en": [
+      "Press ▶ Run (F5) and turn on the SYSTEM switch (I0.0). The tank starts almost empty, so the pump starts.",
+      "As the level rises, the low switch gets covered but the pump keeps running: the PUMP contact branch keeps it on (seal-in).",
+      "At 80 % the high switch turns on and its NC contact stops the pump. The consumer lowers the level until the low switch is uncovered and the cycle repeats.",
+      "In the “Virtual plant” tab you can turn the consumer off and see what happens. Raise the speed to ×4 to watch several cycles quickly."
+    ]
+  },
+  "rungs": [
+    {
+      "comment": {
+        "es": "La bomba arranca con nivel bajo y se mantiene hasta el nivel alto.",
+        "en": "The pump starts at low level and keeps running until high level."
+      },
+      "logic": {
+        "items": [
+          { "kind": "contact", "type": "NO", "operand": "I0.0" },
+          {
+            "kind": "parallel",
+            "branches": [
+              { "items": [{ "kind": "contact", "type": "NC", "operand": "I0.2" }] },
+              { "items": [{ "kind": "contact", "type": "NO", "operand": "Q0.0" }] }
+            ]
+          },
+          { "kind": "contact", "type": "NC", "operand": "I0.3" }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.0" }]
+    }
+  ]
+}

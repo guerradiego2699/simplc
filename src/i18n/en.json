@@ -222,7 +222,7 @@
       "label": "Toolbar",
       "file": "File",
       "newProject": "New project",
-      "loadExample": "Example: motor start and stop",
+      "loadExample": "Example: {name}",
       "confirmDiscard": "Discard the current program? You can undo this with Ctrl+Z.",
       "language": "Language",
       "comingSoon": "Coming soon",
@@ -512,7 +512,120 @@
         "NEWER_VERSION": "Could not open: the file comes from a newer version of the simulator (format {version}).",
         "INVALID_CONTENT": "Could not open: the file content is not valid (at “{path}”).",
         "READ_ERROR": "The file could not be read."
-      }
+      },
+      "exampleLoaded": "Example “{name}” loaded. Press ▶ Run to try it."
+    },
+    "plant": {
+      "title": "Virtual plant",
+      "select": "Connected plant",
+      "none": "No plant",
+      "names": {
+        "lamp": "Lamp",
+        "motor": "Motor with contactor and overload relay",
+        "traffic": "Crossroad traffic lights",
+        "tank": "Tank with pump"
+      },
+      "empty": "No plant is connected. Pick one so your program controls a simulated machine: the outputs drive the plant and its sensors reach the inputs.",
+      "connections": "Connections",
+      "sensor": "Sensor → input",
+      "actuator": "Output → actuator",
+      "fromPlant": "Driven by the plant",
+      "resetHint": "The plant goes back to its initial state every time the PLC starts or stops.",
+      "signals": {
+        "lamp": {
+          "Q0_0": "Lamp"
+        },
+        "motor": {
+          "Q0_0": "Contactor K1 coil",
+          "I0_2": "Overload relay NC contact (1 = normal, 0 = tripped)"
+        },
+        "traffic": {
+          "Q0_0": "Red, street A",
+          "Q0_1": "Amber, street A",
+          "Q0_2": "Green, street A",
+          "Q0_3": "Red, street B",
+          "Q0_4": "Amber, street B",
+          "Q0_5": "Green, street B"
+        },
+        "tank": {
+          "Q0_0": "Filling pump",
+          "I0_2": "Low level switch (1 when level ≥ 20 %)",
+          "I0_3": "High level switch (1 when level ≥ 80 %)"
+        }
+      },
+      "lamp": {
+        "on": "Lamp on",
+        "off": "Lamp off"
+      },
+      "motor": {
+        "speed": "Speed",
+        "contactor": "Contactor K1",
+        "energized": "energized",
+        "released": "de-energized",
+        "relay": "Overload relay",
+        "ok": "normal",
+        "tripped": "tripped",
+        "overload": "Simulate overload",
+        "reset": "Reset overload relay"
+      },
+      "traffic": {
+        "streetA": "Street A",
+        "streetB": "Street B",
+        "red": "red",
+        "amber": "amber",
+        "green": "green",
+        "off": "off"
+      },
+      "tank": {
+        "level": "Level",
+        "pump": "Pump",
+        "running": "running",
+        "stopped": "stopped",
+        "low": "Low switch",
+        "high": "High switch",
+        "covered": "covered",
+        "uncovered": "uncovered",
+        "consumption": "Consumer",
+        "consumptionOn": "Close consumer valve",
+        "consumptionOff": "Open consumer valve",
+        "open": "open",
+        "closed": "closed"
+      },
+      "controls": "Controls"
+    }
+  },
+  "examples": {
+    "indexTitle": "Worked examples with virtual plants",
+    "indexDescription": "Ladder PLC programs ready to open in the simulator: lamp, motor start/stop, traffic lights and tank filling, with step-by-step explanations.",
+    "intro": "Real processes explained step by step, ordered by difficulty. Each example includes its input/output list, the Ladder program and an animated virtual plant. Open it in the simulator, run it and change it.",
+    "level": "Level {n}",
+    "levelLabel": "Difficulty",
+    "plant": "Plant",
+    "open": "Open in the simulator",
+    "details": "View example",
+    "comingSoon": "Coming soon",
+    "back": "All examples",
+    "io": "Inputs and outputs",
+    "address": "Address",
+    "name": "Name",
+    "description": "Description",
+    "steps": "Step by step",
+    "program": "Ladder program",
+    "plantPreview": "Virtual plant",
+    "plantPreviewNote": "Shown at rest. In the simulator the plant moves according to your program's outputs.",
+    "desktopNote": "The simulator is designed for computers (screens 1024 px or wider).",
+    "rung": "Rung {n}",
+    "upcoming": {
+      "3": "Reversing motor with electrical interlock",
+      "5": "Automatic gate",
+      "7": "Star-delta starter with timer",
+      "8": "Conveyor belt with box counter",
+      "9": "Car park with space counter",
+      "10": "Sorting parts by size",
+      "11": "Batch mixer",
+      "12": "Two pumps with alternation and backup",
+      "13": "On/off temperature control with hysteresis",
+      "14": "Analog level control (introduction to PID)"
     }
   }
 }

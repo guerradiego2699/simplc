@@ -3,11 +3,14 @@
  * selectable per input — and 16 output LEDs, with editable labels.
  * Input LEDs show the terminal state (what the PLC input receives); output LEDs show the
  * physical outputs (including forced ones). Addresses follow the selected brand style.
+ * Inputs wired to the virtual plant's sensors are driven by the plant, not by the panel.
  */
 import { useState, type KeyboardEvent, type PointerEvent } from 'react';
-import { Pencil } from 'lucide-react';
+import { Factory, Pencil } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { formatAddressStyled, type AddressStyle } from '@/simulator/addressing/styles';
+import { PLANTS } from '@/simulator/plants/models';
+import { isPlantId } from '@/simulator/plants/types';
 import { PANEL_INPUTS, PANEL_OUTPUTS, physicalInput } from '@/simulator/store/controller';
 import type { InputMode, IoPanelSetup, Project } from '@/simulator/project/types';
 import { useSim, useStoreApi, useStrings } from '@/simulator/ui/context';
@@ -52,14 +55,17 @@ export function IoBoard() {
   const t = useStrings();
   const store = useStoreApi();
   const [editing, setEditing] = useState(false);
-  const { io, controls, outputs, style } = useSim(
+  const { io, controls, outputs, inputs, plant, style } = useSim(
     useShallow((s) => ({
       io: s.project.io,
       controls: s.ioControls,
       outputs: s.snapshot?.physicalOutputs,
+      inputs: s.snapshot?.physicalInputs,
+      plant: s.project.plant,
       style: s.addressStyle,
     })),
   );
+  const plantSensors: readonly string[] = isPlantId(plant) ? PLANTS[plant].sensors : [];
 
   return (
     <div className="relative h-full">
@@ -80,7 +86,7 @@ export function IoBoard() {
             {t.io.inputs}
           </h3>
           <div className="grid grid-cols-8 gap-1">
-            {PANEL_INPUTS.map((address) => (
+            {PANEL_INPUTS.map((address, i) => (
               <InputSlot
                 key={address}
                 address={address}
@@ -88,6 +94,7 @@ export function IoBoard() {
                 controls={controls}
                 editing={editing}
                 style={style}
+                fromPlant={plantSensors.includes(address) ? (inputs?.[i] ?? false) : null}
               />
             ))}
           </div>
@@ -146,19 +153,22 @@ function InputSlot({
   controls,
   editing,
   style,
+  fromPlant,
 }: {
   address: string;
   io: IoPanelSetup;
   controls: Record<string, boolean>;
   editing: boolean;
   style: AddressStyle;
+  /** Terminal value set by the plant's sensor (null = the panel drives this input). */
+  fromPlant: boolean | null;
 }) {
   const t = useStrings();
   const store = useStoreApi();
   const setup = io.inputs[address];
   const mode: InputMode = setup?.mode ?? 'switch';
   const label = setup?.label ?? '';
-  const terminal = physicalInput(address, io, controls);
+  const terminal = fromPlant ?? physicalInput(address, io, controls);
   const name = `${address}${label ? ` ${label}` : ''}`;
 
   return (
@@ -167,7 +177,24 @@ function InputSlot({
       className="flex min-w-0 flex-col items-center gap-1 rounded-md border border-border bg-bg px-1 py-1.5"
     >
       <Led on={terminal} label={address} />
-      <InputControl address={address} mode={mode} name={name} active={controls[address] ?? false} />
+      {fromPlant === null ? (
+        <InputControl
+          address={address}
+          mode={mode}
+          name={name}
+          active={controls[address] ?? false}
+        />
+      ) : (
+        <span
+          role="img"
+          aria-label={`${name}: ${t.plant.fromPlant}`}
+          title={t.plant.fromPlant}
+          data-from-plant
+          className="inline-flex h-7 items-center text-text-muted"
+        >
+          <Factory size={18} aria-hidden="true" />
+        </span>
+      )}
       <AddressText address={address} style={style} />
       {editing ? (
         <>

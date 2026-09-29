@@ -51,7 +51,7 @@ export interface DragState {
 }
 
 export type RightTab = 'properties' | 'variables' | 'monitor';
-export type BottomTab = 'io' | 'console' | 'scan';
+export type BottomTab = 'io' | 'console' | 'scan' | 'plant';
 
 export interface Notice {
   kind: 'info' | 'error';
@@ -89,6 +89,8 @@ export interface SimulatorState {
   snapshot: MemorySnapshot | null;
   probes: Record<string, Value>;
   scanView: ScanView;
+  /** State of the virtual plant (shape depends on `project.plant`), published by the controller. */
+  plantState: unknown;
   addressStyle: AddressStyle;
   /** Short message shown over the editor (file opened, file errors…). */
   notice: Notice | null;
@@ -250,6 +252,7 @@ export function createSimulatorStore(initial: Project) {
       notLoaded: false,
       ioControls: {},
       scanView: { active: false, auto: true, event: null },
+      plantState: null,
       addressStyle: loadAddressStyle(),
       notice: null,
       autosave: null,

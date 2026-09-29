@@ -16,11 +16,12 @@ import {
   ZoomOut,
 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
-import { emptyProject, motorStartStopProject } from '@/simulator/project/examples';
+import { emptyProject } from '@/simulator/project/examples';
+import { EXAMPLES, exampleProject } from '@/simulator/examples';
 import { SPEEDS, ZOOM } from '@/simulator/store/simulator-store';
 import { ADDRESS_STYLES, type AddressStyle } from '@/simulator/addressing/styles';
 import type { Language } from '@/simulator/project/types';
-import { useController, useSim, useStoreApi, useStrings } from './context';
+import { fmt, useController, useLocale, useSim, useStoreApi, useStrings } from './context';
 import { downloadProject, openProjectFile } from './file-actions';
 
 const LANGUAGES: Language[] = ['LD', 'ST', 'FBD', 'IL', 'SFC'];
@@ -32,6 +33,7 @@ export function Toolbar() {
   const t = useStrings();
   const store = useStoreApi();
   const controller = useController();
+  const locale = useLocale();
   const { status, speed, canUndo, canRedo, zoom, language, style, visualizing } = useSim(
     useShallow((s) => ({
       status: s.status,
@@ -45,10 +47,11 @@ export function Toolbar() {
     })),
   );
 
-  const replace = (next: ReturnType<typeof emptyProject>) => {
-    if (!window.confirm(t.toolbar.confirmDiscard)) return;
+  const replace = (next: ReturnType<typeof emptyProject>): boolean => {
+    if (!window.confirm(t.toolbar.confirmDiscard)) return false;
     controller.stop();
     store.getState().replaceProject(next);
+    return true;
   };
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -73,11 +76,21 @@ export function Toolbar() {
             testId: 'menu-download',
             onSelect: () => downloadProject(store, t),
           },
-          {
-            label: t.toolbar.loadExample,
+          ...EXAMPLES.map((example) => ({
+            label: fmt(t.toolbar.loadExample, { name: example.title[locale] }),
             Icon: FileText,
-            onSelect: () => replace(motorStartStopProject(t.example)),
-          },
+            testId: `menu-example-${example.id}`,
+            onSelect: () => {
+              const project = exampleProject(example, locale);
+              if (!replace(project)) return;
+              store.getState().setLayout({ bottomTab: project.plant ? 'plant' : 'io' });
+              store.getState().setNotice({
+                kind: 'info',
+                text: fmt(t.file.exampleLoaded, { name: project.name }),
+                id: Date.now(),
+              });
+            },
+          })),
         ]}
       />
       <input

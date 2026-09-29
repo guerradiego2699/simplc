@@ -15,6 +15,7 @@ import {
 } from '@/simulator/store/simulator-store';
 import { ConsolePanel } from './ConsolePanel';
 import {
+  fmt,
   SimProvider,
   useController,
   useSim,
@@ -23,6 +24,7 @@ import {
   type SimStrings,
 } from './context';
 import { MonitorPanel } from './MonitorPanel';
+import { PlantPanel } from './PlantPanel';
 import { PropertiesPanel } from './PropertiesPanel';
 import { ScanPanel } from './ScanPanel';
 import { StatusBar } from './StatusBar';
@@ -31,6 +33,7 @@ import { VariablesPanel } from './VariablesPanel';
 import { Autosave, FileDropZone, NoticeBanner } from './FileSupport';
 import { downloadProject } from './file-actions';
 import { loadAutosave } from '@/simulator/file/autosave';
+import { exampleProject, getExample } from '@/simulator/examples';
 
 interface Props {
   strings: SimStrings;
@@ -42,6 +45,7 @@ export default function SimulatorApp({ strings, locale }: Props) {
   const [value] = useState(() => {
     // Continue where the user left off (autosave), or start with the example.
     const store = createSimulatorStore(loadAutosave() ?? motorStartStopProject(strings.example));
+    openRequestedExample(store, strings, locale);
     return { store, controller: new SimulationController(store), t: strings, locale };
   });
 
@@ -57,6 +61,28 @@ export default function SimulatorApp({ strings, locale }: Props) {
       <DragGhost />
     </SimProvider>
   );
+}
+
+/**
+ * `/simulator?example=<id>` (from the example pages) opens that example. It replaces the saved
+ * project as an undoable change, and the parameter is dropped so a reload keeps the user's edits.
+ */
+function openRequestedExample(store: SimulatorStoreApi, t: SimStrings, locale: Locale) {
+  const url = new URL(window.location.href);
+  const id = url.searchParams.get('example');
+  if (id === null) return;
+  url.searchParams.delete('example');
+  window.history.replaceState(window.history.state, '', url);
+  const example = getExample(id);
+  if (!example) return;
+  const project = exampleProject(example, locale);
+  store.getState().replaceProject(project);
+  store.getState().setLayout({ bottomTab: project.plant ? 'plant' : 'io' });
+  store.getState().setNotice({
+    kind: 'info',
+    text: fmt(t.file.exampleLoaded, { name: project.name }),
+    id: Date.now(),
+  });
 }
 
 function Workspace() {
@@ -126,6 +152,7 @@ function Workspace() {
             { id: 'io', label: t.io.title, content: <IoBoard /> },
             { id: 'console', label: t.console.title, content: <ConsolePanel /> },
             { id: 'scan', label: t.scan.title, content: <ScanPanel /> },
+            { id: 'plant', label: t.plant.title, content: <PlantPanel /> },
           ]}
         />
       </section>

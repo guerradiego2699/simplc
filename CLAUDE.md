@@ -132,6 +132,27 @@ savedAt, project }`, validated with **`zod/mini`** (keep it mini: small bundle).
 - E2E suites that reload pages clear `plcampus:project` in `beforeEach` (see phase4/5 specs).
 - Export to `.st` is deferred to Phase 11 (needs the LD → ST converter).
 
+## Plants and examples (Phase 7)
+
+- `src/simulator/plants/`: `types.ts` (`PlantModel`: fixed sensors/actuators, `initial`, `step(state,
+dtMs, output)`, `read`, optional `command`), `models.ts` (lamp, motor, traffic, tank — pure TS,
+  ESLint purity applies), `coupling.ts` (`scanWithPlant`: sensors → scan → physics; also for the
+  challenge validator). `views/PlantViews.tsx`: props-only SVG views (simulator + static previews).
+- Controller: with `project.plant` set, every scan is `applyInputs` (panel, then plant sensors
+  override) → scan → `stepPlant`. Plant state is published as `plantState`; it resets on start,
+  stop and plant change. `controller.plantCommand(name)` for operator actions. Plant-driven inputs
+  show a factory icon in the I/O board instead of a control.
+- Examples: bilingual JSON in `src/content/examples/<id>.json` (order = spec section 7 number,
+  level, plant, title/summary, io list with names per language, steps, rungs without ids).
+  `src/simulator/examples/` validates them (zod) and builds a `Project` via `exampleProject`
+  (goes through `parseProjectFile`). Unit tests require every example to compile with zero
+  diagnostics and check behaviour coupled to its plant.
+- Pages `[lang]/examples/index.astro` (gallery + upcoming list from `examples.upcoming.<n>`) and
+  `[lang]/examples/[id].astro` (static plant, I/O table, `StaticLadder`, steps).
+  `/simulator?example=<id>` loads it as an undoable replace and removes the parameter;
+  `<TrySimulator example>` fails the build on unknown ids. File menu lists all examples.
+- i18n keys can't contain dots: plant signal strings use `I0_2`-style keys.
+
 ## Environment notes
 
 - Windows. Project lives in `C:\dev\simplc` (kept out of OneDrive on purpose: node_modules sync

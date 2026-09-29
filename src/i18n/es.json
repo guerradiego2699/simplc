@@ -222,7 +222,7 @@
       "label": "Barra de herramientas",
       "file": "Archivo",
       "newProject": "Nuevo proyecto",
-      "loadExample": "Ejemplo: partida y parada de motor",
+      "loadExample": "Ejemplo: {name}",
       "confirmDiscard": "¿Descartar el programa actual? Esta acción se puede deshacer con Ctrl+Z.",
       "language": "Lenguaje",
       "comingSoon": "Próximamente",
@@ -512,7 +512,120 @@
         "NEWER_VERSION": "No se pudo abrir: el archivo es de una versión más nueva del simulador (formato {version}).",
         "INVALID_CONTENT": "No se pudo abrir: el contenido del archivo no es válido (en «{path}»).",
         "READ_ERROR": "No se pudo leer el archivo."
-      }
+      },
+      "exampleLoaded": "Ejemplo «{name}» cargado. Pulsa ▶ Ejecutar para probarlo."
+    },
+    "plant": {
+      "title": "Planta virtual",
+      "select": "Planta conectada",
+      "none": "Sin planta",
+      "names": {
+        "lamp": "Ampolleta",
+        "motor": "Motor con contactor y relé térmico",
+        "traffic": "Semáforo de un cruce",
+        "tank": "Estanque con bomba"
+      },
+      "empty": "No hay una planta conectada. Elige una para que tu programa controle una máquina simulada: las salidas mueven la planta y sus sensores llegan a las entradas.",
+      "connections": "Conexiones",
+      "sensor": "Sensor → entrada",
+      "actuator": "Salida → actuador",
+      "fromPlant": "Lo maneja la planta",
+      "resetHint": "La planta vuelve a su estado inicial cada vez que el PLC arranca o se detiene.",
+      "signals": {
+        "lamp": {
+          "Q0_0": "Ampolleta"
+        },
+        "motor": {
+          "Q0_0": "Bobina del contactor K1",
+          "I0_2": "Contacto NC del relé térmico (1 = normal, 0 = disparado)"
+        },
+        "traffic": {
+          "Q0_0": "Rojo, calle A",
+          "Q0_1": "Ámbar, calle A",
+          "Q0_2": "Verde, calle A",
+          "Q0_3": "Rojo, calle B",
+          "Q0_4": "Ámbar, calle B",
+          "Q0_5": "Verde, calle B"
+        },
+        "tank": {
+          "Q0_0": "Bomba de llenado",
+          "I0_2": "Sensor de nivel bajo (1 si el nivel ≥ 20 %)",
+          "I0_3": "Sensor de nivel alto (1 si el nivel ≥ 80 %)"
+        }
+      },
+      "lamp": {
+        "on": "Ampolleta encendida",
+        "off": "Ampolleta apagada"
+      },
+      "motor": {
+        "speed": "Velocidad",
+        "contactor": "Contactor K1",
+        "energized": "energizado",
+        "released": "sin energía",
+        "relay": "Relé térmico",
+        "ok": "normal",
+        "tripped": "disparado",
+        "overload": "Simular sobrecarga",
+        "reset": "Rearmar relé térmico"
+      },
+      "traffic": {
+        "streetA": "Calle A",
+        "streetB": "Calle B",
+        "red": "rojo",
+        "amber": "ámbar",
+        "green": "verde",
+        "off": "apagado"
+      },
+      "tank": {
+        "level": "Nivel",
+        "pump": "Bomba",
+        "running": "funcionando",
+        "stopped": "detenida",
+        "low": "Sensor bajo",
+        "high": "Sensor alto",
+        "covered": "cubierto",
+        "uncovered": "descubierto",
+        "consumption": "Consumo",
+        "consumptionOn": "Cortar consumo",
+        "consumptionOff": "Abrir consumo",
+        "open": "abierto",
+        "closed": "cerrado"
+      },
+      "controls": "Mandos"
+    }
+  },
+  "examples": {
+    "indexTitle": "Ejemplos resueltos con plantas virtuales",
+    "indexDescription": "Programas PLC en Ladder listos para abrir en el simulador: ampolleta, partida y parada de motor, semáforo y llenado de estanque, con explicación paso a paso.",
+    "intro": "Procesos reales explicados paso a paso, ordenados por dificultad. Cada ejemplo trae su lista de entradas y salidas, el programa en Ladder y una planta virtual animada. Ábrelo en el simulador, ejecútalo y modifícalo.",
+    "level": "Nivel {n}",
+    "levelLabel": "Dificultad",
+    "plant": "Planta",
+    "open": "Abrir en el simulador",
+    "details": "Ver el ejemplo",
+    "comingSoon": "Próximamente",
+    "back": "Todos los ejemplos",
+    "io": "Entradas y salidas",
+    "address": "Dirección",
+    "name": "Nombre",
+    "description": "Descripción",
+    "steps": "Paso a paso",
+    "program": "Programa en Ladder",
+    "plantPreview": "Planta virtual",
+    "plantPreviewNote": "Vista en reposo. En el simulador la planta se mueve según las salidas de tu programa.",
+    "desktopNote": "El simulador está pensado para computadores (pantallas de 1024 px o más).",
+    "rung": "Peldaño {n}",
+    "upcoming": {
+      "3": "Motor con inversión de giro y enclavamiento eléctrico",
+      "5": "Portón automático",
+      "7": "Partida estrella-triángulo con temporizador",
+      "8": "Cinta transportadora con contador de cajas",
+      "9": "Estacionamiento con contador de cupos",
+      "10": "Clasificación de piezas por tamaño",
+      "11": "Mezcladora por lotes (batch)",
+      "12": "Dos bombas con alternancia y respaldo",
+      "13": "Control de temperatura con histéresis",
+      "14": "Control de nivel analógico (introducción a PID)"
     }
   }
 }

@@ -1,0 +1,80 @@
+{
+  "id": "motor-start-stop",
+  "order": 2,
+  "level": 1,
+  "plant": "motor",
+  "title": {
+    "es": "Partida y parada de motor con autorretención",
+    "en": "Motor start and stop with seal-in"
+  },
+  "summary": {
+    "es": "El circuito más usado de la industria: pulsador de marcha NA, paro NC, contactor y relé térmico de protección.",
+    "en": "The most used circuit in industry: NO start button, NC stop button, contactor and thermal overload relay."
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": { "es": "MARCHA", "en": "START" },
+      "description": { "es": "Pulsador de marcha (NA)", "en": "Start push button (NO)" },
+      "mode": "button-no"
+    },
+    {
+      "address": "I0.1",
+      "name": { "es": "PARO", "en": "STOP" },
+      "description": {
+        "es": "Pulsador de paro (NC: 1 en reposo)",
+        "en": "Stop push button (NC: 1 at rest)"
+      },
+      "mode": "button-nc"
+    },
+    {
+      "address": "I0.2",
+      "name": { "es": "TERMICO", "en": "OVERLOAD" },
+      "description": {
+        "es": "Contacto NC del relé térmico (lo maneja la planta: 0 = sobrecarga)",
+        "en": "Overload relay NC contact (driven by the plant: 0 = tripped)"
+      }
+    },
+    {
+      "address": "Q0.0",
+      "name": { "es": "K1_MOTOR", "en": "K1_MOTOR" },
+      "description": { "es": "Bobina del contactor del motor", "en": "Motor contactor coil" }
+    }
+  ],
+  "steps": {
+    "es": [
+      "Pulsa ▶ Ejecutar (F5). La entrada PARO ya está en 1 porque el pulsador es NC.",
+      "Presiona MARCHA: el contactor se energiza y el motor acelera. Al soltar, la rama del contacto K1_MOTOR mantiene el circuito cerrado: eso es la autorretención.",
+      "Presiona PARO: la entrada cae a 0, el contacto se abre y el motor se detiene poco a poco.",
+      "En la pestaña «Planta virtual», con el motor en marcha, pulsa «Simular sobrecarga»: el relé térmico abre su contacto y el motor se detiene. No podrás arrancarlo hasta rearmar el relé."
+    ],
+    "en": [
+      "Press ▶ Run (F5). The STOP input is already 1 because the button is NC.",
+      "Press START: the contactor energizes and the motor speeds up. When you release it, the K1_MOTOR contact branch keeps the circuit closed: that is the seal-in.",
+      "Press STOP: the input drops to 0, the contact opens and the motor coasts to a stop.",
+      "In the “Virtual plant” tab, with the motor running, press “Simulate overload”: the thermal relay opens its contact and the motor stops. It cannot start again until the relay is reset."
+    ]
+  },
+  "rungs": [
+    {
+      "comment": {
+        "es": "Marcha con autorretención. PARO y TERMICO son contactos NC en terreno: se examinan con contactos NA.",
+        "en": "Start with seal-in. STOP and OVERLOAD are NC contacts in the field: they are examined with NO contacts."
+      },
+      "logic": {
+        "items": [
+          {
+            "kind": "parallel",
+            "branches": [
+              { "items": [{ "kind": "contact", "type": "NO", "operand": "I0.0" }] },
+              { "items": [{ "kind": "contact", "type": "NO", "operand": "Q0.0" }] }
+            ]
+          },
+          { "kind": "contact", "type": "NO", "operand": "I0.1" },
+          { "kind": "contact", "type": "NO", "operand": "I0.2" }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.0" }]
+    }
+  ]
+}

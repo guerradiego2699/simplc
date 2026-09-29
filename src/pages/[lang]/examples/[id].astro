@@ -1,0 +1,146 @@
+---
+import type { GetStaticPaths } from 'astro';
+import ArrowLeft from '@lucide/astro/icons/arrow-left';
+import Monitor from '@lucide/astro/icons/monitor';
+import Play from '@lucide/astro/icons/play';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { format, getDictionary, getTranslator, locales, localizePath } from '@/i18n';
+import { EXAMPLES, exampleProject, getExample } from '@/simulator/examples';
+import { StaticLadder } from '@/simulator/languages/ladder/editor/StaticLadder';
+import { PlantView } from '@/simulator/plants/views/PlantViews';
+import type { Locale } from '@/config/site';
+
+export const getStaticPaths = (() =>
+  locales.flatMap((lang) =>
+    EXAMPLES.map((example) => ({ params: { lang, id: example.id } })),
+  )) satisfies GetStaticPaths;
+
+const locale = Astro.params.lang as Locale;
+const t = getTranslator(locale);
+const dict = getDictionary(locale);
+const example = getExample(Astro.params.id)!;
+const project = exampleProject(example, locale);
+const simulatorHref = `${localizePath(locale, '/simulator')}?example=${example.id}`;
+const rungTemplate = t('examples.rung');
+---
+
+<BaseLayout
+  locale={locale}
+  title={example.title[locale]}
+  description={example.summary[locale]}
+  path={`/examples/${example.id}`}
+>
+  <article class="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:py-16" data-example={example.id}>
+    <a
+      href={localizePath(locale, '/examples')}
+      class="inline-flex items-center gap-1.5 text-sm text-text-muted no-underline hover:text-primary"
+    >
+      <ArrowLeft size={15} aria-hidden="true" />
+      {t('examples.back')}
+    </a>
+    <p class="mt-6 flex flex-wrap items-center gap-3 text-xs text-text-muted">
+      <span class="font-mono font-semibold text-primary">
+        {String(example.order).padStart(2, '0')}
+      </span>
+      <span class="rounded-full border border-border px-2 py-0.5" title={t('examples.levelLabel')}>
+        {format(t('examples.level'), { n: example.level })}
+      </span>
+    </p>
+    <h1 class="mt-3 text-3xl font-semibold tracking-tight text-text sm:text-4xl">
+      {example.title[locale]}
+    </h1>
+    <p class="mt-4 text-lg text-text-muted">{example.summary[locale]}</p>
+
+    <div class="mt-6">
+      <a
+        href={simulatorHref}
+        data-testid="open-in-simulator"
+        class="hidden h-11 items-center gap-2 rounded-md bg-primary px-5 text-sm font-semibold text-on-primary no-underline hover:bg-primary-hover lg:inline-flex"
+      >
+        <Play size={17} aria-hidden="true" />
+        {t('examples.open')}
+      </a>
+      <p class="flex items-center gap-2 text-sm text-text-muted lg:hidden">
+        <Monitor size={16} aria-hidden="true" />
+        {t('examples.desktopNote')}
+      </p>
+    </div>
+
+    {example.plant && (
+      <section class="mt-12">
+        <h2 class="text-xl font-semibold text-text">{t('examples.plantPreview')}</h2>
+        <div class="mt-4 flex h-64 items-center justify-center rounded-lg border border-border bg-surface p-4">
+          <PlantView
+            plant={example.plant}
+            state={null}
+            out={() => false}
+            t={dict.simulator.plant}
+          />
+        </div>
+        <p class="mt-2 text-sm text-text-muted">{t('examples.plantPreviewNote')}</p>
+      </section>
+    )}
+
+    <section class="mt-12">
+      <h2 class="text-xl font-semibold text-text">{t('examples.io')}</h2>
+      <div class="mt-4 overflow-x-auto rounded-lg border border-border">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-surface text-text-muted">
+            <tr>
+              <th scope="col" class="px-4 py-2 font-medium">
+                {t('examples.address')}
+              </th>
+              <th scope="col" class="px-4 py-2 font-medium">
+                {t('examples.name')}
+              </th>
+              <th scope="col" class="px-4 py-2 font-medium">
+                {t('examples.description')}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            {example.io.map((signal) => (
+              <tr>
+                <td class="px-4 py-2 font-mono text-text-muted">{signal.address}</td>
+                <td class="px-4 py-2 font-mono font-semibold text-text">{signal.name[locale]}</td>
+                <td class="px-4 py-2 text-text">{signal.description[locale]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-xl font-semibold text-text">{t('examples.program')}</h2>
+      <div class="mt-4">
+        <StaticLadder
+          program={project.ladder}
+          tags={project.tags}
+          rungLabel={(n: number) => format(rungTemplate, { n })}
+        />
+      </div>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-xl font-semibold text-text">{t('examples.steps')}</h2>
+      <ol class="mt-4 flex flex-col gap-3">
+        {example.steps[locale].map((step, i) => (
+          <li class="flex gap-3">
+            <span class="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-surface-2 font-mono text-sm font-semibold text-text">
+              {i + 1}
+            </span>
+            <span class="pt-0.5 text-text">{step}</span>
+          </li>
+        ))}
+      </ol>
+      <a
+        href={simulatorHref}
+        class="mt-8 hidden h-11 items-center gap-2 rounded-md bg-primary px-5 text-sm font-semibold text-on-primary no-underline hover:bg-primary-hover lg:inline-flex"
+      >
+        <Play size={17} aria-hidden="true" />
+        {t('examples.open')}
+      </a>
+    </section>
+  </article>
+</BaseLayout>

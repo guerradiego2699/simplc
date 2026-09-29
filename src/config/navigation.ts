@@ -26,11 +26,4 @@ export const FOOTER_NAV: readonly NavItem[] = [
  * Sections that still render the "under construction" page.
  * Remove a slug from here when its real page is created in a later phase.
  */
-export const PLACEHOLDER_SECTIONS = [
-  'brands',
-  'examples',
-  'challenges',
-  'glossary',
-  'faq',
-  'support',
-] as const;
+export const PLACEHOLDER_SECTIONS = ['brands', 'challenges', 'glossary', 'faq', 'support'] as const;

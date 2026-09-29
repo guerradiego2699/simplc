@@ -1,0 +1,54 @@
+{
+  "id": "lamp-switch",
+  "order": 1,
+  "level": 1,
+  "plant": "lamp",
+  "title": {
+    "es": "Encender una ampolleta con un interruptor",
+    "en": "Turn on a lamp with a switch"
+  },
+  "summary": {
+    "es": "El programa más simple: una entrada y una salida. Ideal para ver el flujo de potencia y el ciclo de scan por primera vez.",
+    "en": "The simplest program: one input and one output. Perfect for seeing power flow and the scan cycle for the first time."
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": { "es": "INTERRUPTOR", "en": "SWITCH" },
+      "description": {
+        "es": "Interruptor de la pared (mantenido)",
+        "en": "Wall switch (maintained)"
+      },
+      "mode": "switch"
+    },
+    {
+      "address": "Q0.0",
+      "name": { "es": "AMPOLLETA", "en": "LAMP" },
+      "description": { "es": "Ampolleta del techo", "en": "Ceiling lamp" }
+    }
+  ],
+  "steps": {
+    "es": [
+      "Pulsa ▶ Ejecutar (F5) para poner el PLC en RUN.",
+      "Acciona el interruptor I0.0 en el tablero: la ampolleta de la planta se enciende y el peldaño se pinta de verde.",
+      "Cambia el contacto por uno normalmente cerrado (NC) en el panel de propiedades: ahora la ampolleta se enciende con el interruptor apagado.",
+      "Abre la pestaña «Ciclo de scan» y avanza paso a paso para ver cuándo cambia realmente la salida."
+    ],
+    "en": [
+      "Press ▶ Run (F5) to put the PLC in RUN.",
+      "Flip switch I0.0 on the panel: the plant's lamp turns on and the rung turns green.",
+      "Change the contact to a normally closed (NC) one in the properties panel: now the lamp is on while the switch is off.",
+      "Open the “Scan cycle” tab and step through it to see when the output actually changes."
+    ]
+  },
+  "rungs": [
+    {
+      "comment": {
+        "es": "La ampolleta sigue al interruptor.",
+        "en": "The lamp follows the switch."
+      },
+      "logic": { "items": [{ "kind": "contact", "type": "NO", "operand": "I0.0" }] },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.0" }]
+    }
+  ]
+}
