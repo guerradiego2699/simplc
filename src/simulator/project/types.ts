@@ -29,8 +29,12 @@ export interface IoPanelSetup {
 }
 
 export interface Project {
+  /** Shown in the toolbar and used as the download file name. Empty = untitled. */
+  name: string;
   language: Language;
   ladder: LadderProgram;
   tags: Tag[];
   io: IoPanelSetup;
+  /** Virtual plant connected to the I/O (Phase 7), or null. */
+  plant: string | null;
 }

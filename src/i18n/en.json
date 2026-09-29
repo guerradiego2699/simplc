@@ -237,7 +237,11 @@
       "zoomOut": "Zoom out",
       "zoomReset": "Zoom 100 %",
       "addressStyle": "Addresses",
-      "visualize": "Visualize the scan cycle step by step"
+      "visualize": "Visualize the scan cycle step by step",
+      "open": "Open file… (Ctrl+O)",
+      "download": "Download project (Ctrl+S)",
+      "projectName": "Project name",
+      "untitled": "Untitled project"
     },
     "palette": {
       "title": "Instructions",
@@ -357,7 +361,9 @@
       "time": "Time {s} s",
       "errors": "{n} errors",
       "warnings": "{n} warnings",
-      "zoom": "Zoom {n} %"
+      "zoom": "Zoom {n} %",
+      "saved": "Saved in this browser",
+      "notSaved": "Cannot save in this browser: download the project to keep it"
     },
     "diagnostics": {
       "MISSING_OPERAND": "An address or variable must be assigned.",
@@ -388,7 +394,8 @@
       "startComment": "Start push button (NO)",
       "stopComment": "Stop push button (NC: 1 at rest)",
       "motorComment": "Motor contactor",
-      "rungComment": "Start and stop with seal-in. STOP is wired NC, so it is examined with an NO contact."
+      "rungComment": "Start and stop with seal-in. STOP is wired NC, so it is examined with an NO contact.",
+      "name": "Motor start and stop"
     },
     "elementsShort": {
       "NO": "NO contact",
@@ -492,6 +499,20 @@
       "outputs": "Outputs",
       "terminal": "Terminal",
       "image": "Image"
+    },
+    "file": {
+      "fallbackName": "project",
+      "dropHere": "Drop the file to open the project",
+      "loaded": "Project “{name}” opened.",
+      "downloaded": "Project downloaded as {file}.",
+      "close": "Close notice",
+      "errors": {
+        "INVALID_JSON": "Could not open: the file is not valid JSON.",
+        "NOT_A_PROJECT": "Could not open: the file is not a {site} project.",
+        "NEWER_VERSION": "Could not open: the file comes from a newer version of the simulator (format {version}).",
+        "INVALID_CONTENT": "Could not open: the file content is not valid (at “{path}”).",
+        "READ_ERROR": "The file could not be read."
+      }
     }
   }
 }

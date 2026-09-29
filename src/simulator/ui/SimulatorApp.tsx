@@ -28,6 +28,9 @@ import { ScanPanel } from './ScanPanel';
 import { StatusBar } from './StatusBar';
 import { Toolbar } from './Toolbar';
 import { VariablesPanel } from './VariablesPanel';
+import { Autosave, FileDropZone, NoticeBanner } from './FileSupport';
+import { downloadProject } from './file-actions';
+import { loadAutosave } from '@/simulator/file/autosave';
 
 interface Props {
   strings: SimStrings;
@@ -37,7 +40,8 @@ interface Props {
 export default function SimulatorApp({ strings, locale }: Props) {
   // One store + controller per page load.
   const [value] = useState(() => {
-    const store = createSimulatorStore(motorStartStopProject(strings.example));
+    // Continue where the user left off (autosave), or start with the example.
+    const store = createSimulatorStore(loadAutosave() ?? motorStartStopProject(strings.example));
     return { store, controller: new SimulationController(store), t: strings, locale };
   });
 
@@ -46,7 +50,10 @@ export default function SimulatorApp({ strings, locale }: Props) {
   return (
     <SimProvider value={value}>
       <Shortcuts />
-      <Workspace />
+      <Autosave />
+      <FileDropZone>
+        <Workspace />
+      </FileDropZone>
       <DragGhost />
     </SimProvider>
   );
@@ -71,8 +78,9 @@ function Workspace() {
         <div className="w-52 shrink-0">
           <Palette />
         </div>
-        <main className="min-w-0 flex-1">
+        <main className="relative min-w-0 flex-1">
           <LadderEditor />
+          <NoticeBanner />
         </main>
         <Resizer
           orientation="vertical"
@@ -236,6 +244,7 @@ function DragGhost() {
 
 /** Keyboard shortcuts (spec 6.1). Typing in fields keeps native behaviour. */
 function Shortcuts() {
+  const t = useStrings();
   const store = useStoreApi();
   const controller = useController();
   useEffect(() => {
@@ -255,9 +264,20 @@ function Shortcuts() {
         controller.step();
         return;
       }
-      if (isTyping(e.target)) return;
       const ctrl = e.ctrlKey || e.metaKey;
       const key = e.key.toLowerCase();
+      // Ctrl+S / Ctrl+O work everywhere (the browser's own save/open would be confusing here).
+      if (ctrl && key === 's') {
+        e.preventDefault();
+        downloadProject(store, t);
+        return;
+      }
+      if (ctrl && key === 'o') {
+        e.preventDefault();
+        document.getElementById('project-file-input')?.click();
+        return;
+      }
+      if (isTyping(e.target)) return;
       if (ctrl && key === 'z' && !e.shiftKey) {
         e.preventDefault();
         store.getState().undo();
@@ -275,7 +295,7 @@ function Shortcuts() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [store, controller]);
+  }, [store, controller, t]);
   return null;
 }
 

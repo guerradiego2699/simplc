@@ -14,10 +14,18 @@ import { tag } from './tags';
 import type { Project } from './types';
 
 export function emptyProject(): Project {
-  return { language: 'LD', ladder: emptyProgram(), tags: [], io: { inputs: {}, outputs: {} } };
+  return {
+    name: '',
+    language: 'LD',
+    ladder: emptyProgram(),
+    tags: [],
+    io: { inputs: {}, outputs: {} },
+    plant: null,
+  };
 }
 
 export interface MotorExampleTexts {
+  name: string;
   start: string;
   stop: string;
   motor: string;
@@ -33,7 +41,9 @@ export interface MotorExampleTexts {
  */
 export function motorStartStopProject(t: MotorExampleTexts): Project {
   return {
+    name: t.name,
     language: 'LD',
+    plant: null,
     ladder: {
       rungs: [
         rung(

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   ChevronDown,
+  Download,
+  FolderOpen,
   FilePlus2,
   FileText,
   Pause,
@@ -19,6 +21,7 @@ import { SPEEDS, ZOOM } from '@/simulator/store/simulator-store';
 import { ADDRESS_STYLES, type AddressStyle } from '@/simulator/addressing/styles';
 import type { Language } from '@/simulator/project/types';
 import { useController, useSim, useStoreApi, useStrings } from './context';
+import { downloadProject, openProjectFile } from './file-actions';
 
 const LANGUAGES: Language[] = ['LD', 'ST', 'FBD', 'IL', 'SFC'];
 
@@ -45,9 +48,9 @@ export function Toolbar() {
   const replace = (next: ReturnType<typeof emptyProject>) => {
     if (!window.confirm(t.toolbar.confirmDiscard)) return;
     controller.stop();
-    store.getState().commit(() => next);
-    store.getState().select(null);
+    store.getState().replaceProject(next);
   };
+  const fileInput = useRef<HTMLInputElement>(null);
 
   return (
     <div
@@ -56,9 +59,41 @@ export function Toolbar() {
       className="flex h-11 items-center gap-1 border-b border-border bg-surface-2 px-2"
     >
       <FileMenu
-        onNew={() => replace(emptyProject())}
-        onExample={() => replace(motorStartStopProject(t.example))}
+        items={[
+          { label: t.toolbar.newProject, Icon: FilePlus2, onSelect: () => replace(emptyProject()) },
+          {
+            label: t.toolbar.open,
+            Icon: FolderOpen,
+            testId: 'menu-open',
+            onSelect: () => fileInput.current?.click(),
+          },
+          {
+            label: t.toolbar.download,
+            Icon: Download,
+            testId: 'menu-download',
+            onSelect: () => downloadProject(store, t),
+          },
+          {
+            label: t.toolbar.loadExample,
+            Icon: FileText,
+            onSelect: () => replace(motorStartStopProject(t.example)),
+          },
+        ]}
       />
+      <input
+        ref={fileInput}
+        id="project-file-input"
+        data-testid="project-file-input"
+        type="file"
+        accept=".json,application/json"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = '';
+          if (file) void openProjectFile(file, store, controller, t);
+        }}
+      />
+      <ProjectName />
 
       <Divider />
 
@@ -230,7 +265,14 @@ function Divider() {
   return <span className="mx-1 h-5 w-px bg-border" aria-hidden="true" />;
 }
 
-function FileMenu({ onNew, onExample }: { onNew: () => void; onExample: () => void }) {
+interface MenuItem {
+  label: string;
+  Icon: typeof FileText;
+  onSelect: () => void;
+  testId?: string;
+}
+
+function FileMenu({ items }: { items: MenuItem[] }) {
   const t = useStrings();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -269,32 +311,46 @@ function FileMenu({ onNew, onExample }: { onNew: () => void; onExample: () => vo
           role="menu"
           className="absolute top-full left-0 z-30 mt-1 min-w-64 overflow-hidden rounded-md border border-border bg-bg py-1 shadow-lg"
         >
-          <button
-            type="button"
-            role="menuitem"
-            className={item}
-            onClick={() => {
-              setOpen(false);
-              onNew();
-            }}
-          >
-            <FilePlus2 size={15} aria-hidden="true" className="text-text-muted" />
-            {t.toolbar.newProject}
-          </button>
-          <button
-            type="button"
-            role="menuitem"
-            className={item}
-            onClick={() => {
-              setOpen(false);
-              onExample();
-            }}
-          >
-            <FileText size={15} aria-hidden="true" className="text-text-muted" />
-            {t.toolbar.loadExample}
-          </button>
+          {items.map(({ label, Icon, onSelect, testId }) => (
+            <button
+              key={label}
+              type="button"
+              role="menuitem"
+              data-testid={testId}
+              className={item}
+              onClick={() => {
+                setOpen(false);
+                onSelect();
+              }}
+            >
+              <Icon size={15} aria-hidden="true" className="text-text-muted" />
+              {label}
+            </button>
+          ))}
         </div>
       )}
     </div>
+  );
+}
+
+/** Editable project name (also used as the download file name). */
+function ProjectName() {
+  const t = useStrings();
+  const store = useStoreApi();
+  const name = useSim((s) => s.project.name);
+  return (
+    <input
+      aria-label={t.toolbar.projectName}
+      title={t.toolbar.projectName}
+      data-testid="project-name"
+      value={name}
+      placeholder={t.toolbar.untitled}
+      maxLength={100}
+      spellCheck={false}
+      onChange={(e) =>
+        store.getState().commit((p) => ({ ...p, name: e.target.value }), 'project-name')
+      }
+      className="h-7 w-44 min-w-0 truncate rounded-md border border-transparent bg-transparent px-2 text-sm font-medium text-text placeholder:text-text-muted hover:border-border focus:border-primary focus:bg-bg focus:outline-none"
+    />
   );
 }

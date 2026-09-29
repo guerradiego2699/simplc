@@ -119,6 +119,19 @@ type="industry|tip|note|warning|safety">`, `<TrySimulator example="…">`, `<Plc
 - UI code: never generate TSX/template literals through bash heredocs or `node -e` strings —
   `${…}` gets eaten by the shell. Use the Write/Edit tools.
 
+## Files (Phase 6)
+
+- `simulator/file/project-file.ts`: `.plcampus.json` = `{ format: 'plcampus-project', version,
+savedAt, project }`, validated with **`zod/mini`** (keep it mini: small bundle). Import gives
+  every rung/series/element/tag a fresh id. Errors: INVALID_JSON / NOT_A_PROJECT / NEWER_VERSION /
+  INVALID_CONTENT(path). Bump `FILE_VERSION` + add a migration when the format changes.
+- `simulator/file/autosave.ts`: localStorage key `plcampus:project` (try/catch, same validation).
+  `ui/FileSupport.tsx`: debounced autosave (flushed on pagehide), file drop zone, notice banner.
+  `ui/file-actions.ts`: download (Ctrl+S) / open (Ctrl+O, hidden `#project-file-input`).
+- `Project` now has `name` and `plant` (null until Phase 7). `store.replaceProject()` is undoable.
+- E2E suites that reload pages clear `plcampus:project` in `beforeEach` (see phase4/5 specs).
+- Export to `.st` is deferred to Phase 11 (needs the LD → ST converter).
+
 ## Environment notes
 
 - Windows. Project lives in `C:\dev\simplc` (kept out of OneDrive on purpose: node_modules sync

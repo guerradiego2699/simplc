@@ -6,6 +6,7 @@ import { compileLadder, RAIL, stateProbe } from '../compile';
 import { coil, contact, parallel, rung, series, type LadderProgram } from '../model';
 
 const TEXTS = {
+  name: 'Motor',
   start: 'START',
   stop: 'STOP',
   motor: 'MOTOR',

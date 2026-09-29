@@ -237,7 +237,11 @@
       "zoomOut": "Alejar",
       "zoomReset": "Zoom 100 %",
       "addressStyle": "Direcciones",
-      "visualize": "Visualizar el ciclo de scan paso a paso"
+      "visualize": "Visualizar el ciclo de scan paso a paso",
+      "open": "Abrir archivo… (Ctrl+O)",
+      "download": "Descargar proyecto (Ctrl+S)",
+      "projectName": "Nombre del proyecto",
+      "untitled": "Proyecto sin nombre"
     },
     "palette": {
       "title": "Instrucciones",
@@ -357,7 +361,9 @@
       "time": "Tiempo {s} s",
       "errors": "{n} errores",
       "warnings": "{n} advertencias",
-      "zoom": "Zoom {n} %"
+      "zoom": "Zoom {n} %",
+      "saved": "Guardado en este navegador",
+      "notSaved": "No se puede guardar en este navegador: descarga el proyecto para no perderlo"
     },
     "diagnostics": {
       "MISSING_OPERAND": "Falta asignar una dirección o variable.",
@@ -388,7 +394,8 @@
       "startComment": "Pulsador de marcha (NA)",
       "stopComment": "Pulsador de paro (NC: 1 en reposo)",
       "motorComment": "Contactor del motor",
-      "rungComment": "Partida y parada con autorretención. PARO se cablea NC, por eso se examina con un contacto NA."
+      "rungComment": "Partida y parada con autorretención. PARO se cablea NC, por eso se examina con un contacto NA.",
+      "name": "Partida y parada de motor"
     },
     "elementsShort": {
       "NO": "Contacto NA",
@@ -492,6 +499,20 @@
       "outputs": "Salidas",
       "terminal": "Borne",
       "image": "Imagen"
+    },
+    "file": {
+      "fallbackName": "proyecto",
+      "dropHere": "Suelta el archivo para abrir el proyecto",
+      "loaded": "Proyecto «{name}» abierto.",
+      "downloaded": "Proyecto descargado como {file}.",
+      "close": "Cerrar aviso",
+      "errors": {
+        "INVALID_JSON": "No se pudo abrir: el archivo no tiene un formato JSON válido.",
+        "NOT_A_PROJECT": "No se pudo abrir: el archivo no es un proyecto de {site}.",
+        "NEWER_VERSION": "No se pudo abrir: el archivo es de una versión más nueva del simulador (formato {version}).",
+        "INVALID_CONTENT": "No se pudo abrir: el contenido del archivo no es válido (en «{path}»).",
+        "READ_ERROR": "No se pudo leer el archivo."
+      }
     }
   }
 }

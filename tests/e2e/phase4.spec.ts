@@ -3,6 +3,10 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 test.describe('simulator on desktop', () => {
   test.skip(({ isMobile }) => isMobile, 'the simulator is desktop-only');
   test.use({ viewport: { width: 1440, height: 900 } });
+  // Every page load starts from the built-in example (autosave from Phase 6 is tested separately).
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => localStorage.removeItem('plcampus:project'));
+  });
 
   const open = async (page: Page, lang = 'es') => {
     await page.goto(`/${lang}/simulator`);
@@ -139,7 +143,7 @@ test.describe('simulator on desktop', () => {
   test('renaming a variable updates the program', async ({ page }) => {
     await open(page);
     await page.getByRole('tab', { name: 'Variables' }).click();
-    const name = page.getByRole('textbox', { name: 'Nombre' }).first();
+    const name = page.getByRole('textbox', { name: 'Nombre', exact: true }).first();
     await name.fill('START');
     await expect(page.getByRole('button', { name: /: START \(I0\.0\)/ })).toBeVisible();
     await expect(page.getByText('0 errores')).toBeVisible();

@@ -53,6 +53,13 @@ export interface DragState {
 export type RightTab = 'properties' | 'variables' | 'monitor';
 export type BottomTab = 'io' | 'console' | 'scan';
 
+export interface Notice {
+  kind: 'info' | 'error';
+  text: string;
+  /** Changes on every notice so repeated messages are announced again. */
+  id: number;
+}
+
 /** State of the "visualize scan" mode (spec 6.2). */
 export interface ScanView {
   active: boolean;
@@ -83,6 +90,10 @@ export interface SimulatorState {
   probes: Record<string, Value>;
   scanView: ScanView;
   addressStyle: AddressStyle;
+  /** Short message shown over the editor (file opened, file errors…). */
+  notice: Notice | null;
+  /** Result of the last autosave (null = not attempted yet). */
+  autosave: 'saved' | 'unavailable' | null;
   /** RUN/PAUSE with a program that has errors: the PLC keeps the last good program. */
   notLoaded: boolean;
   /** Physical state of each panel control (switch on / button pressed), by input address. */
@@ -110,6 +121,9 @@ interface Actions {
   setIoControl(address: string, value: boolean): void;
   setZoom(zoom: number): void;
   setAddressStyle(style: AddressStyle): void;
+  /** Replaces the whole project (new, example, opened file). Undoable. */
+  replaceProject(project: Project): void;
+  setNotice(notice: Notice | null): void;
   setLayout(
     patch: Partial<Pick<SimulatorState, 'rightWidth' | 'bottomHeight' | 'rightTab' | 'bottomTab'>>,
   ): void;
@@ -237,6 +251,8 @@ export function createSimulatorStore(initial: Project) {
       ioControls: {},
       scanView: { active: false, auto: true, event: null },
       addressStyle: loadAddressStyle(),
+      notice: null,
+      autosave: null,
 
       zoom: 1,
       rightWidth: 320,
@@ -355,6 +371,16 @@ export function createSimulatorStore(initial: Project) {
 
       setLayout(patch) {
         set(patch);
+      },
+
+      replaceProject(project) {
+        lastCommit = null;
+        get().commit(() => project);
+        set({ selection: null, drag: null });
+      },
+
+      setNotice(notice) {
+        set({ notice });
       },
 
       setAddressStyle(addressStyle) {

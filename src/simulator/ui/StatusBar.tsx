@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { Check, CircleAlert } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { indexDiagnostics } from './diagnostics';
 import { fmt, useController, useLocale, useSim, useStoreApi, useStrings } from './context';
@@ -8,12 +9,13 @@ export function StatusBar() {
   const locale = useLocale();
   const store = useStoreApi();
   const controller = useController();
-  const { status, timeMs, diagnostics, zoom } = useSim(
+  const { status, timeMs, diagnostics, zoom, autosave } = useSim(
     useShallow((s) => ({
       status: s.status,
       timeMs: s.snapshot?.timeMs ?? 0,
       diagnostics: s.compiled.diagnostics,
       zoom: s.zoom,
+      autosave: s.autosave,
     })),
   );
   const { errors, warnings } = useMemo(() => indexDiagnostics(diagnostics), [diagnostics]);
@@ -48,7 +50,23 @@ export function StatusBar() {
         {' · '}
         <span>{fmt(t.status.warnings, { n: warnings })}</span>
       </button>
-      <span className="ml-auto">{fmt(t.status.zoom, { n: Math.round(zoom * 100) })}</span>
+      {autosave && (
+        <span
+          data-testid="autosave-status"
+          data-state={autosave}
+          className={`ml-auto inline-flex items-center gap-1 font-sans ${autosave === 'unavailable' ? 'font-semibold text-danger' : ''}`}
+        >
+          {autosave === 'saved' ? (
+            <Check size={12} aria-hidden="true" />
+          ) : (
+            <CircleAlert size={12} aria-hidden="true" />
+          )}
+          {autosave === 'saved' ? t.status.saved : t.status.notSaved}
+        </span>
+      )}
+      <span className={autosave ? '' : 'ml-auto'}>
+        {fmt(t.status.zoom, { n: Math.round(zoom * 100) })}
+      </span>
       <span className="uppercase">{locale}</span>
     </footer>
   );

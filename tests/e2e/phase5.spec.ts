@@ -3,6 +3,10 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 test.describe('timers, counters, styles and scan visualization', () => {
   test.skip(({ isMobile }) => isMobile, 'the simulator is desktop-only');
   test.use({ viewport: { width: 1440, height: 900 } });
+  // Every page load starts from the built-in example (autosave from Phase 6 is tested separately).
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => localStorage.removeItem('plcampus:project'));
+  });
 
   const open = async (page: Page) => {
     await page.goto('/es/simulator');
