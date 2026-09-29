@@ -178,7 +178,7 @@ test.describe('simulator on desktop', () => {
     for (const scheme of ['light', 'dark'] as const) {
       await page.emulateMedia({ colorScheme: scheme, reducedMotion: 'reduce' });
       await open(page);
-      await page.keyboard.press('F5');
+      await page.getByRole('button', { name: 'Ejecutar (F5)' }).click();
       await press(page, inputButton(page, 'I0.0'));
       await expect(outputLed(page, 'Q0.0')).toHaveAttribute('data-on', 'true');
       await page.locator('[data-element]').nth(2).click();

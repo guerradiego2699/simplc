@@ -1,0 +1,99 @@
+{
+  "id": "alarm-latch",
+  "order": 6,
+  "level": 2,
+  "plant": null,
+  "title": { "es": "Alarma con memoria", "en": "Latching alarm" },
+  "statement": {
+    "es": [
+      "Un detector de humo DETECTOR (I0.0) entrega una señal que puede durar solo un instante. En cuanto se activa, la SIRENA (Q0.0) debe sonar y seguir sonando aunque el detector vuelva a 0.",
+      "El operador apaga la sirena con el pulsador RECONOCER (I0.1). Pero si el detector sigue activo, la sirena no debe apagarse."
+    ],
+    "en": [
+      "A smoke detector DETECTOR (I0.0) gives a signal that may last only an instant. As soon as it turns on, the SIREN (Q0.0) must sound and keep sounding even if the detector goes back to 0.",
+      "The operator silences the siren with the push button ACKNOWLEDGE (I0.1). But while the detector is still active, the siren must not turn off."
+    ]
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": { "es": "DETECTOR", "en": "DETECTOR" },
+      "description": {
+        "es": "Detector de humo (1 = humo detectado)",
+        "en": "Smoke detector (1 = smoke detected)"
+      },
+      "mode": "button-no"
+    },
+    {
+      "address": "I0.1",
+      "name": { "es": "RECONOCER", "en": "ACKNOWLEDGE" },
+      "description": {
+        "es": "Pulsador para reconocer la alarma (NA)",
+        "en": "Alarm acknowledge push button (NO)"
+      },
+      "mode": "button-no"
+    },
+    {
+      "address": "Q0.0",
+      "name": { "es": "SIRENA", "en": "SIREN" },
+      "description": { "es": "Sirena de alarma", "en": "Alarm siren" }
+    }
+  ],
+  "allowed": ["NO", "NC", "coil", "set", "reset"],
+  "hints": {
+    "es": [
+      "Las bobinas S (set) y R (reset) funcionan como una memoria: S deja la salida en 1 hasta que R la vuelve a 0.",
+      "El PLC ejecuta los peldaños en orden y la última escritura gana. Si pones el peldaño con R antes que el de S, el set tiene prioridad.",
+      "Peldaño 1: contacto NA de RECONOCER → bobina R de SIRENA. Peldaño 2: contacto NA de DETECTOR → bobina S de SIRENA."
+    ],
+    "en": [
+      "The S (set) and R (reset) coils work as a memory: S keeps the output at 1 until R clears it.",
+      "The PLC runs the rungs in order and the last write wins. If the R rung comes before the S rung, set has priority.",
+      "Rung 1: NO contact of ACKNOWLEDGE → R coil of SIREN. Rung 2: NO contact of DETECTOR → S coil of SIREN."
+    ]
+  },
+  "tests": [
+    {
+      "name": {
+        "es": "Un pulso del detector activa la sirena y queda sonando",
+        "en": "A detector pulse turns the siren on and it keeps sounding"
+      },
+      "steps": [
+        { "at": 100, "inputs": { "I0.0": true } },
+        { "at": 150, "inputs": { "I0.0": false } }
+      ],
+      "expect": [
+        { "at": 50, "outputs": { "Q0.0": false } },
+        { "at": 120, "outputs": { "Q0.0": true } },
+        { "at": 1000, "outputs": { "Q0.0": true } }
+      ]
+    },
+    {
+      "name": {
+        "es": "RECONOCER apaga la sirena cuando ya no hay humo",
+        "en": "ACKNOWLEDGE silences the siren once the smoke is gone"
+      },
+      "steps": [
+        { "at": 100, "inputs": { "I0.0": true } },
+        { "at": 150, "inputs": { "I0.0": false } },
+        { "at": 1000, "inputs": { "I0.1": true } },
+        { "at": 1100, "inputs": { "I0.1": false } }
+      ],
+      "expect": [
+        { "at": 1050, "outputs": { "Q0.0": false } },
+        { "at": 1500, "outputs": { "Q0.0": false } }
+      ]
+    },
+    {
+      "name": {
+        "es": "Con el detector activo, RECONOCER no apaga la sirena",
+        "en": "While the detector is active, ACKNOWLEDGE does not silence the siren"
+      },
+      "steps": [
+        { "at": 100, "inputs": { "I0.0": true } },
+        { "at": 500, "inputs": { "I0.1": true } }
+      ],
+      "expect": [{ "at": 600, "outputs": { "Q0.0": true } }]
+    }
+  ]
+}

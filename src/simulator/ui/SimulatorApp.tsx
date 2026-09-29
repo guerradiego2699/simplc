@@ -34,6 +34,8 @@ import { Autosave, FileDropZone, NoticeBanner } from './FileSupport';
 import { downloadProject } from './file-actions';
 import { loadAutosave } from '@/simulator/file/autosave';
 import { exampleProject, getExample } from '@/simulator/examples';
+import { challengeProject, getChallenge } from '@/simulator/challenges';
+import { ChallengePanel } from './ChallengePanel';
 
 interface Props {
   strings: SimStrings;
@@ -45,7 +47,7 @@ export default function SimulatorApp({ strings, locale }: Props) {
   const [value] = useState(() => {
     // Continue where the user left off (autosave), or start with the example.
     const store = createSimulatorStore(loadAutosave() ?? motorStartStopProject(strings.example));
-    openRequestedExample(store, strings, locale);
+    openRequestedContent(store, strings, locale);
     return { store, controller: new SimulationController(store), t: strings, locale };
   });
 
@@ -64,16 +66,36 @@ export default function SimulatorApp({ strings, locale }: Props) {
 }
 
 /**
- * `/simulator?example=<id>` (from the example pages) opens that example. It replaces the saved
- * project as an undoable change, and the parameter is dropped so a reload keeps the user's edits.
+ * `/simulator?example=<id>` (example pages) or `?challenge=<id>` (challenges page) opens that
+ * content. It replaces the saved project as an undoable change, and the parameter is dropped so a
+ * reload keeps the user's edits. A challenge already in progress (autosaved) is resumed.
  */
-function openRequestedExample(store: SimulatorStoreApi, t: SimStrings, locale: Locale) {
+function openRequestedContent(store: SimulatorStoreApi, t: SimStrings, locale: Locale) {
   const url = new URL(window.location.href);
-  const id = url.searchParams.get('example');
-  if (id === null) return;
+  const exampleId = url.searchParams.get('example');
+  const challengeId = url.searchParams.get('challenge');
+  if (exampleId === null && challengeId === null) return;
   url.searchParams.delete('example');
+  url.searchParams.delete('challenge');
   window.history.replaceState(window.history.state, '', url);
-  const example = getExample(id);
+
+  const challenge = getChallenge(challengeId);
+  if (challenge) {
+    const state = store.getState();
+    const resume = state.project.challenge === challenge.id;
+    if (!resume) state.replaceProject(challengeProject(challenge, locale));
+    state.setLayout({ rightTab: 'challenge', bottomTab: challenge.plant ? 'plant' : 'io' });
+    state.setNotice({
+      kind: 'info',
+      text: fmt(resume ? t.challenge.resumed : t.challenge.loaded, {
+        name: challenge.title[locale],
+      }),
+      id: Date.now(),
+    });
+    return;
+  }
+
+  const example = getExample(exampleId);
   if (!example) return;
   const project = exampleProject(example, locale);
   store.getState().replaceProject(project);
@@ -88,11 +110,12 @@ function openRequestedExample(store: SimulatorStoreApi, t: SimStrings, locale: L
 function Workspace() {
   const t = useStrings();
   const store = useStoreApi();
-  const { rightWidth, bottomHeight, rightTab, bottomTab } = useSim(
+  const { rightWidth, bottomHeight, rightTab, bottomTab, inChallenge } = useSim(
     useShallow((s) => ({
       rightWidth: s.rightWidth,
       bottomHeight: s.bottomHeight,
       rightTab: s.rightTab,
+      inChallenge: getChallenge(s.project.challenge) !== undefined,
       bottomTab: s.bottomTab,
     })),
   );
@@ -125,6 +148,15 @@ function Workspace() {
             value={rightTab}
             onChange={(v) => store.getState().setLayout({ rightTab: v })}
             tabs={[
+              ...(inChallenge
+                ? [
+                    {
+                      id: 'challenge' as const,
+                      label: t.challenge.tab,
+                      content: <ChallengePanel />,
+                    },
+                  ]
+                : []),
               { id: 'properties', label: t.properties.title, content: <PropertiesPanel /> },
               { id: 'variables', label: t.variables.title, content: <VariablesPanel /> },
               { id: 'monitor', label: t.monitor.title, content: <MonitorPanel /> },
@@ -175,7 +207,7 @@ function Tabs<T extends string>({
     <>
       <div
         role="tablist"
-        className="flex h-8 shrink-0 items-end gap-0.5 border-b border-border px-2"
+        className="flex h-8 shrink-0 items-end gap-0.5 overflow-x-auto overflow-y-hidden border-b border-border px-2"
       >
         {tabs.map((tab) => (
           <button
@@ -186,7 +218,7 @@ function Tabs<T extends string>({
             aria-selected={tab.id === value}
             aria-controls={`panel-${tab.id}`}
             onClick={() => onChange(tab.id)}
-            className="-mb-px rounded-t-md border border-transparent px-3 py-1 text-xs font-medium text-text-muted hover:text-text aria-selected:border-border aria-selected:border-b-surface aria-selected:bg-surface aria-selected:text-text"
+            className="-mb-px shrink-0 rounded-t-md border border-transparent px-2.5 py-1 text-xs font-medium text-text-muted hover:text-text aria-selected:border-border aria-selected:border-b-surface aria-selected:bg-surface aria-selected:text-text"
           >
             {tab.label}
           </button>

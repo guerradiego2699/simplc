@@ -22,7 +22,9 @@ import {
   type ContactType,
   type Element,
   type InsertTarget,
+  type LadderProgram,
 } from '@/simulator/languages/ladder/model';
+import type { Validation } from '@/simulator/challenges/validator';
 import { resolveOperand } from '@/simulator/project/tags';
 import type { Project } from '@/simulator/project/types';
 
@@ -50,7 +52,7 @@ export interface DragState {
   target: InsertTarget | null;
 }
 
-export type RightTab = 'properties' | 'variables' | 'monitor';
+export type RightTab = 'properties' | 'variables' | 'monitor' | 'challenge';
 export type BottomTab = 'io' | 'console' | 'scan' | 'plant';
 
 export interface Notice {
@@ -67,6 +69,14 @@ export interface ScanView {
   auto: boolean;
   /** Last completed part of the scan. */
   event: ScanEvent | null;
+}
+
+/** UI state of the challenge being solved; survives tab switches (not saved). */
+export interface ChallengeSession {
+  id: string;
+  hintsShown: number;
+  /** Last check and the program it checked (to tell when it is out of date). */
+  result: { validation: Validation; ladder: LadderProgram } | null;
 }
 
 export const SPEEDS = [0.25, 0.5, 1, 2, 4] as const;
@@ -91,6 +101,7 @@ export interface SimulatorState {
   scanView: ScanView;
   /** State of the virtual plant (shape depends on `project.plant`), published by the controller. */
   plantState: unknown;
+  challengeSession: ChallengeSession | null;
   addressStyle: AddressStyle;
   /** Short message shown over the editor (file opened, file errors…). */
   notice: Notice | null;
@@ -253,6 +264,7 @@ export function createSimulatorStore(initial: Project) {
       ioControls: {},
       scanView: { active: false, auto: true, event: null },
       plantState: null,
+      challengeSession: null,
       addressStyle: loadAddressStyle(),
       notice: null,
       autosave: null,

@@ -99,6 +99,7 @@ const projectSchema = z.object({
     outputs: z.record(z.string(), z.object({ label: z.optional(text(40)) })),
   }),
   plant: z.nullable(z.string()),
+  challenge: z.optional(z.string().check(z.maxLength(80))),
 });
 
 const fileSchema = z.object({
@@ -243,5 +244,6 @@ function withFreshIds(p: z.infer<typeof projectSchema>): Project {
     })),
     io: { inputs, outputs },
     plant: p.plant,
+    ...(p.challenge !== undefined ? { challenge: p.challenge } : {}),
   };
 }

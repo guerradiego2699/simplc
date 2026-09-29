@@ -40,11 +40,9 @@ export function getTranslator(locale: Locale) {
   };
 }
 
-/** Builds a locale-prefixed URL. `path` is locale-less, e.g. "/" or "/learn". */
-export function localizePath(locale: Locale, path = '/'): string {
-  const clean = path.startsWith('/') ? path : `/${path}`;
-  return clean === '/' ? `/${locale}/` : `/${locale}${clean}`;
-}
+import { localizePath } from './paths';
+
+export { localizePath };
 
 /** Splits "/es/learn/x" into { locale: "es", path: "/learn/x" }. */
 export function parsePath(pathname: string): { locale: Locale | undefined; path: string } {

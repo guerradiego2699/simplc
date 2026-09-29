@@ -1,0 +1,95 @@
+{
+  "id": "delayed-fan",
+  "order": 7,
+  "level": 3,
+  "plant": null,
+  "title": { "es": "Ventilador con aviso de arranque", "en": "Fan with start-up warning" },
+  "statement": {
+    "es": [
+      "Un ventilador grande no debe arrancar de golpe. Al encender el interruptor MARCHA (I0.0), primero suena la bocina AVISO (Q0.1) durante 5 segundos y recién entonces arranca el VENTILADOR (Q0.0), mientras la bocina se calla.",
+      "Al apagar el interruptor, todo se detiene de inmediato. Si se apaga antes de completar los 5 segundos, la espera vuelve a empezar desde cero la próxima vez."
+    ],
+    "en": [
+      "A large fan must not start abruptly. When the switch ON (I0.0) is turned on, the horn WARNING (Q0.1) sounds for 5 seconds first and only then the FAN (Q0.0) starts, while the horn goes silent.",
+      "Turning the switch off stops everything at once. If it is turned off before the 5 seconds are over, the wait starts from zero the next time."
+    ]
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": { "es": "MARCHA", "en": "ON" },
+      "description": { "es": "Interruptor de marcha", "en": "On switch" },
+      "mode": "switch"
+    },
+    {
+      "address": "Q0.0",
+      "name": { "es": "VENTILADOR", "en": "FAN" },
+      "description": { "es": "Contactor del ventilador", "en": "Fan contactor" }
+    },
+    {
+      "address": "Q0.1",
+      "name": { "es": "AVISO", "en": "WARNING" },
+      "description": { "es": "Bocina de aviso de arranque", "en": "Start-up warning horn" }
+    }
+  ],
+  "allowed": ["NO", "NC", "coil", "TON", "TOF", "TP"],
+  "hints": {
+    "es": [
+      "Un temporizador a la conexión (TON) activa su salida Q cuando su entrada lleva PT segundos en 1. Si la entrada cae a 0, se reinicia.",
+      "Usa un TON con PT = T#5s. En Ladder, el bloque TON deja pasar la corriente (su Q) hacia la derecha: después de él pon la bobina VENTILADOR.",
+      "La bocina suena mientras MARCHA esté encendido y el ventilador todavía no: contacto NA de MARCHA, contacto NC de VENTILADOR → bobina AVISO."
+    ],
+    "en": [
+      "An on-delay timer (TON) turns its output Q on when its input has been 1 for PT seconds. If the input drops to 0, it resets.",
+      "Use a TON with PT = T#5s. In Ladder, the TON box passes power (its Q) to the right: put the FAN coil after it.",
+      "The horn sounds while ON is on and the fan is not running yet: NO contact of ON, NC contact of FAN → WARNING coil."
+    ]
+  },
+  "tests": [
+    {
+      "name": {
+        "es": "Durante los primeros 5 s suena el aviso y el ventilador espera",
+        "en": "During the first 5 s the horn sounds and the fan waits"
+      },
+      "steps": [{ "at": 100, "inputs": { "I0.0": true } }],
+      "expect": [
+        { "at": 200, "outputs": { "Q0.0": false, "Q0.1": true } },
+        { "at": 4900, "outputs": { "Q0.0": false, "Q0.1": true } }
+      ]
+    },
+    {
+      "name": {
+        "es": "A los 5 s arranca el ventilador y se calla el aviso",
+        "en": "After 5 s the fan starts and the horn goes silent"
+      },
+      "steps": [{ "at": 100, "inputs": { "I0.0": true } }],
+      "expect": [{ "at": 5400, "outputs": { "Q0.0": true, "Q0.1": false } }]
+    },
+    {
+      "name": {
+        "es": "Al apagar el interruptor todo se detiene",
+        "en": "Turning the switch off stops everything"
+      },
+      "steps": [
+        { "at": 100, "inputs": { "I0.0": true } },
+        { "at": 6000, "inputs": { "I0.0": false } }
+      ],
+      "expect": [{ "at": 6100, "outputs": { "Q0.0": false, "Q0.1": false } }]
+    },
+    {
+      "name": {
+        "es": "Si se apaga antes de tiempo, la espera empieza de nuevo",
+        "en": "Turning it off early restarts the wait"
+      },
+      "steps": [
+        { "at": 100, "inputs": { "I0.0": true } },
+        { "at": 3000, "inputs": { "I0.0": false } },
+        { "at": 3500, "inputs": { "I0.0": true } }
+      ],
+      "expect": [
+        { "at": 7000, "outputs": { "Q0.0": false, "Q0.1": true } },
+        { "at": 8800, "outputs": { "Q0.0": true, "Q0.1": false } }
+      ]
+    }
+  ]
+}

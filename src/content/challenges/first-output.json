@@ -1,0 +1,72 @@
+{
+  "id": "first-output",
+  "order": 1,
+  "level": 1,
+  "plant": null,
+  "title": { "es": "Enciende una lámpara", "en": "Turn on a lamp" },
+  "statement": {
+    "es": [
+      "La lámpara LAMPARA (Q0.0) debe estar encendida solo mientras se mantenga presionado el pulsador PULSADOR (I0.0).",
+      "Al soltar el pulsador, la lámpara se apaga."
+    ],
+    "en": [
+      "The lamp LAMP (Q0.0) must be on only while the push button BUTTON (I0.0) is held down.",
+      "When the button is released, the lamp turns off."
+    ]
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": { "es": "PULSADOR", "en": "BUTTON" },
+      "description": {
+        "es": "Pulsador normalmente abierto (NA)",
+        "en": "Normally open (NO) push button"
+      },
+      "mode": "button-no"
+    },
+    {
+      "address": "Q0.0",
+      "name": { "es": "LAMPARA", "en": "LAMP" },
+      "description": { "es": "Lámpara de señalización", "en": "Indicator lamp" }
+    }
+  ],
+  "allowed": ["NO", "coil"],
+  "hints": {
+    "es": [
+      "Un peldaño basta: a la izquierda las condiciones y a la derecha lo que se activa.",
+      "Pon un contacto normalmente abierto (NA) con el operando PULSADOR o I0.0.",
+      "Al final del peldaño agrega una bobina con el operando LAMPARA o Q0.0."
+    ],
+    "en": [
+      "One rung is enough: conditions on the left, what gets energized on the right.",
+      "Place a normally open (NO) contact with the operand BUTTON or I0.0.",
+      "At the end of the rung add a coil with the operand LAMP or Q0.0."
+    ]
+  },
+  "tests": [
+    {
+      "name": { "es": "En reposo, la lámpara está apagada", "en": "At rest, the lamp is off" },
+      "steps": [],
+      "expect": [{ "at": 100, "outputs": { "Q0.0": false } }]
+    },
+    {
+      "name": {
+        "es": "Al presionar el pulsador, la lámpara se enciende",
+        "en": "Pressing the button turns the lamp on"
+      },
+      "steps": [{ "at": 100, "inputs": { "I0.0": true } }],
+      "expect": [{ "at": 150, "outputs": { "Q0.0": true } }]
+    },
+    {
+      "name": { "es": "Al soltarlo, la lámpara se apaga", "en": "Releasing it turns the lamp off" },
+      "steps": [
+        { "at": 100, "inputs": { "I0.0": true } },
+        { "at": 500, "inputs": { "I0.0": false } }
+      ],
+      "expect": [
+        { "at": 150, "outputs": { "Q0.0": true } },
+        { "at": 550, "outputs": { "Q0.0": false } }
+      ]
+    }
+  ]
+}

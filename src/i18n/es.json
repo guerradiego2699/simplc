@@ -592,6 +592,35 @@
         "closed": "cerrado"
       },
       "controls": "Mandos"
+    },
+    "challenge": {
+      "tab": "Desafío",
+      "heading": "Desafío {n} · Nivel {level}",
+      "statement": "Enunciado",
+      "io": "Entradas y salidas",
+      "allowed": "Instrucciones permitidas",
+      "allInstructions": "Todas las instrucciones",
+      "hints": "Pistas",
+      "showHint": "Ver pista {n} de {total}",
+      "hint": "Pista {n}",
+      "verify": "Verificar solución",
+      "cases": "Casos de prueba",
+      "passed": "¡Desafío superado! Tu programa aprobó los {n} casos de prueba.",
+      "failed": "Aprobaste {passed} de {total} casos de prueba. Revisa los que fallaron.",
+      "errors": "El programa tiene errores y no se puede ejecutar. Revisa la pestaña Consola.",
+      "notAllowed": "Este desafío no permite estas instrucciones: {types}.",
+      "empty": "Tu programa todavía no tiene ninguna bobina de salida.",
+      "expected": "En t = {time} s se esperaba {name} = {expected}, pero estaba en {actual}.",
+      "fault": "En t = {time} s el PLC se detuvo por una falla (por ejemplo, el watchdog por un bucle).",
+      "stale": "Cambiaste el programa desde la última verificación.",
+      "completed": "Completado",
+      "next": "Siguiente desafío",
+      "all": "Todos los desafíos",
+      "loaded": "Desafío «{name}» listo. Arma tu programa y pulsa «Verificar solución».",
+      "resumed": "Continúas con el desafío «{name}».",
+      "paletteLimited": "Solo se muestran las instrucciones permitidas en este desafío.",
+      "plantNote": "Este desafío usa la planta virtual: los casos de prueba también la simulan.",
+      "howItWorks": "La verificación ejecuta tu programa en tiempo simulado con cada caso de prueba y compara las salidas en momentos concretos. No necesitas poner el PLC en RUN."
     }
   },
   "examples": {
@@ -627,5 +656,20 @@
       "13": "Control de temperatura con histéresis",
       "14": "Control de nivel analógico (introducción a PID)"
     }
+  },
+  "challenges": {
+    "indexTitle": "Desafíos de programación PLC",
+    "indexDescription": "Ejercicios de Ladder con corrección automática: enciende salidas, autorretención, memorias set/reset, temporizadores y contadores. Gratis y sin registro.",
+    "intro": "Pon a prueba lo aprendido con problemas reales, del más simple al más completo. El simulador revisa tu programa automáticamente con casos de prueba y te dice qué se esperaba en cada momento.",
+    "privacy": "Tu progreso se guarda solo en este navegador. No hay cuentas.",
+    "progress": "Completados: {done} de {total}",
+    "level": "Nivel {n}",
+    "levelLabel": "Dificultad",
+    "plant": "Con planta virtual: {name}",
+    "tests": "{n} casos de prueba",
+    "solve": "Resolver en el simulador",
+    "completed": "Completado",
+    "desktopNote": "Los desafíos se resuelven en el simulador, pensado para computadores (pantallas de 1024 px o más).",
+    "moreSoon": "Vendrán más desafíos: la meta son más de 20, hasta secuencias con temporizadores, contadores y señales analógicas."
   }
 }

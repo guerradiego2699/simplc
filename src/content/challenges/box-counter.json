@@ -1,0 +1,141 @@
+{
+  "id": "box-counter",
+  "order": 8,
+  "level": 3,
+  "plant": null,
+  "title": { "es": "Contador de cajas por lote", "en": "Box counter per batch" },
+  "statement": {
+    "es": [
+      "Un sensor SENSOR_CAJA (I0.0) entrega un pulso cada vez que pasa una caja por la cinta. Cuando hayan pasado 5 cajas, debe encenderse la luz LOTE_LISTO (Q0.0).",
+      "La luz queda encendida hasta que el operador presiona REINICIAR (I0.1), que pone la cuenta en cero para el siguiente lote."
+    ],
+    "en": [
+      "A sensor BOX_SENSOR (I0.0) gives a pulse every time a box passes on the belt. When 5 boxes have passed, the light BATCH_READY (Q0.0) must turn on.",
+      "The light stays on until the operator presses RESET (I0.1), which sets the count back to zero for the next batch."
+    ]
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": { "es": "SENSOR_CAJA", "en": "BOX_SENSOR" },
+      "description": {
+        "es": "Sensor de paso de cajas (1 = caja presente)",
+        "en": "Box presence sensor (1 = box present)"
+      },
+      "mode": "button-no"
+    },
+    {
+      "address": "I0.1",
+      "name": { "es": "REINICIAR", "en": "RESET" },
+      "description": {
+        "es": "Pulsador para reiniciar la cuenta (NA)",
+        "en": "Count reset push button (NO)"
+      },
+      "mode": "button-no"
+    },
+    {
+      "address": "Q0.0",
+      "name": { "es": "LOTE_LISTO", "en": "BATCH_READY" },
+      "description": { "es": "Luz de lote completo", "en": "Batch complete light" }
+    }
+  ],
+  "allowed": [
+    "NO",
+    "NC",
+    "P",
+    "N",
+    "coil",
+    "set",
+    "reset",
+    "CTU",
+    "CTD",
+    "CTUD",
+    "EQ",
+    "NE",
+    "LT",
+    "GT",
+    "LE",
+    "GE"
+  ],
+  "hints": {
+    "es": [
+      "Un contador ascendente (CTU) suma 1 en cada flanco de subida de su entrada y activa su salida Q cuando la cuenta CV llega a PV.",
+      "Usa un CTU con PV = 5 y la entrada R (reset) conectada a REINICIAR. Su Q pasa la corriente hacia la derecha.",
+      "Peldaño: contacto NA de SENSOR_CAJA → CTU C0 (PV 5, R = REINICIAR) → bobina LOTE_LISTO."
+    ],
+    "en": [
+      "An up counter (CTU) adds 1 on each rising edge of its input and turns its output Q on when the count CV reaches PV.",
+      "Use a CTU with PV = 5 and its R (reset) input connected to RESET. Its Q passes power to the right.",
+      "Rung: NO contact of BOX_SENSOR → CTU C0 (PV 5, R = RESET) → BATCH_READY coil."
+    ]
+  },
+  "tests": [
+    {
+      "name": {
+        "es": "Con 4 cajas el lote aún no está listo",
+        "en": "After 4 boxes the batch is not ready"
+      },
+      "steps": [
+        { "at": 100, "inputs": { "I0.0": true } },
+        { "at": 150, "inputs": { "I0.0": false } },
+        { "at": 300, "inputs": { "I0.0": true } },
+        { "at": 350, "inputs": { "I0.0": false } },
+        { "at": 500, "inputs": { "I0.0": true } },
+        { "at": 550, "inputs": { "I0.0": false } },
+        { "at": 700, "inputs": { "I0.0": true } },
+        { "at": 750, "inputs": { "I0.0": false } }
+      ],
+      "expect": [{ "at": 1000, "outputs": { "Q0.0": false } }]
+    },
+    {
+      "name": {
+        "es": "La quinta caja completa el lote y la luz queda encendida",
+        "en": "The fifth box completes the batch and the light stays on"
+      },
+      "steps": [
+        { "at": 100, "inputs": { "I0.0": true } },
+        { "at": 150, "inputs": { "I0.0": false } },
+        { "at": 300, "inputs": { "I0.0": true } },
+        { "at": 350, "inputs": { "I0.0": false } },
+        { "at": 500, "inputs": { "I0.0": true } },
+        { "at": 550, "inputs": { "I0.0": false } },
+        { "at": 700, "inputs": { "I0.0": true } },
+        { "at": 750, "inputs": { "I0.0": false } },
+        { "at": 900, "inputs": { "I0.0": true } },
+        { "at": 950, "inputs": { "I0.0": false } }
+      ],
+      "expect": [
+        { "at": 1000, "outputs": { "Q0.0": true } },
+        { "at": 2000, "outputs": { "Q0.0": true } }
+      ]
+    },
+    {
+      "name": {
+        "es": "REINICIAR apaga la luz y la cuenta vuelve a cero",
+        "en": "RESET turns the light off and the count starts from zero"
+      },
+      "steps": [
+        { "at": 100, "inputs": { "I0.0": true } },
+        { "at": 150, "inputs": { "I0.0": false } },
+        { "at": 300, "inputs": { "I0.0": true } },
+        { "at": 350, "inputs": { "I0.0": false } },
+        { "at": 500, "inputs": { "I0.0": true } },
+        { "at": 550, "inputs": { "I0.0": false } },
+        { "at": 700, "inputs": { "I0.0": true } },
+        { "at": 750, "inputs": { "I0.0": false } },
+        { "at": 900, "inputs": { "I0.0": true } },
+        { "at": 950, "inputs": { "I0.0": false } },
+        { "at": 1500, "inputs": { "I0.1": true } },
+        { "at": 1600, "inputs": { "I0.1": false } },
+        { "at": 1800, "inputs": { "I0.0": true } },
+        { "at": 1850, "inputs": { "I0.0": false } },
+        { "at": 2000, "inputs": { "I0.0": true } },
+        { "at": 2050, "inputs": { "I0.0": false } }
+      ],
+      "expect": [
+        { "at": 1700, "outputs": { "Q0.0": false } },
+        { "at": 2500, "outputs": { "Q0.0": false } }
+      ]
+    }
+  ]
+}

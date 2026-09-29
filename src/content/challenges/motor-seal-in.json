@@ -1,0 +1,122 @@
+{
+  "id": "motor-seal-in",
+  "order": 5,
+  "level": 2,
+  "plant": "motor",
+  "title": { "es": "Partida y parada con autorretención", "en": "Start and stop with seal-in" },
+  "statement": {
+    "es": [
+      "Programa la partida directa de un motor. Un toque en MARCHA (I0.0) arranca el motor K1_MOTOR (Q0.0) y este sigue funcionando al soltar el pulsador.",
+      "PARO (I0.1) es un pulsador NC: vale 1 en reposo y 0 al presionarlo. Al presionarlo, el motor se detiene; si se presionan MARCHA y PARO a la vez, gana PARO.",
+      "TERMICO (I0.2) es el contacto NC del relé térmico, conectado a la planta: vale 0 cuando hay sobrecarga. Una sobrecarga debe detener el motor e impedir que vuelva a arrancar."
+    ],
+    "en": [
+      "Program a direct-on-line motor starter. A tap on START (I0.0) starts the motor K1_MOTOR (Q0.0), which keeps running after the button is released.",
+      "STOP (I0.1) is an NC push button: it is 1 at rest and 0 while pressed. Pressing it stops the motor; if START and STOP are pressed together, STOP wins.",
+      "OVERLOAD (I0.2) is the overload relay NC contact, wired to the plant: it is 0 when the motor is overloaded. An overload must stop the motor and keep it from starting again."
+    ]
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": { "es": "MARCHA", "en": "START" },
+      "description": { "es": "Pulsador de marcha (NA)", "en": "Start push button (NO)" },
+      "mode": "button-no"
+    },
+    {
+      "address": "I0.1",
+      "name": { "es": "PARO", "en": "STOP" },
+      "description": {
+        "es": "Pulsador de paro (NC: 1 en reposo)",
+        "en": "Stop push button (NC: 1 at rest)"
+      },
+      "mode": "button-nc"
+    },
+    {
+      "address": "I0.2",
+      "name": { "es": "TERMICO", "en": "OVERLOAD" },
+      "description": {
+        "es": "Contacto NC del relé térmico (lo maneja la planta: 0 = sobrecarga)",
+        "en": "Overload relay NC contact (driven by the plant: 0 = tripped)"
+      }
+    },
+    {
+      "address": "Q0.0",
+      "name": { "es": "K1_MOTOR", "en": "K1_MOTOR" },
+      "description": { "es": "Bobina del contactor del motor", "en": "Motor contactor coil" }
+    }
+  ],
+  "allowed": ["NO", "NC", "coil", "set", "reset"],
+  "hints": {
+    "es": [
+      "Para que el motor siga funcionando al soltar MARCHA, pon en paralelo con MARCHA un contacto de la propia salida K1_MOTOR: eso es la autorretención.",
+      "PARO y TERMICO valen 1 cuando todo está normal. ¿Qué tipo de contacto deja pasar la corriente cuando la entrada vale 1?",
+      "Solución: (MARCHA en paralelo con K1_MOTOR), en serie con un contacto NA de PARO y un contacto NA de TERMICO, y la bobina K1_MOTOR."
+    ],
+    "en": [
+      "To keep the motor running after START is released, put a contact of the output K1_MOTOR itself in parallel with START: that is the seal-in.",
+      "STOP and OVERLOAD are 1 when everything is normal. Which contact passes power when its input is 1?",
+      "Solution: (START in parallel with K1_MOTOR), in series with an NO contact of STOP and an NO contact of OVERLOAD, then the K1_MOTOR coil."
+    ]
+  },
+  "tests": [
+    {
+      "name": {
+        "es": "Un toque en MARCHA arranca el motor y sigue en marcha al soltar",
+        "en": "A tap on START starts the motor and it keeps running after release"
+      },
+      "steps": [
+        { "at": 100, "inputs": { "I0.0": true } },
+        { "at": 300, "inputs": { "I0.0": false } }
+      ],
+      "expect": [
+        { "at": 50, "outputs": { "Q0.0": false } },
+        { "at": 200, "outputs": { "Q0.0": true } },
+        { "at": 1000, "outputs": { "Q0.0": true } }
+      ]
+    },
+    {
+      "name": {
+        "es": "PARO detiene el motor y queda detenido al soltarlo",
+        "en": "STOP stops the motor and it stays stopped after release"
+      },
+      "steps": [
+        { "at": 100, "inputs": { "I0.0": true } },
+        { "at": 300, "inputs": { "I0.0": false } },
+        { "at": 1000, "inputs": { "I0.1": false } },
+        { "at": 1200, "inputs": { "I0.1": true } }
+      ],
+      "expect": [
+        { "at": 900, "outputs": { "Q0.0": true } },
+        { "at": 1100, "outputs": { "Q0.0": false } },
+        { "at": 1500, "outputs": { "Q0.0": false } }
+      ]
+    },
+    {
+      "name": {
+        "es": "Si se presionan MARCHA y PARO a la vez, gana PARO",
+        "en": "If START and STOP are pressed together, STOP wins"
+      },
+      "steps": [{ "at": 100, "inputs": { "I0.0": true, "I0.1": false } }],
+      "expect": [{ "at": 300, "outputs": { "Q0.0": false } }]
+    },
+    {
+      "name": {
+        "es": "Una sobrecarga detiene el motor y no deja volver a arrancar",
+        "en": "An overload stops the motor and prevents restarting"
+      },
+      "steps": [
+        { "at": 100, "inputs": { "I0.0": true } },
+        { "at": 300, "inputs": { "I0.0": false } },
+        { "at": 1000, "plant": "overload" },
+        { "at": 1500, "inputs": { "I0.0": true } },
+        { "at": 1700, "inputs": { "I0.0": false } }
+      ],
+      "expect": [
+        { "at": 900, "outputs": { "Q0.0": true } },
+        { "at": 1100, "outputs": { "Q0.0": false } },
+        { "at": 1600, "outputs": { "Q0.0": false } }
+      ]
+    }
+  ]
+}

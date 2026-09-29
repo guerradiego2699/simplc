@@ -1,0 +1,83 @@
+{
+  "id": "run-and-stop-lights",
+  "order": 2,
+  "level": 1,
+  "plant": null,
+  "title": { "es": "Luces de marcha y detención", "en": "Running and stopped lights" },
+  "statement": {
+    "es": [
+      "Una máquina tiene un interruptor MAQUINA (I0.0) y dos luces piloto en el tablero.",
+      "Con el interruptor encendido debe encenderse la luz LUZ_MARCHA (Q0.1). Con el interruptor apagado debe encenderse la luz LUZ_DETENIDA (Q0.0). Nunca deben estar las dos encendidas."
+    ],
+    "en": [
+      "A machine has a switch MACHINE (I0.0) and two pilot lights on the panel.",
+      "With the switch on, the light LIGHT_RUN (Q0.1) must be on. With the switch off, the light LIGHT_STOPPED (Q0.0) must be on. They must never be on together."
+    ]
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": { "es": "MAQUINA", "en": "MACHINE" },
+      "description": { "es": "Interruptor de la máquina", "en": "Machine switch" },
+      "mode": "switch"
+    },
+    {
+      "address": "Q0.0",
+      "name": { "es": "LUZ_DETENIDA", "en": "LIGHT_STOPPED" },
+      "description": {
+        "es": "Luz piloto de máquina detenida",
+        "en": "Machine stopped pilot light"
+      }
+    },
+    {
+      "address": "Q0.1",
+      "name": { "es": "LUZ_MARCHA", "en": "LIGHT_RUN" },
+      "description": {
+        "es": "Luz piloto de máquina en marcha",
+        "en": "Machine running pilot light"
+      }
+    }
+  ],
+  "allowed": ["NO", "NC", "coil"],
+  "hints": {
+    "es": [
+      "Necesitas dos peldaños, uno por cada luz.",
+      "Un contacto normalmente cerrado (NC) deja pasar la corriente cuando su entrada vale 0.",
+      "Peldaño 1: contacto NC de MAQUINA → bobina LUZ_DETENIDA. Peldaño 2: contacto NA de MAQUINA → bobina LUZ_MARCHA."
+    ],
+    "en": [
+      "You need two rungs, one for each light.",
+      "A normally closed (NC) contact passes power when its input is 0.",
+      "Rung 1: NC contact of MACHINE → coil LIGHT_STOPPED. Rung 2: NO contact of MACHINE → coil LIGHT_RUN."
+    ]
+  },
+  "tests": [
+    {
+      "name": {
+        "es": "Con el interruptor apagado solo se enciende LUZ_DETENIDA",
+        "en": "With the switch off only LIGHT_STOPPED is on"
+      },
+      "steps": [],
+      "expect": [{ "at": 100, "outputs": { "Q0.0": true, "Q0.1": false } }]
+    },
+    {
+      "name": {
+        "es": "Con el interruptor encendido solo se enciende LUZ_MARCHA",
+        "en": "With the switch on only LIGHT_RUN is on"
+      },
+      "steps": [{ "at": 100, "inputs": { "I0.0": true } }],
+      "expect": [{ "at": 200, "outputs": { "Q0.0": false, "Q0.1": true } }]
+    },
+    {
+      "name": {
+        "es": "Al apagar el interruptor vuelve LUZ_DETENIDA",
+        "en": "Turning the switch off brings LIGHT_STOPPED back"
+      },
+      "steps": [
+        { "at": 100, "inputs": { "I0.0": true } },
+        { "at": 500, "inputs": { "I0.0": false } }
+      ],
+      "expect": [{ "at": 600, "outputs": { "Q0.0": true, "Q0.1": false } }]
+    }
+  ]
+}

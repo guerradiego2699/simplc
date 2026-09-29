@@ -1,0 +1,87 @@
+{
+  "id": "two-hand-control",
+  "order": 4,
+  "level": 1,
+  "plant": null,
+  "title": { "es": "Mando a dos manos", "en": "Two-hand control" },
+  "statement": {
+    "es": [
+      "Una prensa solo debe bajar si el operador tiene las dos manos en los pulsadores, lejos de la zona de peligro.",
+      "La salida PRENSA (Q0.0) se activa únicamente mientras MANO_IZQ (I0.0) y MANO_DER (I0.1) estén presionados a la vez. Si se suelta cualquiera, la prensa se detiene."
+    ],
+    "en": [
+      "A press may only move down if the operator keeps both hands on the push buttons, away from the danger zone.",
+      "The output PRESS (Q0.0) is on only while LEFT_HAND (I0.0) and RIGHT_HAND (I0.1) are pressed together. Releasing either one stops the press."
+    ]
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": { "es": "MANO_IZQ", "en": "LEFT_HAND" },
+      "description": {
+        "es": "Pulsador de la mano izquierda (NA)",
+        "en": "Left hand push button (NO)"
+      },
+      "mode": "button-no"
+    },
+    {
+      "address": "I0.1",
+      "name": { "es": "MANO_DER", "en": "RIGHT_HAND" },
+      "description": {
+        "es": "Pulsador de la mano derecha (NA)",
+        "en": "Right hand push button (NO)"
+      },
+      "mode": "button-no"
+    },
+    {
+      "address": "Q0.0",
+      "name": { "es": "PRENSA", "en": "PRESS" },
+      "description": { "es": "Válvula de bajada de la prensa", "en": "Press down valve" }
+    }
+  ],
+  "allowed": ["NO", "NC", "coil"],
+  "hints": {
+    "es": [
+      "Esto es una función lógica Y (AND): se deben cumplir ambas condiciones.",
+      "En Ladder, Y se dibuja con contactos en serie, uno después del otro.",
+      "Contacto NA de MANO_IZQ, luego contacto NA de MANO_DER y al final la bobina PRENSA."
+    ],
+    "en": [
+      "This is a logical AND: both conditions must be true.",
+      "In Ladder, AND is drawn as contacts in series, one after the other.",
+      "NO contact of LEFT_HAND, then NO contact of RIGHT_HAND and finally the PRESS coil."
+    ]
+  },
+  "tests": [
+    {
+      "name": { "es": "Con una sola mano no baja", "en": "One hand is not enough" },
+      "steps": [
+        { "at": 100, "inputs": { "I0.0": true } },
+        { "at": 400, "inputs": { "I0.0": false, "I0.1": true } }
+      ],
+      "expect": [
+        { "at": 200, "outputs": { "Q0.0": false } },
+        { "at": 500, "outputs": { "Q0.0": false } }
+      ]
+    },
+    {
+      "name": { "es": "Con las dos manos baja", "en": "With both hands it moves down" },
+      "steps": [{ "at": 100, "inputs": { "I0.0": true, "I0.1": true } }],
+      "expect": [{ "at": 200, "outputs": { "Q0.0": true } }]
+    },
+    {
+      "name": {
+        "es": "Si se suelta una mano, la prensa se detiene",
+        "en": "Releasing one hand stops the press"
+      },
+      "steps": [
+        { "at": 100, "inputs": { "I0.0": true, "I0.1": true } },
+        { "at": 500, "inputs": { "I0.1": false } }
+      ],
+      "expect": [
+        { "at": 400, "outputs": { "Q0.0": true } },
+        { "at": 600, "outputs": { "Q0.0": false } }
+      ]
+    }
+  ]
+}

@@ -1,41 +1,28 @@
 /**
  * Built-in examples (spec section 7), stored as bilingual JSON in src/content/examples/.
- *
- * Programs use direct addresses (I0.0, Q0.0…); the example's I/O list becomes the variable
- * table in the chosen language, so the editor shows MARCHA or START. The project is built
- * through the regular file parser, so examples get the same validation and fresh ids.
  */
 import * as z from 'zod/mini';
 import type { Locale } from '@/config/site';
-import { FILE_FORMAT, FILE_VERSION, parseProjectFile } from '@/simulator/file/project-file';
-import { PLANT_IDS, type PlantId } from '@/simulator/plants/types';
-import type { InputMode, Project } from '@/simulator/project/types';
-
-const localized = z.object({ es: z.string(), en: z.string() });
+import {
+  contentProject,
+  contentRungSchema,
+  localizedListSchema,
+  localizedSchema,
+  plantIdSchema,
+  signalSchema,
+} from '@/simulator/project/from-content';
+import type { Project } from '@/simulator/project/types';
 
 const exampleSchema = z.object({
   id: z.string().check(z.regex(/^[a-z0-9-]+$/)),
   order: z.number(),
   level: z.number().check(z.gte(1), z.lte(5)),
-  plant: z.nullable(z.enum(PLANT_IDS)),
-  title: localized,
-  summary: localized,
-  io: z.array(
-    z.object({
-      address: z.string(),
-      name: localized,
-      description: localized,
-      mode: z.optional(z.enum(['switch', 'button-no', 'button-nc'])),
-    }),
-  ),
-  steps: z.object({ es: z.array(z.string()), en: z.array(z.string()) }),
-  rungs: z.array(
-    z.object({
-      comment: localized,
-      logic: z.unknown(),
-      coils: z.unknown(),
-    }),
-  ),
+  plant: plantIdSchema,
+  title: localizedSchema,
+  summary: localizedSchema,
+  io: z.array(signalSchema),
+  steps: localizedListSchema,
+  rungs: z.array(contentRungSchema),
 });
 
 export type Example = z.infer<typeof exampleSchema>;
@@ -59,50 +46,9 @@ export const EXAMPLES: readonly Example[] = Object.entries(modules)
 export const getExample = (id: string | null | undefined): Example | undefined =>
   EXAMPLES.find((e) => e.id === id);
 
-/** The example as a simulator project in one language (validated like a file). */
-export function exampleProject(example: Example, locale: Locale): Project {
-  const inputs: Record<string, { label: string; mode?: InputMode }> = {};
-  const outputs: Record<string, { label: string }> = {};
-  for (const signal of example.io) {
-    if (signal.address.startsWith('I')) {
-      inputs[signal.address] = {
-        label: signal.name[locale],
-        ...(signal.mode ? { mode: signal.mode } : {}),
-      };
-    } else if (signal.address.startsWith('Q')) {
-      outputs[signal.address] = { label: signal.name[locale] };
-    }
-  }
-
-  const file = {
-    format: FILE_FORMAT,
-    version: FILE_VERSION,
-    project: {
-      name: example.title[locale],
-      language: 'LD',
-      ladder: {
-        rungs: example.rungs.map((r) => ({
-          comment: r.comment[locale],
-          logic: r.logic,
-          coils: r.coils,
-        })),
-      },
-      tags: example.io.map((s) => ({
-        name: s.name[locale],
-        address: s.address,
-        comment: s.description[locale],
-      })),
-      io: { inputs, outputs },
-      plant: example.plant,
-    },
-  };
-
-  const result = parseProjectFile(JSON.stringify(file));
-  if (!result.ok)
-    throw new Error(
-      `Example ${example.id} is not a valid project: ${JSON.stringify(result.error)}`,
-    );
-  return result.project;
-}
-
-export type { PlantId };
+/** The example as a simulator project in one language. */
+export const exampleProject = (example: Example, locale: Locale): Project =>
+  contentProject(
+    { name: example.title[locale], io: example.io, rungs: example.rungs, plant: example.plant },
+    locale,
+  );

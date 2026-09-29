@@ -37,4 +37,6 @@ export interface Project {
   io: IoPanelSetup;
   /** Virtual plant connected to the I/O (Phase 7), or null. */
   plant: string | null;
+  /** Challenge being solved (Phase 8): its id. Absent for free projects. */
+  challenge?: string;
 }

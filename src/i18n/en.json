@@ -592,6 +592,35 @@
         "closed": "closed"
       },
       "controls": "Controls"
+    },
+    "challenge": {
+      "tab": "Challenge",
+      "heading": "Challenge {n} · Level {level}",
+      "statement": "Statement",
+      "io": "Inputs and outputs",
+      "allowed": "Allowed instructions",
+      "allInstructions": "All instructions",
+      "hints": "Hints",
+      "showHint": "Show hint {n} of {total}",
+      "hint": "Hint {n}",
+      "verify": "Check solution",
+      "cases": "Test cases",
+      "passed": "Challenge complete! Your program passed all {n} test cases.",
+      "failed": "You passed {passed} of {total} test cases. Check the ones that failed.",
+      "errors": "The program has errors and cannot run. Check the Console tab.",
+      "notAllowed": "This challenge does not allow these instructions: {types}.",
+      "empty": "Your program has no output coil yet.",
+      "expected": "At t = {time} s, {name} was expected to be {expected}, but it was {actual}.",
+      "fault": "At t = {time} s the PLC stopped because of a fault (for example, the watchdog after a loop).",
+      "stale": "You changed the program since the last check.",
+      "completed": "Completed",
+      "next": "Next challenge",
+      "all": "All challenges",
+      "loaded": "Challenge “{name}” is ready. Build your program and press “Check solution”.",
+      "resumed": "You are back on the challenge “{name}”.",
+      "paletteLimited": "Only the instructions allowed in this challenge are shown.",
+      "plantNote": "This challenge uses the virtual plant: the test cases simulate it too.",
+      "howItWorks": "Checking runs your program in simulated time for each test case and compares the outputs at given moments. You do not need to put the PLC in RUN."
     }
   },
   "examples": {
@@ -627,5 +656,20 @@
       "13": "On/off temperature control with hysteresis",
       "14": "Analog level control (introduction to PID)"
     }
+  },
+  "challenges": {
+    "indexTitle": "PLC programming challenges",
+    "indexDescription": "Ladder exercises with automatic grading: turn on outputs, seal-in, set/reset memories, timers and counters. Free, no sign-up.",
+    "intro": "Test what you have learned with real problems, from the simplest to the most complete. The simulator checks your program automatically with test cases and tells you what was expected at each moment.",
+    "privacy": "Your progress is stored only in this browser. There are no accounts.",
+    "progress": "Completed: {done} of {total}",
+    "level": "Level {n}",
+    "levelLabel": "Difficulty",
+    "plant": "With virtual plant: {name}",
+    "tests": "{n} test cases",
+    "solve": "Solve in the simulator",
+    "completed": "Completed",
+    "desktopNote": "Challenges are solved in the simulator, designed for computers (screens 1024 px or wider).",
+    "moreSoon": "More challenges are coming: the goal is over 20, up to sequences with timers, counters and analog signals."
   }
 }

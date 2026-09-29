@@ -1,6 +1,7 @@
 import { ChevronRight } from 'lucide-react';
 import { startDragOrClick } from '@/simulator/ui/drag';
-import { useStoreApi, useStrings, type SimStrings } from '@/simulator/ui/context';
+import { getChallenge } from '@/simulator/challenges';
+import { useSim, useStoreApi, useStrings, type SimStrings } from '@/simulator/ui/context';
 import type { PaletteItem } from '@/simulator/store/simulator-store';
 import { spec, type InstructionType } from '../catalog';
 import type { CoilType, ContactType } from '../model';
@@ -26,6 +27,12 @@ export const paletteItem = (type: InstructionType): PaletteItem =>
 export function Palette() {
   const t = useStrings();
   const store = useStoreApi();
+  // In a challenge, only its allowed instructions are offered.
+  const allowed = getChallenge(useSim((s) => s.project.challenge))?.allowed ?? null;
+  const groups = GROUPS.map((g) => ({
+    ...g,
+    types: allowed ? g.types.filter((type) => allowed.includes(type as never)) : g.types,
+  })).filter((g) => g.types.length > 0);
 
   return (
     <aside
@@ -35,7 +42,15 @@ export function Palette() {
       <h2 className="border-b border-border px-3 py-2 text-xs font-semibold tracking-wider text-text-muted uppercase">
         {t.palette.title}
       </h2>
-      {GROUPS.map((group) => (
+      {allowed && (
+        <p
+          className="border-b border-border px-3 py-2 text-xs text-text-muted"
+          data-palette-limited
+        >
+          {t.challenge.paletteLimited}
+        </p>
+      )}
+      {groups.map((group) => (
         <details key={group.title} open className="group/section border-b border-border/60">
           <summary className="flex cursor-pointer list-none items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium text-text-muted select-none hover:text-text [&::-webkit-details-marker]:hidden">
             <ChevronRight

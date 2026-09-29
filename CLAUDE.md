@@ -153,6 +153,25 @@ dtMs, output)`, `read`, optional `command`), `models.ts` (lamp, motor, traffic, 
   `<TrySimulator example>` fails the build on unknown ids. File menu lists all examples.
 - i18n keys can't contain dots: plant signal strings use `I0_2`-style keys.
 
+## Challenges (Phase 8)
+
+- Content: `src/content/challenges/<id>.json` (order, level, plant, title, statement paragraphs,
+  io, `allowed` Ladder types or null, progressive `hints`, `tests`). A test = `steps`
+  `{ at, inputs?, plant? }` + `expect` `{ at, outputs }` on simulated ms. Inputs with mode
+  `button-nc` start at 1. Leave margin around timer edges. Solutions are NOT shipped: reference
+  solutions live in `src/simulator/challenges/challenges.test.ts` and must pass.
+- `challenges/validator.ts` (pure, ESLint purity): fresh runtime per case, per scan: steps →
+  plant sensors → scan → plant physics → expectations. Results: invalid (errors / empty /
+  notAllowed) or per-case pass/fail with time, address, expected, actual (UI explains it).
+- `challenges/index.ts`: registry, `challengeProject` (empty program + tags + panel + plant +
+  `project.challenge` id), `challengeRules`. Shared content → project builder:
+  `project/from-content.ts` (also used by examples). `challenges/progress.ts`: localStorage
+  `plcampus:challenges` (try/catch).
+- Simulator: `?challenge=<id>` (resumes if the autosaved project is that challenge), right tab
+  "Desafío" (`ChallengePanel`; hints/result kept in store `challengeSession`), palette shows only
+  allowed instructions. Page `[lang]/challenges/index.astro` marks completed cards with a small
+  script. Client islands import `localizePath` from `@/i18n/paths` (no dictionaries).
+
 ## Environment notes
 
 - Windows. Project lives in `C:\dev\simplc` (kept out of OneDrive on purpose: node_modules sync

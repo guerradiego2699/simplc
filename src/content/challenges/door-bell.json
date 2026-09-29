@@ -1,0 +1,86 @@
+{
+  "id": "door-bell",
+  "order": 3,
+  "level": 1,
+  "plant": null,
+  "title": { "es": "Timbre desde dos puertas", "en": "Door bell from two doors" },
+  "statement": {
+    "es": [
+      "Una bodega tiene dos puertas, cada una con un pulsador: PUERTA_1 (I0.0) y PUERTA_2 (I0.1).",
+      "El TIMBRE (Q0.0) debe sonar mientras se presione cualquiera de los dos pulsadores (o ambos)."
+    ],
+    "en": [
+      "A warehouse has two doors, each with a push button: DOOR_1 (I0.0) and DOOR_2 (I0.1).",
+      "The BELL (Q0.0) must ring while either button (or both) is pressed."
+    ]
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": { "es": "PUERTA_1", "en": "DOOR_1" },
+      "description": { "es": "Pulsador de la puerta 1 (NA)", "en": "Door 1 push button (NO)" },
+      "mode": "button-no"
+    },
+    {
+      "address": "I0.1",
+      "name": { "es": "PUERTA_2", "en": "DOOR_2" },
+      "description": { "es": "Pulsador de la puerta 2 (NA)", "en": "Door 2 push button (NO)" },
+      "mode": "button-no"
+    },
+    {
+      "address": "Q0.0",
+      "name": { "es": "TIMBRE", "en": "BELL" },
+      "description": { "es": "Timbre", "en": "Bell" }
+    }
+  ],
+  "allowed": ["NO", "NC", "coil"],
+  "hints": {
+    "es": [
+      "Esto es una función lógica O (OR): basta que se cumpla una condición.",
+      "En Ladder, O se dibuja con dos contactos en paralelo (una rama).",
+      "Pon un contacto NA de PUERTA_1, selecciónalo y pulsa «Crear rama paralela» en Propiedades. Luego arrastra un contacto NA justo debajo del bloque para agregar la segunda rama y escribe PUERTA_2."
+    ],
+    "en": [
+      "This is a logical OR: one condition is enough.",
+      "In Ladder, OR is drawn as two contacts in parallel (a branch).",
+      "Place an NO contact of DOOR_1, select it and press “Create parallel branch” in Properties. Then drag an NO contact just below the block to add the second branch and type DOOR_2."
+    ]
+  },
+  "tests": [
+    {
+      "name": {
+        "es": "Sin pulsar, el timbre no suena",
+        "en": "Without pressing, the bell is silent"
+      },
+      "steps": [],
+      "expect": [{ "at": 100, "outputs": { "Q0.0": false } }]
+    },
+    {
+      "name": { "es": "Suena desde la puerta 1", "en": "It rings from door 1" },
+      "steps": [
+        { "at": 100, "inputs": { "I0.0": true } },
+        { "at": 400, "inputs": { "I0.0": false } }
+      ],
+      "expect": [
+        { "at": 200, "outputs": { "Q0.0": true } },
+        { "at": 500, "outputs": { "Q0.0": false } }
+      ]
+    },
+    {
+      "name": { "es": "Suena desde la puerta 2", "en": "It rings from door 2" },
+      "steps": [
+        { "at": 100, "inputs": { "I0.1": true } },
+        { "at": 400, "inputs": { "I0.1": false } }
+      ],
+      "expect": [
+        { "at": 200, "outputs": { "Q0.0": true } },
+        { "at": 500, "outputs": { "Q0.0": false } }
+      ]
+    },
+    {
+      "name": { "es": "Suena si se pulsan ambas", "en": "It rings if both are pressed" },
+      "steps": [{ "at": 100, "inputs": { "I0.0": true, "I0.1": true } }],
+      "expect": [{ "at": 200, "outputs": { "Q0.0": true } }]
+    }
+  ]
+}
