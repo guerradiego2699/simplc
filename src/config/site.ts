@@ -18,6 +18,8 @@ export const SITE = {
   /** Feature flags for future monetization. Keep disabled for now. */
   features: {
     ads: false,
+    /** Vercel Web Analytics (cookieless). Only loaded in builds made on Vercel. */
+    analytics: true,
   },
 } as const;
 

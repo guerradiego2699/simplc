@@ -353,7 +353,12 @@ function Shortcuts() {
       }
     };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    // Shortcuts are live: mark the page (pressing F5 earlier would reload it). Used by e2e tests.
+    document.documentElement.dataset['simReady'] = '';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      delete document.documentElement.dataset['simReady'];
+    };
   }, [store, controller, t]);
   return null;
 }

@@ -42,7 +42,13 @@ export const BOTTOM_TERMINALS: { label: string; part: Part }[] = [
   { label: 'Q0.5', part: 'outputs' },
 ];
 
-const mono = { fontFamily: 'var(--ff-mono)', fontSize: 11, fill: 'var(--text-muted)' } as const;
+// Labels are drawn for sighted users; each part's accessible name already includes them.
+const mono = {
+  fontFamily: 'var(--ff-mono)',
+  fontSize: 11,
+  fill: 'var(--text-muted)',
+  'aria-hidden': true,
+} as const;
 const TERM_X0 = 84;
 const TERM_DX = 38;
 

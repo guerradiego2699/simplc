@@ -11,6 +11,7 @@ test.describe('timers, counters, styles and scan visualization', () => {
   const open = async (page: Page) => {
     await page.goto('/es/simulator');
     await expect(page.getByTestId('simulator')).toBeVisible();
+    await expect(page.locator('html[data-sim-ready]')).toHaveCount(1);
   };
   const led = (page: Page, address: string) => page.locator(`[data-output="${address}"] [data-on]`);
   const palette = async (page: Page, type: string) => {

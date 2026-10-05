@@ -70,6 +70,7 @@ test.describe('solving a challenge in the simulator', () => {
   const openChallenge = async (page: Page, id: string) => {
     await page.goto(`/es/simulator?challenge=${id}`);
     await expect(page.getByTestId('challenge-panel')).toBeVisible();
+    await expect(page.locator('html[data-sim-ready]')).toHaveCount(1);
   };
   const result = (page: Page) => page.getByTestId('challenge-result');
 

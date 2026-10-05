@@ -20,10 +20,11 @@ export const FOOTER_NAV: readonly NavItem[] = [
   { path: '/glossary', label: 'nav.glossary' },
   { path: '/faq', label: 'nav.faq' },
   { path: '/support', label: 'nav.support' },
+  { path: '/legal', label: 'nav.legal' },
 ];
 
 /**
  * Sections that still render the "under construction" page.
  * Remove a slug from here when its real page is created in a later phase.
  */
-export const PLACEHOLDER_SECTIONS = ['glossary', 'faq', 'support'] as const;
+export const PLACEHOLDER_SECTIONS: readonly string[] = [];

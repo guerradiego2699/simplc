@@ -92,6 +92,7 @@ test.describe('examples in the simulator', () => {
   const openExample = async (page: Page, id: string) => {
     await page.goto(`/es/simulator?example=${id}`);
     await expect(page.getByTestId('simulator')).toBeVisible();
+    await expect(page.locator('html[data-sim-ready]')).toHaveCount(1);
   };
   const light = (page: Page, id: string) => page.getByTestId(`plant-light-${id}`);
 
@@ -173,6 +174,7 @@ test.describe('examples in the simulator', () => {
   test('File menu loads an example', async ({ page }) => {
     await page.goto('/en/simulator');
     await expect(page.getByTestId('simulator')).toBeVisible();
+    await expect(page.locator('html[data-sim-ready]')).toHaveCount(1);
     page.once('dialog', (d) => void d.accept());
     await page.getByRole('button', { name: 'File' }).click();
     await page.getByTestId('menu-example-lamp-switch').click();

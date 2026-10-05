@@ -99,6 +99,8 @@ type="industry|tip|note|warning|safety">`, `<TrySimulator example="…">`, `<Plc
 - Page `src/pages/[lang]/simulator.astro` uses `BaseLayout app` (no footer, full height); < 1024 px
   shows the desktop-only notice. E2E: `tests/e2e/phase4.spec.ts` (runs at 1440×900).
 - The in-app browser pane may run at ~3 fps when hidden; verify simulator timing with Playwright.
+- E2E: after opening the simulator, wait for `html[data-sim-ready]` (set when keyboard shortcuts
+  are attached) before pressing F5/F6/F10, or the browser reloads the page.
 
 ## Timers, counters, math, styles, visualize scan (Phase 5)
 
@@ -185,6 +187,23 @@ dtMs, output)`, `read`, optional `command`), `models.ts` (lamp, motor, traffic, 
   and bump `BRANDS_REVIEWED` when editing.
 - Mobile full-page screenshots taller than ~16 000 px repeat content (Chromium limit); measure
   `scrollHeight` instead of trusting the image.
+
+## Glossary, FAQ, support, legal, SEO (Phase 10)
+
+- Data: `src/config/glossary.ts` (term + definition per language, optional `learn` slug) and
+  `src/config/faq.ts` (groups; answers are paragraphs, `{site}` → `SITE.name`). Pages
+  `[lang]/glossary` (search ignores accents and matches both languages; A–Z filter; small script),
+  `[lang]/faq` (`<details>` accordion + FAQPage JSON-LD), `[lang]/support` (shows only donation
+  links set in `SITE.donations`), `[lang]/legal` (bump `LEGAL_UPDATED` when the text changes).
+  `PLACEHOLDER_SECTIONS` is now empty.
+- SEO: `BaseLayout` has `<slot name="head" />` for JSON-LD, og:image (`public/og-image.png`,
+  regenerate with `npm run og:image`), twitter card. `@astrojs/sitemap` writes `sitemap-index.xml`
+  with URLs normalised to the canonical form (no trailing slash except `/es/`, `/en/`).
+  `public/robots.txt` points to it.
+- Analytics: Vercel Web Analytics script only when `SITE.features.analytics` and the build runs
+  on Vercel (`process.env.VERCEL === '1'`). `vercel.json` sets the Astro build and caches `/_astro/*`.
+- Lighthouse (desktop, local preview) scored ≥ 95 on all categories. Run it with
+  `CHROME_PATH=<msedge.exe> npx lighthouse@12 <url>` against the `preview` launch config (port 4331).
 
 ## Environment notes
 

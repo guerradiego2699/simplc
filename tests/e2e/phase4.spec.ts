@@ -11,6 +11,7 @@ test.describe('simulator on desktop', () => {
   const open = async (page: Page, lang = 'es') => {
     await page.goto(`/${lang}/simulator`);
     await expect(page.getByTestId('simulator')).toBeVisible();
+    await expect(page.locator('html[data-sim-ready]')).toHaveCount(1);
   };
   const status = (page: Page) => page.getByTestId('plc-status');
   const outputLed = (page: Page, address: string) =>

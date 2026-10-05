@@ -1,0 +1,160 @@
+---
+import type { GetStaticPaths } from 'astro';
+import ArrowRight from '@lucide/astro/icons/arrow-right';
+import Search from '@lucide/astro/icons/search';
+import { GLOSSARY } from '@/config/glossary';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { format, getTranslator, locales, localizePath } from '@/i18n';
+import type { Locale } from '@/config/site';
+
+export const getStaticPaths = (() =>
+  locales.map((lang) => ({ params: { lang } }))) satisfies GetStaticPaths;
+
+const locale = Astro.params.lang as Locale;
+const other: Locale = locale === 'es' ? 'en' : 'es';
+const t = getTranslator(locale);
+
+/** "Señal" → "S", "Ítem" → "I": first letter without accents, for grouping and filtering. */
+const normalize = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const letterOf = (term: string) => normalize(term).charAt(0).toUpperCase();
+
+const entries = [...GLOSSARY].sort((a, b) =>
+  a.term[locale].localeCompare(b.term[locale], locale, { sensitivity: 'base' }),
+);
+const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const used = new Set(entries.map((e) => letterOf(e.term[locale])));
+---
+
+<BaseLayout
+  locale={locale}
+  title={t('glossary.title')}
+  description={t('glossary.description')}
+  path="/glossary"
+>
+  <div class="mx-auto max-w-4xl px-4 py-14 sm:px-6 lg:py-20">
+    <h1 class="text-3xl font-semibold tracking-tight text-text sm:text-4xl">
+      {t('glossary.title')}
+    </h1>
+    <p class="mt-4 max-w-2xl text-lg text-text-muted">{t('glossary.intro')}</p>
+
+    <div class="mt-8 flex flex-col gap-4">
+      <label class="relative block">
+        <span class="sr-only">{t('glossary.search')}</span>
+        <Search
+          size={18}
+          aria-hidden="true"
+          class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-text-muted"
+        />
+        <input
+          type="search"
+          data-glossary-search
+          placeholder={t('glossary.searchPlaceholder')}
+          autocomplete="off"
+          class="h-11 w-full rounded-md border border-border bg-bg pr-3 pl-10 text-text placeholder:text-text-muted focus:border-primary focus:outline-none"
+        />
+      </label>
+      <div role="group" aria-label={t('glossary.letters')} class="flex flex-wrap gap-1">
+        <button
+          type="button"
+          data-letter=""
+          aria-pressed="true"
+          class="h-8 rounded-md border border-border px-2.5 text-sm text-text hover:border-primary aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-on-primary"
+        >
+          {t('glossary.all')}
+        </button>
+        {letters.map((letter) => (
+          <button
+            type="button"
+            data-letter={letter}
+            aria-pressed="false"
+            disabled={!used.has(letter)}
+            class="size-8 rounded-md border border-border font-mono text-sm text-text hover:border-primary disabled:cursor-default disabled:opacity-30 disabled:hover:border-border aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-on-primary"
+          >
+            {letter}
+          </button>
+        ))}
+      </div>
+      <p
+        class="text-sm text-text-muted"
+        aria-live="polite"
+        data-glossary-count
+        data-template={t('glossary.count')}
+      >
+        {format(t('glossary.count'), { n: entries.length })}
+      </p>
+    </div>
+
+    <dl class="mt-6 divide-y divide-border rounded-lg border border-border">
+      {entries.map((entry) => (
+        <div
+          id={entry.id}
+          class="scroll-mt-24 p-5"
+          data-entry
+          data-letter={letterOf(entry.term[locale])}
+          data-search={normalize(`${entry.term.es} ${entry.term.en} ${entry.definition[locale]}`)}
+        >
+          <dt>
+            <dfn class="text-lg font-semibold text-text not-italic">{entry.term[locale]}</dfn>
+            {entry.term[other] !== entry.term[locale] && (
+              <span class="ml-2 text-sm text-text-muted">
+                <span class="sr-only">{t('glossary.otherLanguage')}: </span>
+                <span lang={other}>{entry.term[other]}</span>
+              </span>
+            )}
+          </dt>
+          <dd class="mt-1.5 text-text-muted">
+            {entry.definition[locale]}
+            {entry.learn && (
+              <a
+                href={localizePath(locale, `/learn/${entry.learn}`)}
+                class="ml-1 inline-flex items-center gap-1 text-sm font-medium text-primary no-underline hover:underline"
+              >
+                {t('glossary.readMore')}
+                <ArrowRight size={13} aria-hidden="true" />
+              </a>
+            )}
+          </dd>
+        </div>
+      ))}
+    </dl>
+    <p class="mt-6 hidden text-text-muted" data-glossary-empty>
+      {t('glossary.noResults')}
+    </p>
+  </div>
+</BaseLayout>
+
+<script>
+  const normalize = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+
+  const input = document.querySelector<HTMLInputElement>('[data-glossary-search]');
+  const buttons = [...document.querySelectorAll<HTMLButtonElement>('[data-letter]')].filter(
+    (b) => b.tagName === 'BUTTON',
+  );
+  const entries = document.querySelectorAll<HTMLElement>('[data-entry]');
+  const count = document.querySelector<HTMLElement>('[data-glossary-count]');
+  const empty = document.querySelector<HTMLElement>('[data-glossary-empty]');
+  let letter = '';
+
+  const apply = () => {
+    const query = normalize(input?.value ?? '');
+    let shown = 0;
+    for (const entry of entries) {
+      const visible =
+        (letter === '' || entry.dataset['letter'] === letter) &&
+        (query === '' || (entry.dataset['search'] ?? '').includes(query));
+      entry.hidden = !visible;
+      if (visible) shown++;
+    }
+    if (count) count.textContent = (count.dataset['template'] ?? '').replace('{n}', String(shown));
+    empty?.classList.toggle('hidden', shown > 0);
+  };
+
+  input?.addEventListener('input', apply);
+  for (const button of buttons) {
+    button.addEventListener('click', () => {
+      letter = button.dataset['letter'] ?? '';
+      for (const b of buttons) b.setAttribute('aria-pressed', String(b === button));
+      apply();
+    });
+  }
+</script>

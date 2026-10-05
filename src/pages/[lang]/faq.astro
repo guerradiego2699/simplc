@@ -1,0 +1,67 @@
+---
+import type { GetStaticPaths } from 'astro';
+import ChevronDown from '@lucide/astro/icons/chevron-down';
+import { FAQ, FAQ_GROUPS } from '@/config/faq';
+import { SITE, type Locale } from '@/config/site';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { format, getTranslator, locales } from '@/i18n';
+
+export const getStaticPaths = (() =>
+  locales.map((lang) => ({ params: { lang } }))) satisfies GetStaticPaths;
+
+const locale = Astro.params.lang as Locale;
+const t = getTranslator(locale);
+const site = (text: string) => format(text, { site: SITE.name });
+
+// Structured data so search engines can show the answers (schema.org FAQPage).
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQ.map((entry) => ({
+    '@type': 'Question',
+    name: site(entry.question[locale]),
+    acceptedAnswer: { '@type': 'Answer', text: entry.answer[locale].map(site).join(' ') },
+  })),
+};
+---
+
+<BaseLayout locale={locale} title={t('faq.title')} description={t('faq.description')} path="/faq">
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
+  <div class="mx-auto max-w-3xl px-4 py-14 sm:px-6 lg:py-20">
+    <h1 class="text-3xl font-semibold tracking-tight text-text sm:text-4xl">{t('faq.title')}</h1>
+    <p class="mt-4 text-lg text-text-muted">{t('faq.intro')}</p>
+
+    {FAQ_GROUPS.map((group) => (
+      <section class="mt-12" aria-labelledby={`faq-${group}`}>
+        <h2 id={`faq-${group}`} class="text-xl font-semibold text-text">
+          {t(`faq.groups.${group}`)}
+        </h2>
+        <div class="mt-4 divide-y divide-border rounded-lg border border-border">
+          {FAQ.filter((entry) => entry.group === group).map((entry) => (
+            <details class="group/faq" id={entry.id} data-faq={entry.id}>
+              <summary class="flex cursor-pointer list-none items-center justify-between gap-4 p-4 font-medium text-text hover:text-primary [&::-webkit-details-marker]:hidden">
+                {site(entry.question[locale])}
+                <ChevronDown
+                  size={18}
+                  aria-hidden="true"
+                  class="shrink-0 text-text-muted transition-transform group-open/faq:rotate-180 motion-reduce:transition-none"
+                />
+              </summary>
+              <div class="flex flex-col gap-3 px-4 pb-4 text-text-muted">
+                {entry.answer[locale].map((p) => (
+                  <p>{site(p)}</p>
+                ))}
+              </div>
+            </details>
+          ))}
+        </div>
+      </section>
+    ))}
+
+    <p class="mt-12 text-text-muted">
+      <a href={`${SITE.repoUrl}/issues`} rel="noopener" class="text-primary hover:underline">
+        {t('faq.more')}
+      </a>
+    </p>
+  </div>
+</BaseLayout>

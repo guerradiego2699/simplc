@@ -20,7 +20,8 @@
     "challenges": "Desafíos",
     "glossary": "Glosario",
     "faq": "Preguntas frecuentes",
-    "support": "Apoyar el proyecto"
+    "support": "Apoyar el proyecto",
+    "legal": "Aviso legal y privacidad"
   },
   "theme": {
     "label": "Tema",
@@ -838,5 +839,97 @@
     ],
     "estimates": "La presencia en Latinoamérica y la dificultad de aprendizaje son estimaciones cualitativas de este sitio: dependen del país, del sector y de tu experiencia previa.",
     "legal": "Sitio independiente y educativo, sin relación con los fabricantes. Las marcas y nombres de productos pertenecen a sus respectivos dueños. Verifica siempre la información vigente en el sitio oficial de cada fabricante."
+  },
+  "glossary": {
+    "title": "Glosario de PLC y automatización",
+    "description": "Términos de PLC y automatización industrial explicados en simple, en español e inglés: ciclo de scan, PNP y NPN, 4–20 mA, Modbus, Ladder, TON y más.",
+    "intro": "Los términos que aparecen en el curso, explicados en pocas palabras. Cada uno incluye su nombre en inglés, porque gran parte de la documentación técnica está en ese idioma.",
+    "search": "Buscar en el glosario",
+    "searchPlaceholder": "Busca un término en español o inglés…",
+    "letters": "Filtrar por letra",
+    "all": "Todas",
+    "otherLanguage": "En inglés",
+    "readMore": "Leer más",
+    "count": "{n} términos",
+    "noResults": "No encontramos términos con esa búsqueda."
+  },
+  "faq": {
+    "title": "Preguntas frecuentes",
+    "description": "Respuestas sobre PLCampus, el simulador de PLC en el navegador y cómo empezar a aprender automatización.",
+    "intro": "Las dudas más comunes sobre el proyecto, el simulador y cómo aprender.",
+    "groups": {
+      "project": "Sobre el proyecto",
+      "simulator": "Sobre el simulador",
+      "learning": "Sobre aprender PLC"
+    },
+    "more": "¿No encontraste tu respuesta? Escríbenos abriendo un reporte en GitHub."
+  },
+  "support": {
+    "title": "Apoyar el proyecto",
+    "description": "{site} es gratuito y sin cuentas. Si te sirvió, puedes apoyar su desarrollo con una donación o ayudando a difundirlo.",
+    "intro": "{site} es gratuito, no pide registro y no muestra anuncios en el simulador. Si te ha servido para aprender, puedes ayudar a que siga creciendo.",
+    "donateTitle": "Haz una donación",
+    "donateBody": "Las donaciones ayudan a pagar el dominio y el tiempo de desarrollo de nuevos lenguajes, plantas y desafíos. Cualquier monto ayuda.",
+    "koFi": "Donar con Ko-fi",
+    "buyMeACoffee": "Invítame un café",
+    "mercadoPago": "Donar con Mercado Pago (Chile)",
+    "external": "Se abre en el sitio del medio de pago. No recibimos ni guardamos tus datos de pago.",
+    "noLinks": "Las donaciones estarán disponibles muy pronto.",
+    "otherTitle": "Otras formas de ayudar",
+    "other": [
+      "Comparte el sitio con compañeros de estudio o de trabajo.",
+      "Informa errores o propone mejoras en el repositorio de GitHub.",
+      "Sugiere ejemplos o desafíos de procesos reales que te gustaría ver.",
+      "Si el proyecto te gusta, dale una estrella en GitHub."
+    ],
+    "repo": "Ir al repositorio en GitHub"
+  },
+  "legal": {
+    "title": "Aviso legal y privacidad",
+    "description": "Información legal, uso de marcas, alcance educativo y política de privacidad de {site}.",
+    "updated": "Última actualización: {date}",
+    "sections": {
+      "about": {
+        "title": "Sobre este sitio",
+        "body": [
+          "{site} es un proyecto independiente y educativo para aprender automatización con PLC. No tiene relación con ningún fabricante de PLC ni de software industrial."
+        ]
+      },
+      "trademarks": {
+        "title": "Marcas",
+        "body": [
+          "Las marcas y nombres de productos mencionados pertenecen a sus respectivos dueños y se usan solo para identificar productos con fines educativos. No usamos logotipos oficiales.",
+          "La información sobre productos y software se revisa en fuentes oficiales en la fecha indicada en cada página, pero puede cambiar: verifica siempre en el sitio del fabricante."
+        ]
+      },
+      "education": {
+        "title": "Alcance educativo",
+        "body": [
+          "El contenido y el simulador sirven para aprender. No reemplazan la formación profesional, los manuales de los equipos ni las normas aplicables.",
+          "No uses este sitio para diseñar o validar sistemas de seguridad reales. El trabajo con equipos eléctricos debe hacerlo personal calificado."
+        ]
+      },
+      "privacy": {
+        "title": "Privacidad",
+        "body": [
+          "No hay cuentas ni formularios: no pedimos ni guardamos datos personales en un servidor.",
+          "Para funcionar, el sitio guarda en el almacenamiento local de tu navegador tu idioma y tema preferidos, el proyecto del simulador, el estilo de direcciones y tu progreso en los desafíos. Esos datos no salen de tu equipo y puedes borrarlos desde la configuración del navegador.",
+          "Usamos una analítica de visitas respetuosa (Vercel Web Analytics) que entrega datos agregados y anónimos y no usa cookies.",
+          "Hoy no mostramos anuncios. Si en el futuro se agregan en las páginas de contenido, esta política se actualizará antes y se pedirá tu consentimiento cuando corresponda."
+        ]
+      },
+      "links": {
+        "title": "Enlaces externos",
+        "body": [
+          "Algunas páginas enlazan a sitios de terceros (fabricantes, medios de pago). No somos responsables de su contenido ni de sus políticas de privacidad."
+        ]
+      },
+      "contact": {
+        "title": "Contacto",
+        "body": [
+          "Para consultas o reportes, abre un reporte (issue) en el repositorio de GitHub del proyecto."
+        ]
+      }
+    }
   }
 }

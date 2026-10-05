@@ -2,7 +2,12 @@
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
+import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
+
+/** "https://x/es/learn/" → "https://x/es/learn"; locale home pages keep their slash. */
+/** @param {string} url */
+const canonicalUrl = (url) => (/\/(es|en)\/$/.test(url) ? url : url.replace(/\/$/, ''));
 
 // https://docs.astro.build/en/reference/configuration-reference/
 export default defineConfig({
@@ -20,7 +25,23 @@ export default defineConfig({
   },
   // Code blocks in Learn pages are ASCII diagrams; themed highlighting arrives with ST (Phase 11).
   markdown: { syntaxHighlight: false },
-  integrations: [react(), mdx()],
+  integrations: [
+    react(),
+    mdx(),
+    sitemap({
+      // The root page only redirects to /es/ or /en/.
+      filter: (page) => new URL(page).pathname !== '/',
+      i18n: { defaultLocale: 'es', locales: { es: 'es', en: 'en' } },
+      // Match the canonical URLs (no trailing slash, except the /es/ and /en/ home pages).
+      serialize: (item) => ({
+        ...item,
+        url: canonicalUrl(item.url),
+        ...(item.links
+          ? { links: item.links.map((link) => ({ ...link, url: canonicalUrl(link.url) })) }
+          : {}),
+      }),
+    }),
+  ],
   vite: {
     plugins: [tailwindcss()],
     // Pre-bundle every client dependency at dev-server start. If Vite discovers one later, it

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://plcampus.com/sitemap-index.xml

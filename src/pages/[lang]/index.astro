@@ -9,13 +9,23 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import PlcIllustration from '@/components/content/PlcIllustration.astro';
 import MotorStartStopDemo from '@/components/content/MotorStartStopDemo.astro';
 import { getTranslator, locales, localizePath } from '@/i18n';
-import type { Locale } from '@/config/site';
+import { SITE, type Locale } from '@/config/site';
 
 export const getStaticPaths = (() =>
   locales.map((lang) => ({ params: { lang } }))) satisfies GetStaticPaths;
 
 const locale = Astro.params.lang as Locale;
 const t = getTranslator(locale);
+
+// schema.org WebSite: lets search engines show the site name.
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE.name,
+  url: new URL(localizePath(locale), SITE.url).href,
+  inLanguage: locale,
+  description: t('meta.homeDescription'),
+};
 
 const routes = [
   { key: 'fundamentals', Icon: BookOpen, href: '/learn#fundamentals' },
@@ -31,6 +41,7 @@ const secondaryBtn =
 ---
 
 <BaseLayout locale={locale}>
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
   <!-- Hero -->
   <section class="hero relative isolate overflow-hidden">
     <div class="mx-auto grid max-w-6xl items-center gap-12 px-4 py-14 sm:px-6 lg:grid-cols-[1fr_1.05fr] lg:py-24">

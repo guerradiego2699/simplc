@@ -8,6 +8,7 @@ test.describe('saving and loading projects', () => {
   const open = async (page: Page) => {
     await page.goto('/es/simulator');
     await expect(page.getByTestId('simulator')).toBeVisible();
+    await expect(page.locator('html[data-sim-ready]')).toHaveCount(1);
   };
   const elements = (page: Page) => page.locator('[data-element]');
   const notice = (page: Page) => page.getByTestId('notice');
