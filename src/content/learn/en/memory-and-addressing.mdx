@@ -1,0 +1,109 @@
+---
+title: Memory and addressing
+description: Bits, bytes and words; a PLC's memory areas; internal markers; and how Siemens, Allen-Bradley, Mitsubishi, Omron, Schneider and the IEC standard name their addresses.
+example: motor-start-stop
+updated: 2026-10-05
+---
+
+## Bits, bytes and words
+
+All of a PLC's memory is made of **bits**: cells that are 0 or 1. Bits are grouped into larger units:
+
+| Unit        | Size    | Example use                                    |
+| ----------- | ------- | ---------------------------------------------- |
+| Bit         | 1 bit   | A push button, an output, an internal marker   |
+| Byte        | 8 bits  | A group of 8 inputs                            |
+| Word        | 16 bits | An integer (INT), the value of an analog input |
+| Double word | 32 bits | A long integer (DINT) or a real number (REAL)  |
+
+The **data types** of IEC 61131-3 give those bits a meaning. The most common are:
+
+- **BOOL**: true or false (1 bit).
+- **INT**: 16-bit integer, from −32,768 to 32,767.
+- **DINT**: 32-bit integer.
+- **REAL**: 32-bit number with decimals (floating point).
+- **TIME**: a duration, such as `T#5s` or `T#1m30s`.
+
+<Callout type="tip">
+  An INT that goes past 32,767 does not raise an error: it **wraps around** to −32,768. It is a
+  classic bug in counters and accumulators that grow unchecked. If a value can get large, use DINT
+  or REAL.
+</Callout>
+
+## Memory areas
+
+A PLC's data memory is divided into areas with different jobs:
+
+- **Input image**: a copy of the input states, taken at the start of every scan cycle.
+- **Output image**: what the program writes; it is copied to the terminals at the end of the cycle.
+- **Internal markers** (also called work bits or internal relays): bits and numbers the program uses as its
+  own memory, not connected to the outside. For example, to remember that a cycle has finished.
+- **Timers and counters**: each with its state and values.
+- **Data**: areas for numbers, recipes and parameters (data blocks, D registers, DM memory, depending on
+  the brand).
+
+Some areas are **retentive**: they keep their value when the PLC is powered off. They are used, for
+example, for production counters or running hours of equipment.
+
+## How an address is built
+
+In the style this platform uses (the same as Siemens with English mnemonics), the address `I0.3` reads:
+
+- `I`: **inputs** area.
+- `0`: **byte** number.
+- `.3`: **bit** number inside the byte, from 0 to 7.
+
+After `I0.7` comes `I1.0`, because a byte has only 8 bits. With the same logic, `MW10` is the marker
+**word** starting at byte 10.
+
+<Callout type="warning">
+  In Siemens, `MW10` uses bytes 10 and 11, and `MW11` uses bytes 11 and 12: they **overlap**. If you
+  use both, writing one changes the other. Use even word addresses and leave enough room between
+  them.
+</Callout>
+
+## Each brand its own way
+
+| Brand and family               | Input    | Output   | Internal marker | Number  |
+| ------------------------------ | -------- | -------- | --------------- | ------- |
+| Siemens S7                     | `I0.0`   | `Q0.0`   | `M0.0`          | `MW10`  |
+| IEC 61131-3 (direct addresses) | `%IX0.0` | `%QX0.0` | `%MX0.0`        | `%MW10` |
+| Schneider Electric (Modicon)   | `%I0.0`  | `%Q0.0`  | `%M0`           | `%MW10` |
+| Mitsubishi Electric (MELSEC)   | `X0`     | `Y0`     | `M0`            | `D10`   |
+| Omron (CP, CJ)                 | `0.00`   | `100.00` | `W0.00`         | `D10`   |
+| Allen-Bradley (Logix)          | tags     | tags     | tags            | tags    |
+
+Some important details:
+
+- **Mitsubishi** numbers X inputs and Y outputs in **octal**: after `X7` comes `X10`. There is no `X8`
+  or `X9`.
+- **Omron** uses 16-bit channels: `0.00` to `0.15` are the bits of channel 0. On its compact PLCs,
+  outputs usually start at channel 100.
+- **Allen-Bradley** (Logix families) works with **tags**: named variables such as `Pump_Motor`. Physical
+  I/O appears with names like `Local:1:I.Data.0`, and the program uses aliases with clear names.
+- Modern PLCs from almost every brand, especially those based on IEC 61131-3, let you program with
+  **symbolic variables** instead of addresses.
+
+## Addresses and symbolic names
+
+A **variable table** (or tag table) links a name to each address: `START` → `I0.0`. The program becomes
+much easier to read:
+
+```
+  With addresses:   ┤ I0.0 ├──┤ I0.1 ├──( Q0.0 )
+  With names:       ┤ START ├──┤ STOP ├──( MOTOR )
+```
+
+In the simulator you can type either the address or the name, and change the **address style** in the
+toolbar to see the same program in Siemens, Allen-Bradley, Mitsubishi or Omron notation.
+
+<TrySimulator example="motor-start-stop" />
+
+## Summary
+
+- Memory is measured in **bits**, **bytes** (8 bits) and **words** (16 bits).
+- Data types (BOOL, INT, DINT, REAL, TIME) give the bits a meaning.
+- There are **input**, **output**, **internal marker**, **timer**, **counter** and **data** areas; some
+  are retentive.
+- Each brand names addresses differently, but the idea is the same.
+- Use **symbolic names**: a program with good names explains itself.

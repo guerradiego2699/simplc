@@ -1,0 +1,134 @@
+---
+title: Basic instructions
+description: Contacts, coils, set and reset, edges, seal-in and interlocks, TON, TOF and TP timers, CTU, CTD and CTUD counters, comparisons, maths and MOVE.
+example: traffic-light
+updated: 2026-10-05
+---
+
+## Contacts and coils
+
+They are the basis of every Ladder program:
+
+| Symbol | Name                | What it does                                              |
+| ------ | ------------------- | --------------------------------------------------------- |
+| `┤ ├`  | NO contact (open)   | Passes power when the bit is **1**                        |
+| `┤/├`  | NC contact (closed) | Passes power when the bit is **0**                        |
+| `( )`  | Coil                | Writes the rung result to the bit (1 if power reaches it) |
+| `(/)`  | Negated coil        | Writes the opposite of the rung result                    |
+
+A contact **is not a push button**: it is a question about a bit's value. An NC contact of `I0.0` asks
+"is I0.0 equal to 0?", no matter whether the field device is an NO or NC button.
+
+## Set and reset
+
+- **Set** `(S)`: when power reaches it, it sets the bit to 1. When it does not, it **does nothing**: the
+  bit keeps its value.
+- **Reset** `(R)`: when power reaches it, it sets the bit to 0.
+
+Together they form a **memory**: an alarm that stays active until someone acknowledges it, or a machine
+that remembers which stage it is in.
+
+<Callout type="tip">
+  If the set and the reset of the same bit are both active, **the one executed last** wins, because
+  the PLC processes rungs in order. Place the one that must lose first.
+</Callout>
+
+## Edges
+
+A **rising edge** (`P`) passes power for only **one scan cycle**, right when the signal goes from 0 to 1.
+A **falling edge** (`N`) passes power for one cycle when it goes from 1 to 0.
+
+They are used so that an action happens **only once** per press, even if the button is held down: adding
+1 to a counter, changing mode, logging an event.
+
+## Seal-in and interlocks
+
+A **seal-in** (or latch) keeps an output on after the button that turned it on is released: a contact of
+the output itself is placed in parallel with the start button.
+
+```
+  ┤ START ├──┬──┤ STOP ├──( MOTOR )
+  ┤ MOTOR ├──┘
+```
+
+An **interlock** is different: it prevents two incompatible actions from happening at the same time. For
+example, on a reversing motor, the forward contactor can only turn on if the reverse contactor is off, and
+vice versa:
+
+```
+  ┤ FORWARD ├──┤/ REVERSE_K ├──( FORWARD_K )
+  ┤ REVERSE ├──┤/ FORWARD_K ├──( REVERSE_K )
+```
+
+<Callout type="safety">
+  A critical interlock, such as the one that prevents a short circuit between two contactors, is
+  **also made in the wiring**, with each contactor's NC auxiliary contacts or a mechanical
+  interlock. The program alone is not enough: a contactor with welded contacts does not obey the
+  PLC.
+</Callout>
+
+## Timers
+
+All IEC 61131-3 timers have an input **IN**, a preset time **PT**, an output **Q** and the elapsed time
+**ET**:
+
+| Type | Name      | Behaviour of Q                                                     |
+| ---- | --------- | ------------------------------------------------------------------ |
+| TON  | On-delay  | Turns on when IN has been 1 for PT. Turns off as soon as IN drops. |
+| TOF  | Off-delay | Turns on with IN; when IN drops, stays at 1 for PT.                |
+| TP   | Pulse     | When IN rises, gives a pulse of exactly PT.                        |
+
+Typical examples:
+
+- **TON**: confirm a sensor has been active for 2 s before reacting (filtering bounce), or wait for a pump
+  to start.
+- **TOF**: keep a fan running for a while after an oven is switched off.
+- **TP**: open a solenoid valve for a fixed time each time a command arrives.
+
+## Counters
+
+| Type | Name         | Behaviour                                                       |
+| ---- | ------------ | --------------------------------------------------------------- |
+| CTU  | Up counter   | Adds 1 on each rising edge of CU. Q = 1 when CV ≥ PV.           |
+| CTD  | Down counter | Subtracts 1 on each edge of CD. Q = 1 when CV ≤ 0. LD loads PV. |
+| CTUD | Up/down      | Adds with CU, subtracts with CD. QU = CV ≥ PV and QD = CV ≤ 0.  |
+
+The **R** (reset) input sets the count to 0. Counters count **edges**, not how long the signal stays on: a
+box that stops in front of the sensor counts only once.
+
+## Comparisons
+
+They compare two numbers and pass power if the comparison is true: equal (`==`), not equal (`<>`), greater
+(`>`), greater or equal (`>=`), less (`<`) and less or equal (`<=`).
+
+They are used for level or temperature alarms, to act at certain moments of a timer (as in the traffic
+light example) or to compare a counter with a variable value.
+
+## Maths and MOVE
+
+- **ADD**, **SUB**, **MUL**, **DIV**: addition, subtraction, multiplication and division.
+- **MOVE**: copies a value to another address. For example, loading a recipe.
+- **Scaling**: converts the number an analog module delivers (for example, 0 to 27,648) into engineering
+  units (0 to 100 %, or 0 to 10 bar).
+
+<Callout type="warning">
+  Integer division drops the decimals (7 / 2 = 3), and dividing by zero is an error. When working
+  with measurements, convert to REAL before calculating.
+</Callout>
+
+## Practise
+
+The traffic light example uses a timer and comparisons on its elapsed time. And in the challenges section
+you can test set/reset, timers and counters with automatic grading.
+
+<TrySimulator example="traffic-light" />
+
+## Summary
+
+- **Contacts** ask about a bit; **coils** write it.
+- **Set/reset** form memories; the last instruction executed wins.
+- **Edges** last a single scan cycle.
+- A **seal-in** keeps an output on; an **interlock** prevents incompatible actions and is reinforced in
+  the wiring.
+- **TON**, **TOF** and **TP** handle time; **CTU**, **CTD** and **CTUD** count edges.
+- Comparisons, maths and MOVE work with numbers.

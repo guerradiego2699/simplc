@@ -1,0 +1,111 @@
+---
+title: Ports and communications
+description: USB, RS-232, RS-485 and Ethernet; industrial protocols such as Modbus, PROFIBUS, PROFINET, EtherNet/IP, CC-Link, EtherCAT and OPC UA; and what an HMI and a SCADA are.
+updated: 2026-10-05
+---
+
+## Why a PLC communicates
+
+A PLC rarely works alone. It communicates to:
+
+- Be **programmed** and checked from a computer.
+- Show data on and take commands from an **HMI screen** at the machine.
+- Send information to a **SCADA** system that supervises the whole plant.
+- Talk to **other PLCs**, **variable frequency drives**, energy meters or robots.
+- Read **remote I/O**: input and output modules installed far from the PLC, linked by a single
+  communication cable instead of hundreds of signal wires.
+
+It helps to separate two ideas: the **physical medium** (the cable and its electrical signals) and the
+**protocol** (the language devices use to understand each other). The same RS-485 cable can carry Modbus
+RTU or PROFIBUS, and the same Ethernet cable can carry Modbus TCP, PROFINET, EtherNet/IP or OPC UA.
+
+## Physical media
+
+### USB
+
+Used to **program** and diagnose from a computer. It is convenient, but not meant for permanent
+connections or long distances.
+
+### RS-232
+
+**Point-to-point** serial communication (one device with another). It reaches short distances, around
+15 m. Today it appears mostly on older equipment, printers, barcode readers and scales.
+
+### RS-485
+
+Serial **bus** communication: several devices share the same twisted pair. It is very resistant to noise
+because it uses differential signals (the voltage difference between wires A and B). It allows distances
+of up to about **1200 m** at low speeds and has **termination resistors** at both ends of the bus. It is
+the medium of Modbus RTU and PROFIBUS DP.
+
+### Ethernet
+
+The dominant medium today. It uses network cables with RJ45 connectors (or M12 connectors in the field),
+**switches** and copper segments of up to **100 m**. For longer distances or very noisy environments,
+fibre optics are used. Many PLCs have two ports with a built-in switch to daisy-chain devices.
+
+## Industrial protocols
+
+| Protocol             | Associated with                               | Physical medium            | Typical use                                    |
+| -------------------- | --------------------------------------------- | -------------------------- | ---------------------------------------------- |
+| Modbus RTU           | Open (created by Modicon, now Schneider)      | RS-485 / RS-232            | Drives, meters, simple devices                 |
+| Modbus TCP           | Open                                          | Ethernet                   | The same as Modbus RTU, over Ethernet          |
+| PROFIBUS DP          | Siemens and the PI organization               | RS-485                     | Remote I/O and drives in existing plants       |
+| PROFINET             | Siemens and the PI organization               | Ethernet                   | I/O, drives and real-time control              |
+| EtherNet/IP          | Rockwell Automation and the ODVA organization | Ethernet                   | I/O and drives, very common with Allen-Bradley |
+| CC-Link / CC-Link IE | Mitsubishi Electric and the CLPA organization | Dedicated cable / Ethernet | Machines and lines of Asian origin             |
+| EtherCAT             | Beckhoff and the EtherCAT Technology Group    | Ethernet                   | Very fast motion control                       |
+| OPC UA               | OPC Foundation (vendor independent)           | Ethernet (TCP/IP)          | Data exchange with SCADA, MES and IT systems   |
+
+A few ideas to read the table:
+
+- **Modbus** is simple, open and old (late 1970s). That is why almost every device speaks it, even as a
+  second option. It works with a **master** (or client) that asks and **slaves** (or servers) that answer.
+- **PROFINET**, **EtherNet/IP**, **CC-Link IE** and **EtherCAT** are **industrial** Ethernet: they add
+  mechanisms to exchange data cyclically and predictably, which is key to controlling machines.
+- **OPC UA** does not compete with them in fast control: it is used to carry data securely and in an
+  organised way to higher-level systems, independently of the PLC brand.
+
+<Callout type="industry">
+  A real plant usually mixes protocols: PROFINET between the PLC and its drives, Modbus RTU with
+  some old meters and OPC UA to the SCADA. When two networks do not understand each other, a
+  **gateway** translates between them.
+</Callout>
+
+## HMI and SCADA
+
+- An **HMI** (Human-Machine Interface) is the screen, usually a touch screen, that the operator has next
+  to the machine. It shows states, alarms and values, and accepts commands such as starting a cycle or
+  changing a recipe.
+- A **SCADA** (Supervisory Control And Data Acquisition) system **supervises** a whole plant or
+  installations spread over a region, such as a drinking-water network. It gathers data from many PLCs,
+  keeps history, manages alarms and shows everything in control rooms.
+
+In both cases, **the control logic stays in the PLC**. The HMI and the SCADA read and write PLC variables,
+but if communication is lost, the PLC must keep controlling the process safely.
+
+<Callout type="warning">
+  A command coming from an HMI or a SCADA must never bypass the program's safety conditions: the PLC
+  has to validate every command before moving an actuator.
+</Callout>
+
+## Industrial network security
+
+Plant networks (OT networks, for Operational Technology) control physical equipment, so an attack or a
+mistake can stop production or damage machines. Some basic rules:
+
+- **Never expose a PLC directly to the internet.**
+- Separate the control network from the office network with security devices such as firewalls.
+- For remote access, use solutions designed for it (for example, a VPN) and controlled by the plant.
+- Change default passwords and disable services that are not used.
+
+The **IEC 62443** series is the international reference for cybersecurity in industrial automation and
+control systems.
+
+## Summary
+
+- Tell the **physical medium** (USB, RS-232, RS-485, Ethernet) from the **protocol** (Modbus, PROFINET…).
+- **RS-485** is a robust, long-range serial bus; **Ethernet** is the dominant medium today.
+- Each major brand pushes an industrial Ethernet; **Modbus** and **OPC UA** are open.
+- The **HMI** is the machine's screen; **SCADA** supervises the plant. The logic stays in the PLC.
+- Control networks are protected: no PLC exposed to the internet.

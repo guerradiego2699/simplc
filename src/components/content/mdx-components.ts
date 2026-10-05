@@ -4,7 +4,9 @@
  */
 import AnalogSignal from './AnalogSignal.astro';
 import Callout from './Callout.astro';
+import LanguageTabs from './LanguageTabs.astro';
 import PlcBlockDiagram from './PlcBlockDiagram.astro';
+import PlcTerminals from './PlcTerminals.astro';
 import ScanCycle from './ScanCycle.astro';
 import SensorWiring from './SensorWiring.astro';
 import TrySimulator from './TrySimulator.astro';
@@ -12,7 +14,9 @@ import TrySimulator from './TrySimulator.astro';
 export const mdxComponents = {
   AnalogSignal,
   Callout,
+  LanguageTabs,
   PlcBlockDiagram,
+  PlcTerminals,
   ScanCycle,
   SensorWiring,
   TrySimulator,

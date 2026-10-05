@@ -1,0 +1,131 @@
+---
+title: Wiring and connections
+description: 24 VDC and mains supply, commons, terminal blocks, wire colours and the typical layout of a PLC control panel, with an interactive diagram of terminals and ports.
+example: motor-start-stop
+updated: 2026-10-05
+---
+
+## Two worlds in one panel
+
+Almost every PLC panel has two voltage levels:
+
+- **Power**: the mains voltage that drives large loads. It depends on the country: for example,
+  230/400 V at 50 Hz in Europe, 220/380 V at 50 Hz in Chile, or 120/240/480 V at 60 Hz in North America.
+- **Control**: usually **24 VDC**, supplied by a power supply inside the panel. The PLC, sensors, push
+  buttons and interface relay coils all work at this voltage.
+
+The PLC lives in the control world. When it has to move something on the power side, such as a motor, it
+does so through a **contactor**: the PLC output energizes the contactor coil, and the contactor's main
+contacts connect the motor to the mains.
+
+<Callout type="note">
+  Many compact PLCs come in two versions: powered by 24 VDC or by AC (marked L1 and N). Check the
+  device's rating plate before powering it: connecting mains voltage to a 24 VDC model destroys it
+  at once.
+</Callout>
+
+## The terminals of a PLC
+
+Explore a generic compact PLC. Click each terminal, LED or port:
+
+<PlcTerminals />
+
+Terminals are always grouped the same way:
+
+- PLC **power supply**: L+ and M (or L1 and N).
+- **Inputs** with their **common**: the common closes the circuit of the whole group. Wired to 0 V, the
+  group accepts PNP sensors; wired to +24 V, it accepts NPN sensors.
+- **Outputs** with their **commons**: on relay outputs, the common carries the voltage the contacts will
+  deliver to the loads. Each group can work at a different voltage.
+
+## Terminal blocks: the bridge between PLC and field
+
+Cables coming from the field (sensors, push-button stations, valves) **are not wired straight to the
+PLC**: they land on **terminal blocks** mounted on the DIN rail, and tidy internal wiring goes from there
+to the PLC.
+
+This has very practical advantages:
+
+- The **PLC can be replaced** without touching the field wiring.
+- Every terminal has a **number** shown on the drawings, so signals are easy to trace.
+- There are terminal blocks with a **fuse**, with a **disconnect** (to isolate a signal while measuring)
+  and for **earth**.
+- Distribution blocks for +24 V and 0 V avoid stacking many wires under one screw.
+
+## Typical panel layout
+
+From top to bottom, a small control panel usually has:
+
+1. **Main switch** and incoming supply protection.
+2. **Circuit breakers** (or fuses) for each circuit: 24 VDC supply, PLC, outputs, service socket.
+3. **24 VDC power supply**.
+4. **PLC** and its expansion modules.
+5. **Interface relays** and **contactors** with their protection (for example, the motor overload relay).
+6. **Terminal blocks** for inputs and outputs to the field.
+
+**Cable ducts** run between rows of devices. A good practice is to keep **power** and **signal** cables in
+separate ducts, especially analog signals, to reduce electrical noise.
+
+```
+  Mains ── [Breaker] ── [24 VDC supply] ── +24 V ── [Fuse] ── L+ (PLC)
+                              │                    └─ push buttons and sensors
+                              └─ 0 V ────────────── M (PLC) and common 1M
+
+  Output Q0.0 ── contactor K1 coil ── neutral
+  K1 main contacts ── overload relay ── motor
+```
+
+## Wire colours
+
+The **IEC 60204-1** standard (electrical equipment of machines) recommends, among others:
+
+| Colour       | Recommended use                                        |
+| ------------ | ------------------------------------------------------ |
+| Green/yellow | Protective earth (PE). Exclusive, never anything else. |
+| Light blue   | Neutral                                                |
+| Black        | AC and DC power circuits                               |
+| Red          | AC control circuits                                    |
+| Blue         | DC control circuits                                    |
+| Orange       | Interlock circuits supplied from an external source    |
+
+<Callout type="industry">
+  Each plant usually has its own standard for colours, wire numbering and terminal marking. When you
+  work on an existing panel, follow what the drawings already define: consistency matters more than
+  any personal preference.
+</Callout>
+
+## Earthing and shielding
+
+- Every panel has an **earth bar**. Metal parts, the rail and each device's PE terminal connect to it with
+  green/yellow wire.
+- **Analog** signals and communications use **shielded** cable. The shield is earthed, usually at one end
+  only (the panel side), to avoid ground loops; always follow the instrument manufacturer's instructions.
+- The negative of the 24 VDC supply (0 V) is usually earthed at a single point. Whether it floats or is
+  earthed depends on the plant design: do not change it without checking the drawings.
+
+## Protecting the outputs
+
+- Respect the **maximum current** per output and per common given by the manufacturer.
+- **Inductive** loads (contactor coils, solenoids) produce voltage spikes when switched off. In DC a
+  **diode** is placed across the coil; in AC, an **RC snubber** or a **varistor**. Many contactors offer
+  these suppressors as accessories.
+- For large loads or loads at another voltage, add an **interface relay**: if something fails, you replace
+  a cheap relay instead of the PLC output.
+
+<Callout type="safety">
+  Before working on a panel, switch it off, **lock out and tag out** the isolator (LOTO procedure)
+  and verify the absence of voltage with an instrument. Even with the PLC off, there may be voltage
+  on the output commons or on circuits coming from another panel. Work on electrical panels must be
+  done by qualified personnel.
+</Callout>
+
+<TrySimulator example="motor-start-stop" />
+
+## Summary
+
+- The PLC works in the **control** world (usually 24 VDC) and drives **power** loads through contactors.
+- Inputs and outputs are grouped with **commons**; the input common decides whether the group sinks or
+  sources.
+- Field wiring lands on **terminal blocks**, not directly on the PLC.
+- Separate power and signal, use shielded cable for analog signals and respect earthing.
+- Protect the outputs and use interface relays for large loads.

@@ -11,13 +11,14 @@ const shot = (page: Page, name: string, project: string) =>
 
 const LEARN_PAGES = ['what-is-a-plc', 'how-a-plc-works', 'plc-types', 'inputs-and-outputs'];
 
-test('learn index lists written topics and upcoming ones', async ({ page }) => {
+test('learn index lists the written topics', async ({ page }) => {
   await page.goto('/es/learn');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Aprende PLC paso a paso');
   for (const slug of LEARN_PAGES) {
     await expect(page.locator(`a[href="/es/learn/${slug}"]`).first()).toBeVisible();
   }
-  await expect(page.getByText('Próximamente')).toHaveCount(6);
+  // Phase 9 completed the course: nothing is "coming soon" any more.
+  await expect(page.getByText('Próximamente')).toHaveCount(0);
   await expect(page.locator('#fundamentals')).toBeVisible();
 });
 

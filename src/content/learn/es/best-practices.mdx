@@ -1,0 +1,93 @@
+---
+title: Buenas prácticas reales
+description: Comentarios, nombres de variables, estructura del programa, diseño a prueba de fallas, enclavamientos y por qué la seguridad de las personas no puede depender solo del software del PLC.
+example: motor-start-stop
+updated: 2026-10-05
+---
+
+## Programa para el próximo técnico
+
+Un programa de PLC vive muchos años, y casi nunca lo mantiene quien lo escribió. Probablemente lo leerá
+alguien de madrugada, con la máquina detenida y presión por volver a producir. Las buenas prácticas
+existen para esa persona.
+
+## Nombres y comentarios
+
+- Usa **nombres que expliquen la función**: `BOMBA_1_MARCHA` dice más que `Q0.3` o `B1`.
+- Elige una **convención** y respétala en todo el proyecto: mayúsculas o no, prefijos por equipo, sufijos
+  como `_FALLA` o `_LISTO`.
+- Comenta **cada peldaño** explicando el **porqué**, no el qué: "Detiene la bomba si el estanque llega al
+  nivel alto para evitar rebalse" es útil; "Activa Q0.0" no aporta nada.
+- Mantén actualizada la **tabla de variables** con la descripción de cada señal y su borne.
+
+## Estructura del programa
+
+- **Un peldaño, una idea**. Si un peldaño necesita un párrafo para explicarse, divídelo.
+- Agrupa el programa por **equipo o función**: modos de operación, bomba 1, bomba 2, alarmas.
+- **Cada bobina se escribe una sola vez**. Si la misma salida aparece en dos peldaños, solo vale el último
+  (el simulador te avisa con una advertencia). Junta las condiciones en un solo peldaño.
+- Separa las **condiciones de permiso** (todo listo para arrancar), las **órdenes** y las **salidas**.
+- Inicializa lo necesario en el **primer ciclo de scan** después de arrancar.
+
+## Diseño a prueba de fallas
+
+Pregúntate siempre: **¿qué pasa si este cable se corta?**
+
+- Los **paros** se cablean NC: un cable cortado detiene la máquina en lugar de dejarla sin paro.
+- Las señales **4–20 mA** permiten detectar un cable cortado (corriente cercana a 0 mA).
+- Un **sensor** que debería cambiar de estado y no lo hace en un tiempo razonable indica una falla:
+  vigílalo con un temporizador y genera una alarma.
+- Las salidas que mueven algo peligroso deben quedar en un **estado seguro** si el PLC se detiene.
+- Las **alarmas** quedan registradas hasta que alguien las reconoce; no deben desaparecer solas sin que
+  nadie las vea.
+
+## Enclavamientos
+
+- Todo lo que no debe ocurrir a la vez debe estar **enclavado**: giro a la derecha y a la izquierda,
+  llenar y vaciar, abrir dos válvulas que mezclarían productos incompatibles.
+- Los enclavamientos críticos se hacen también **en el cableado** o de forma **mecánica**, no solo en el
+  programa.
+- Una orden desde un HMI o un SCADA pasa por los mismos enclavamientos que una orden desde la botonera.
+
+## La seguridad no depende solo del software
+
+Este es el punto más importante de todo el curso:
+
+<Callout type="safety">
+  Un PLC estándar **no es un dispositivo de seguridad**. Un error de programa, una falla de memoria,
+  un cambio en línea mal hecho o una salida con un transistor en corto pueden mantener un motor
+  energizado. Las funciones que protegen a las personas —paro de emergencia, cortinas de luz,
+  puertas de protección— deben resolverse con **relés de seguridad** o **PLC de seguridad**
+  certificados, y diseñarse según normas como ISO 13849-1 o IEC 62061. El paro de emergencia sigue
+  además la norma ISO 13850.
+</Callout>
+
+El PLC estándar puede y debe **monitorear** la seguridad (mostrar qué puerta está abierta, registrar quién
+presionó el paro), pero la acción de seguridad tiene que funcionar aunque el PLC falle.
+
+## Cambios en línea y pruebas
+
+- Prueba la lógica en **simulación** antes de cargarla al equipo. Para eso existe este simulador.
+- Los **cambios en línea** (modificar el programa con la máquina funcionando) son útiles, pero
+  peligrosos: piensa qué hará la máquina en el ciclo siguiente al cambio.
+- Cuidado con **forzar** entradas o salidas: el programa deja de controlarlas. Retira siempre los
+  forzados al terminar y avisa al personal.
+- Guarda **respaldos** con fecha y una descripción del cambio, y usa **control de versiones** si tu
+  equipo de trabajo lo permite.
+
+## Seguridad informática
+
+- Protege el PLC con **contraseña** y limita quién puede cargar programas.
+- No conectes el PLC directamente a internet ni a la red de oficinas.
+- Documenta qué computadores y usuarios tienen acceso al proyecto.
+
+<TrySimulator example="motor-start-stop" />
+
+## Resumen
+
+- Escribe para el **próximo técnico**: buenos nombres, comentarios del porqué y tabla de variables al día.
+- **Un peldaño, una idea**, y cada bobina escrita una sola vez.
+- Diseña **a prueba de fallas**: paros NC, 4–20 mA, vigilancia de sensores, estados seguros.
+- **Enclava** lo incompatible, también en el cableado.
+- La **seguridad de las personas** se resuelve con dispositivos de seguridad certificados, no solo con el
+  programa.

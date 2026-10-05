@@ -1,0 +1,110 @@
+---
+title: IEC 61131-3 languages
+description: Ladder (LD), function block diagram (FBD), structured text (ST), instruction list (IL) and SFC, with the same example in all five languages and when each one fits.
+example: lamp-switch
+updated: 2026-10-05
+---
+
+## One standard to program PLCs
+
+**IEC 61131-3** is the part of the IEC 61131 standard that defines PLC **programming languages**. Its
+first edition dates from 1993, the third from 2013 and the fourth from 2025. Thanks to it, someone who
+learns Ladder or structured text on one brand can carry almost everything over to another.
+
+The standard defines **graphical** and **textual** languages:
+
+| Language | Name                      | Kind      | Looks like…                           |
+| -------- | ------------------------- | --------- | ------------------------------------- |
+| LD       | Ladder diagram            | Graphical | A relay wiring diagram                |
+| FBD      | Function block diagram    | Graphical | A logic gate circuit                  |
+| SFC      | Sequential function chart | Graphical | A flowchart of stages                 |
+| ST       | Structured text           | Textual   | A programming language such as Pascal |
+| IL       | Instruction list          | Textual   | An assembly language                  |
+
+## The same program in all five languages
+
+This is the classic motor start with seal-in: START starts the motor, the motor keeps itself on and STOP
+stops it.
+
+<LanguageTabs />
+
+## Ladder (LD)
+
+It was created so that electricians who knew relay panels could program PLCs without learning to program
+computers. Each **rung** is read from left to right like a circuit: if "current" reaches the coil, the
+output turns on.
+
+- **Strengths**: very visual, ideal for bit logic and interlocks, and for troubleshooting in the plant by
+  watching the program online.
+- **Weaknesses**: awkward for calculations, data handling and processes with many stages.
+
+It is the most used language in the Americas, and the first one this simulator implements.
+
+## Function block diagram (FBD)
+
+The program is a network of **blocks** (AND, OR, timers, PID…) joined by lines that carry signals. It is
+very common in process control, because control loops are naturally drawn as connected blocks.
+
+## Structured text (ST)
+
+A high-level language with `IF`, `CASE`, `FOR`, `WHILE`, maths expressions and functions:
+
+```
+IF Level < 20.0 THEN
+    Pump := TRUE;
+ELSIF Level > 80.0 THEN
+    Pump := FALSE;
+END_IF;
+```
+
+It is the best language for **calculations**, **data** handling and algorithms. Its use grows every year,
+especially in CODESYS-based environments and high-end equipment.
+
+## Instruction list (IL)
+
+A sequence of simple instructions on an accumulator: load a value, operate on it and store the result. It
+was popular on older equipment, especially European.
+
+<Callout type="note">
+  The 3rd edition of IEC 61131-3 (2013) **deprecated** IL and the 4th edition (2025) **removed** it
+  from the standard. You will still find it in old programs and many tools still accept it, but it
+  is not worth learning as a first language.
+</Callout>
+
+## Sequential function chart (SFC)
+
+It describes a process as a sequence of **steps** joined by **transitions** (conditions to move on). Each
+step runs **actions**. It is ideal for staged processes, such as a batch mixer: fill, mix, heat, empty.
+
+SFC organises the program; actions and transitions are written in another language (LD, FBD or ST). It
+derives from the French Grafcet standard, known today as IEC 60848.
+
+## Which one to use?
+
+| Need                                             | Recommended language |
+| ------------------------------------------------ | -------------------- |
+| Bit logic, interlocks, push-button stations      | LD                   |
+| Process control, PID loops, analog signals       | FBD                  |
+| Calculations, recipes, data handling, algorithms | ST                   |
+| Sequences with many stages                       | SFC                  |
+| Maintaining old programs                         | IL                   |
+
+They can be mixed in the same project: for example, the sequence in SFC, interlocks in LD and calculations
+in ST. Each part of the program (a **POU**: program, function block or function) is written in the language
+that suits it best.
+
+<Callout type="industry">
+  Not every brand implements all five languages, and not every edition of its software includes
+  them. Some small devices can only be programmed in Ladder or in a proprietary language. Check what
+  the software offers before choosing a PLC.
+</Callout>
+
+<TrySimulator example="lamp-switch" />
+
+## Summary
+
+- IEC 61131-3 defines five languages: **LD**, **FBD** and **SFC** (graphical), **ST** and **IL** (textual).
+- **Ladder** is the most visual and the most used for bit logic.
+- **ST** is the best for calculations and data; its use is growing.
+- **SFC** organises staged processes.
+- **IL** is deprecated and was removed in the 2025 edition.

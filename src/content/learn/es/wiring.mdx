@@ -1,0 +1,133 @@
+---
+title: Conexiones y cableado
+description: Alimentación de 24 VDC y de red, comunes, borneras, colores de cables y el esquema típico de un tablero con PLC, con un diagrama interactivo de bornes y puertos.
+example: motor-start-stop
+updated: 2026-10-05
+---
+
+## Dos mundos en el mismo tablero
+
+En casi todo tablero con PLC conviven dos niveles de tensión:
+
+- **Fuerza**: la tensión de la red que mueve las cargas grandes. En Chile es de 220 V monofásica y 380 V
+  trifásica a 50 Hz; en otros países cambian los valores (por ejemplo, 230/400 V en Europa o
+  120/240/480 V a 60 Hz en Norteamérica).
+- **Control**: normalmente **24 VDC**, entregados por una fuente de poder del propio tablero. Con esta
+  tensión trabajan el PLC, los sensores, los botones y las bobinas de los relés de interfaz.
+
+El PLC vive en el mundo de control. Cuando tiene que mover algo de fuerza, como un motor, lo hace a
+través de un **contactor**: la salida del PLC energiza la bobina del contactor, y los contactos
+principales del contactor conectan el motor a la red.
+
+<Callout type="note">
+  Muchos PLC compactos se venden en dos versiones: alimentados con 24 VDC o con tensión alterna
+  (marcados L1 y N). Revisa la placa del equipo antes de energizarlo: conectar 220 VAC a un modelo
+  de 24 VDC lo daña de inmediato.
+</Callout>
+
+## Los bornes de un PLC
+
+Explora un PLC compacto genérico. Haz clic en cada borne, LED o puerto:
+
+<PlcTerminals />
+
+Los bornes se agrupan siempre de la misma forma:
+
+- **Alimentación** del PLC: L+ y M (o L1 y N).
+- **Entradas** con su **común**: el común cierra el circuito de todo el grupo. Si va a 0 V, el grupo
+  acepta sensores PNP; si va a +24 V, acepta sensores NPN.
+- **Salidas** con sus **comunes**: en salidas a relé, el común lleva la tensión que los contactos
+  entregarán a las cargas. Cada grupo puede tener una tensión distinta.
+
+## Borneras: el puente entre el PLC y terreno
+
+Los cables que vienen de terreno (sensores, botoneras, válvulas) **no se conectan directo al PLC**:
+llegan a **borneras** montadas en el riel DIN, y desde ahí un cableado interno ordenado va al PLC.
+
+Esto tiene ventajas muy concretas:
+
+- Se puede **cambiar el PLC** sin tocar el cableado de terreno.
+- Cada borne lleva un **número** que aparece en los planos, así que es fácil seguir una señal.
+- Existen borneras con **fusible**, con **seccionador** (para aislar una señal al medir) y de **tierra**.
+- Las borneras de distribución de +24 V y 0 V evitan amarrar muchos cables en un solo tornillo.
+
+## Esquema típico de un tablero
+
+De arriba hacia abajo, un tablero de control pequeño suele tener:
+
+1. **Interruptor general** y protecciones de la acometida.
+2. **Interruptores automáticos** (o fusibles) para cada circuito: fuente de 24 VDC, PLC, salidas,
+   tomacorriente de servicio.
+3. **Fuente de poder de 24 VDC**.
+4. **PLC** y sus módulos de expansión.
+5. **Relés de interfaz** y **contactores** con sus protecciones (por ejemplo, el relé térmico del motor).
+6. **Borneras** de entrada y salida hacia terreno.
+
+Entre las filas de equipos van **canaletas** para los cables. Una buena práctica es separar en canaletas
+distintas los cables de **fuerza** y los de **señal**, sobre todo las señales analógicas, para reducir el
+ruido eléctrico.
+
+```
+  220 VAC ── [Interruptor] ── [Fuente 24 VDC] ── +24 V ── [Fusible] ── L+ (PLC)
+                                    │                     └─ botones y sensores
+                                    └─ 0 V ──────────────── M (PLC) y común 1M
+
+  Salida Q0.0 ── bobina del contactor K1 ── neutro
+  Contactos principales de K1 ── relé térmico ── motor
+```
+
+## Colores de los cables
+
+La norma **IEC 60204-1** (equipo eléctrico de máquinas) recomienda, entre otros:
+
+| Color                | Uso recomendado                                          |
+| -------------------- | -------------------------------------------------------- |
+| Verde/amarillo       | Tierra de protección (PE). Exclusivo, nunca otro uso.    |
+| Celeste (azul claro) | Neutro                                                   |
+| Negro                | Circuitos de fuerza en AC y DC                           |
+| Rojo                 | Circuitos de control en AC                               |
+| Azul                 | Circuitos de control en DC                               |
+| Naranjo              | Circuitos de enclavamiento alimentados desde el exterior |
+
+<Callout type="industry">
+  Cada planta suele tener su propio estándar de colores, numeración de cables y marcas de borneras.
+  Cuando trabajes en un tablero existente, sigue lo que ya está definido en los planos: la
+  coherencia vale más que cualquier preferencia personal.
+</Callout>
+
+## Tierra y apantallamiento
+
+- Todo tablero tiene una **barra de tierra**. Las partes metálicas, el riel y el borne PE de cada equipo
+  se conectan a ella con cable verde/amarillo.
+- Las señales **analógicas** y las comunicaciones usan cable **apantallado**. La malla se conecta a
+  tierra, por lo general en un solo extremo (del lado del tablero), para no formar lazos de tierra; sigue
+  siempre lo que indica el fabricante del instrumento.
+- El negativo de la fuente de 24 VDC (0 V) se suele conectar a tierra en un solo punto. Dejarlo
+  flotante o aterrizarlo depende del diseño de la planta: no lo cambies sin revisar los planos.
+
+## Protecciones de las salidas
+
+- Respeta la **corriente máxima** por salida y por común que indica el fabricante.
+- Las cargas **inductivas** (bobinas de contactores, solenoides) generan picos de tensión al
+  desconectarse. En DC se usa un **diodo** en antiparalelo con la bobina; en AC, un **circuito RC** o un
+  **varistor**. Muchos contactores tienen estos supresores como accesorio.
+- Para cargas grandes o de otra tensión, intercala un **relé de interfaz**: si algo falla, se reemplaza un
+  relé barato y no la salida del PLC.
+
+<Callout type="safety">
+  Antes de intervenir un tablero, desenergízalo, **bloquea y etiqueta** el interruptor
+  (procedimiento LOTO) y comprueba la ausencia de tensión con un instrumento. Aunque el PLC esté
+  apagado, puede haber tensión en los comunes de salida o en circuitos que llegan desde otro
+  tablero. El trabajo en tableros eléctricos debe hacerlo personal calificado.
+</Callout>
+
+<TrySimulator example="motor-start-stop" />
+
+## Resumen
+
+- El PLC trabaja en el mundo de **control** (normalmente 24 VDC) y mueve la **fuerza** a través de
+  contactores.
+- Entradas y salidas se agrupan con **comunes**; el común de entradas define si el grupo es sink o source.
+- El cableado de terreno llega a **borneras**, no directo al PLC.
+- Separa fuerza y señal, usa cable apantallado para señales analógicas y respeta la tierra.
+- Protege las salidas y usa relés de interfaz para cargas grandes.

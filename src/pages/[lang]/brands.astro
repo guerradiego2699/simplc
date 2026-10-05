@@ -1,0 +1,271 @@
+---
+import type { GetStaticPaths } from 'astro';
+import ExternalLink from '@lucide/astro/icons/external-link';
+import { BRANDS, BRANDS_REVIEWED, CODESYS_SOURCE, bestLicence } from '@/config/brands';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { format, getDictionary, getTranslator, locales } from '@/i18n';
+import type { Locale } from '@/config/site';
+
+export const getStaticPaths = (() =>
+  locales.map((lang) => ({ params: { lang } }))) satisfies GetStaticPaths;
+
+const locale = Astro.params.lang as Locale;
+const t = getTranslator(locale);
+const b = getDictionary(locale).brands;
+const reviewed = new Date(`${BRANDS_REVIEWED}T12:00:00Z`).toLocaleDateString(
+  locale === 'es' ? 'es-CL' : 'en-US',
+  { year: 'numeric', month: 'long', day: 'numeric' },
+);
+const licenceClass = {
+  free: 'border-primary text-primary',
+  paid: 'border-border text-text',
+  high: 'border-warning text-text',
+} as const;
+---
+
+<BaseLayout
+  locale={locale}
+  title={t('brands.indexTitle')}
+  description={t('brands.indexDescription')}
+  path="/brands"
+>
+  <div class="mx-auto max-w-5xl px-4 py-14 sm:px-6 lg:py-20">
+    <h1 class="text-3xl font-semibold tracking-tight text-text sm:text-4xl">
+      {t('brands.indexTitle')}
+    </h1>
+    <p class="mt-4 max-w-2xl text-lg text-text-muted">{t('brands.intro')}</p>
+    <p class="mt-4 text-sm text-text-muted">
+      <span class="font-semibold text-text">
+        {format(t('brands.reviewed'), { date: reviewed })}
+      </span>
+      · {t('brands.noPrices')}
+    </p>
+
+    <ul class="mt-10 grid gap-4 md:grid-cols-2">
+      {BRANDS.map((brand) => (
+        <li class="flex flex-col rounded-lg border border-border bg-bg p-5" data-brand={brand.id}>
+          <h2 class="text-xl font-semibold text-text">{brand.name}</h2>
+          <p class="mt-1 text-sm text-text-muted">{brand.sectors[locale]}</p>
+
+          <h3 class="mt-4 text-xs font-semibold tracking-wider text-text-muted uppercase">
+            {t('brands.ranges')}
+          </h3>
+          <p class="mt-1 text-sm text-text">
+            {brand.ranges.map((r) => `${r.name} (${b.scale[r.scale]})`).join(' · ')}
+          </p>
+
+          <h3 class="mt-4 text-xs font-semibold tracking-wider text-text-muted uppercase">
+            {t('brands.software')}
+          </h3>
+          <ul class="mt-1 flex flex-col gap-2 text-sm">
+            {brand.software.map((s) => (
+              <li>
+                <span class="font-medium text-text">{s.name}</span>
+                <span class="text-text-muted"> — {s.for[locale]} </span>
+                <span
+                  class={`ml-1 inline-block rounded-full border px-2 py-px text-xs ${licenceClass[s.licence]}`}
+                >
+                  {b.licence[s.licence]}
+                </span>
+                {s.note && <span class="block text-xs text-text-muted">{s.note[locale]}</span>}
+              </li>
+            ))}
+          </ul>
+
+          <h3 class="mt-4 text-xs font-semibold tracking-wider text-text-muted uppercase">
+            {t('brands.addressing')}
+          </h3>
+          <p class="mt-1 text-sm text-text">{brand.addressing[locale]}</p>
+
+          <dl class="mt-4 grid grid-cols-2 gap-2 text-sm">
+            <div>
+              <dt class="text-xs text-text-muted">{t('brands.latam')}</dt>
+              <dd class="font-medium text-text">{b.level[brand.latam]}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-text-muted">{t('brands.difficulty')}</dt>
+              <dd class="font-medium text-text">{b.level[brand.difficulty]}</dd>
+            </div>
+          </dl>
+
+          <p class="mt-auto pt-4 text-xs text-text-muted">
+            {t('brands.sources')}:{' '}
+            {brand.sources.map((src, i) => (
+              <>
+                {i > 0 && ' · '}
+                <a
+                  href={src.url}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                  class="inline-flex items-center gap-1 text-text-muted underline hover:text-primary"
+                >
+                  {src.label}
+                  <ExternalLink size={11} aria-hidden="true" />
+                </a>
+              </>
+            ))}
+          </p>
+        </li>
+      ))}
+    </ul>
+
+    <section class="mt-16" id="compare">
+      <h2 class="text-2xl font-semibold text-text">{t('brands.compareTitle')}</h2>
+      <p class="mt-2 text-text-muted">{t('brands.compareIntro')}</p>
+      <form class="mt-5 flex flex-wrap gap-4 text-sm" data-brand-filters>
+        <label class="flex flex-col gap-1">
+          <span class="text-text-muted">{t('brands.filterLicence')}</span>
+          <select
+            name="licence"
+            class="rounded-md border border-border bg-bg px-2 py-1.5 text-text"
+          >
+            <option value="">{t('brands.any')}</option>
+            <option value="free">{t('brands.freeOnly')}</option>
+          </select>
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-text-muted">{t('brands.filterLatam')}</span>
+          <select name="latam" class="rounded-md border border-border bg-bg px-2 py-1.5 text-text">
+            <option value="">{t('brands.any')}</option>
+            <option value="high">{t('brands.highOnly')}</option>
+          </select>
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-text-muted">{t('brands.filterDifficulty')}</span>
+          <select
+            name="difficulty"
+            class="rounded-md border border-border bg-bg px-2 py-1.5 text-text"
+          >
+            <option value="">{t('brands.any')}</option>
+            <option value="low">{t('brands.lowOnly')}</option>
+          </select>
+        </label>
+      </form>
+      <p
+        class="mt-3 text-sm text-text-muted"
+        aria-live="polite"
+        data-brand-count
+        data-template={t('brands.results')}
+        data-total={BRANDS.length}
+      >
+        {format(t('brands.results'), { n: BRANDS.length, total: BRANDS.length })}
+      </p>
+      <div class="mt-3 overflow-x-auto rounded-lg border border-border">
+        <table class="w-full min-w-[640px] text-left text-sm">
+          <thead class="bg-surface text-text-muted">
+            <tr>
+              <th scope="col" class="px-4 py-2 font-medium">
+                {t('brands.brand')}
+              </th>
+              <th scope="col" class="px-4 py-2 font-medium">
+                {t('brands.cheapest')}
+              </th>
+              <th scope="col" class="px-4 py-2 font-medium">
+                {t('brands.addressing')}
+              </th>
+              <th scope="col" class="px-4 py-2 font-medium">
+                {t('brands.latam')}
+              </th>
+              <th scope="col" class="px-4 py-2 font-medium">
+                {t('brands.difficulty')}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            {BRANDS.map((brand) => {
+              const licence = bestLicence(brand);
+              const cheapest = brand.software.find((s) => s.licence === licence)!;
+              return (
+                <tr
+                  data-row={brand.id}
+                  data-licence={licence}
+                  data-latam={brand.latam}
+                  data-difficulty={brand.difficulty}
+                >
+                  <th scope="row" class="px-4 py-2 font-semibold text-text">
+                    {brand.name}
+                  </th>
+                  <td class="px-4 py-2 text-text">
+                    {cheapest.name}
+                    <span class="block text-xs text-text-muted">{b.licence[licence]}</span>
+                  </td>
+                  <td class="px-4 py-2 text-text-muted">{brand.addressing[locale]}</td>
+                  <td class="px-4 py-2 text-text">{b.level[brand.latam]}</td>
+                  <td class="px-4 py-2 text-text">{b.level[brand.difficulty]}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-3 hidden text-sm text-text-muted" data-brand-empty>
+        {t('brands.noResults')}
+      </p>
+      <p class="mt-3 text-xs text-text-muted">{t('brands.estimates')}</p>
+    </section>
+
+    <section class="mt-16 grid gap-10 md:grid-cols-2">
+      <div>
+        <h2 class="text-xl font-semibold text-text">{t('brands.codesysTitle')}</h2>
+        <div class="mt-3 flex flex-col gap-3 text-text-muted">
+          {b.codesys.map((p) => (
+            <p>{p}</p>
+          ))}
+        </div>
+        <p class="mt-3 text-xs">
+          <a
+            href={CODESYS_SOURCE.url}
+            rel="noopener noreferrer"
+            target="_blank"
+            class="inline-flex items-center gap-1 text-text-muted underline hover:text-primary"
+          >
+            {CODESYS_SOURCE.label}
+            <ExternalLink size={11} aria-hidden="true" />
+          </a>
+        </p>
+      </div>
+      <div>
+        <h2 class="text-xl font-semibold text-text">{t('brands.expensiveTitle')}</h2>
+        <ul class="mt-3 flex list-disc flex-col gap-3 pl-5 text-text-muted">
+          {b.expensive.map((p) => (
+            <li>{p}</li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <p class="mt-16 rounded-lg border border-border bg-surface p-4 text-sm text-text-muted">
+      {t('brands.legal')}
+    </p>
+  </div>
+</BaseLayout>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('[data-brand-filters]');
+  const rows = document.querySelectorAll<HTMLElement>('[data-row]');
+  const count = document.querySelector<HTMLElement>('[data-brand-count]');
+  const empty = document.querySelector<HTMLElement>('[data-brand-empty]');
+
+  const apply = () => {
+    if (!form) return;
+    const data = new FormData(form);
+    let shown = 0;
+    for (const row of rows) {
+      const visible = ['licence', 'latam', 'difficulty'].every((key) => {
+        const wanted = String(data.get(key) ?? '');
+        return wanted === '' || row.dataset[key] === wanted;
+      });
+      row.hidden = !visible;
+      if (visible) shown++;
+    }
+    if (count) {
+      count.textContent = (count.dataset['template'] ?? '')
+        .replace('{n}', String(shown))
+        .replace('{total}', count.dataset['total'] ?? '');
+    }
+    empty?.classList.toggle('hidden', shown > 0);
+  };
+
+  form?.addEventListener('change', apply);
+  form?.addEventListener('submit', (e) => e.preventDefault());
+</script>

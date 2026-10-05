@@ -1,0 +1,113 @@
+---
+title: Puertos y comunicaciones
+description: USB, RS-232, RS-485 y Ethernet; protocolos industriales como Modbus, PROFIBUS, PROFINET, EtherNet/IP, CC-Link, EtherCAT y OPC UA; y qué son un HMI y un SCADA.
+updated: 2026-10-05
+---
+
+## Para qué se comunica un PLC
+
+Un PLC rara vez trabaja solo. Se comunica para:
+
+- **Programarlo** y revisar su funcionamiento desde un computador.
+- Mostrar datos y recibir órdenes de una **pantalla HMI** en la máquina.
+- Enviar información a un sistema **SCADA** que supervisa toda la planta.
+- Hablar con **otros PLC**, con **variadores de frecuencia**, medidores de energía o robots.
+- Leer **E/S remotas**: módulos de entradas y salidas instalados lejos del PLC, unidos por un solo cable
+  de comunicación en vez de cientos de cables de señal.
+
+Conviene separar dos ideas: el **medio físico** (el cable y las señales eléctricas) y el **protocolo** (el
+idioma con que los equipos se entienden). Un mismo cable RS-485 puede llevar Modbus RTU o PROFIBUS, y un
+mismo cable Ethernet puede llevar Modbus TCP, PROFINET, EtherNet/IP u OPC UA.
+
+## Los medios físicos
+
+### USB
+
+Se usa para **programar** y diagnosticar desde el computador. Es cómodo, pero no está pensado para
+conexiones permanentes ni para distancias largas.
+
+### RS-232
+
+Comunicación serial **punto a punto** (un equipo con otro). Alcanza distancias cortas, del orden de 15 m.
+Hoy aparece sobre todo en equipos antiguos, impresoras, lectores de código de barras y balanzas.
+
+### RS-485
+
+Comunicación serial en **bus**: varios equipos comparten el mismo par trenzado. Es muy resistente al ruido
+porque usa señales diferenciales (la diferencia de tensión entre los hilos A y B). Admite distancias de
+hasta unos **1200 m** a velocidades bajas y lleva **resistencias de terminación** en ambos extremos del bus.
+Es el medio de Modbus RTU y de PROFIBUS DP.
+
+### Ethernet
+
+El medio dominante hoy. Usa cables de red con conector RJ45 (o conectores M12 en terreno), **switches** y
+segmentos de cobre de hasta **100 m**. Para distancias mayores o ambientes con mucho ruido se usa fibra
+óptica. Muchos PLC traen dos puertos con switch integrado para encadenar equipos.
+
+## Protocolos industriales
+
+| Protocolo            | Asociado a                                  | Medio físico              | Uso típico                                           |
+| -------------------- | ------------------------------------------- | ------------------------- | ---------------------------------------------------- |
+| Modbus RTU           | Abierto (creado por Modicon, hoy Schneider) | RS-485 / RS-232           | Variadores, medidores, equipos simples               |
+| Modbus TCP           | Abierto                                     | Ethernet                  | Lo mismo que Modbus RTU, sobre Ethernet              |
+| PROFIBUS DP          | Siemens y la organización PI                | RS-485                    | E/S remotas y variadores en plantas existentes       |
+| PROFINET             | Siemens y la organización PI                | Ethernet                  | E/S, variadores y control en tiempo real             |
+| EtherNet/IP          | Rockwell Automation y la organización ODVA  | Ethernet                  | E/S y variadores, muy común con Allen-Bradley        |
+| CC-Link / CC-Link IE | Mitsubishi Electric y la organización CLPA  | Cable dedicado / Ethernet | Máquinas y líneas de origen asiático                 |
+| EtherCAT             | Beckhoff y el EtherCAT Technology Group     | Ethernet                  | Control de movimiento muy rápido                     |
+| OPC UA               | OPC Foundation (independiente de la marca)  | Ethernet (TCP/IP)         | Intercambio de datos con SCADA, MES y sistemas de TI |
+
+Algunas ideas para entender la tabla:
+
+- **Modbus** es simple, abierto y antiguo (fines de los años 70). Por eso casi todos los equipos lo
+  hablan, aunque sea como segunda opción. Trabaja con un **maestro** (o cliente) que pregunta y
+  **esclavos** (o servidores) que responden.
+- **PROFINET**, **EtherNet/IP**, **CC-Link IE** y **EtherCAT** son Ethernet **industriales**: agregan
+  mecanismos para intercambiar datos de forma cíclica y predecible, algo clave para controlar máquinas.
+- **OPC UA** no compite con ellos en el control rápido: se usa para llevar datos de forma segura y
+  ordenada hacia sistemas superiores, sin depender de la marca del PLC.
+
+<Callout type="industry">
+  Una planta real suele mezclar protocolos: PROFINET entre el PLC y sus variadores, Modbus RTU con
+  unos medidores antiguos y OPC UA hacia el SCADA. Cuando dos redes no se entienden, se usa un
+  **gateway** que traduce entre ellas.
+</Callout>
+
+## HMI y SCADA
+
+- Un **HMI** (_Human-Machine Interface_, interfaz humano-máquina) es la pantalla, normalmente táctil, que
+  el operador tiene junto a la máquina. Muestra estados, alarmas y valores, y permite dar órdenes como
+  iniciar un ciclo o cambiar una receta.
+- Un **SCADA** (_Supervisory Control And Data Acquisition_) es un sistema de **supervisión** de toda una
+  planta o de instalaciones repartidas en un territorio, como una red de agua potable. Reúne datos de
+  muchos PLC, guarda históricos, gestiona alarmas y muestra todo en salas de control.
+
+En ambos casos, **la lógica de control sigue en el PLC**. El HMI y el SCADA leen y escriben variables del
+PLC, pero si se cae la comunicación, el PLC debe seguir controlando el proceso de forma segura.
+
+<Callout type="warning">
+  Una orden que llega desde un HMI o un SCADA nunca debe saltarse las condiciones de seguridad del
+  programa: el PLC tiene que validar cada orden antes de mover un actuador.
+</Callout>
+
+## Seguridad de las redes industriales
+
+Las redes de planta (redes OT, de _Operational Technology_) controlan equipos físicos, así que un ataque
+o un error puede detener una producción o dañar equipos. Algunas reglas básicas:
+
+- **Nunca expongas un PLC directamente a internet.**
+- Separa la red de control de la red administrativa con equipos de seguridad, como firewalls.
+- Para el acceso remoto, usa soluciones diseñadas para eso (por ejemplo, VPN) y controladas por la planta.
+- Cambia las contraseñas por defecto y desactiva los servicios que no se usan.
+
+La serie de normas **IEC 62443** es la referencia internacional en ciberseguridad para sistemas de
+automatización industrial.
+
+## Resumen
+
+- Distingue el **medio físico** (USB, RS-232, RS-485, Ethernet) del **protocolo** (Modbus, PROFINET…).
+- **RS-485** es un bus serial robusto y de largo alcance; **Ethernet** es el medio dominante hoy.
+- Cada gran marca impulsa un Ethernet industrial; **Modbus** y **OPC UA** son abiertos.
+- El **HMI** es la pantalla de la máquina; el **SCADA**, la supervisión de la planta. La lógica sigue en
+  el PLC.
+- Las redes de control se protegen: nada de PLC expuestos a internet.

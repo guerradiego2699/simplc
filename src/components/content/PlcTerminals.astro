@@ -1,0 +1,9 @@
+---
+/** MDX wrapper: <PlcTerminals /> hydrates the clickable terminals-and-ports diagram when visible. */
+import TerminalDiagram from './widgets/TerminalDiagram';
+import { getDictionary, localeFromUrl } from '@/i18n';
+
+const strings = getDictionary(localeFromUrl(Astro.url)).widgets.terminals;
+---
+
+<TerminalDiagram client:visible strings={strings} />

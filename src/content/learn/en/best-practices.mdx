@@ -1,0 +1,93 @@
+---
+title: Real-world good practices
+description: Comments, variable names, program structure, fail-safe design, interlocks and why people's safety cannot depend on the PLC software alone.
+example: motor-start-stop
+updated: 2026-10-05
+---
+
+## Program for the next technician
+
+A PLC program lives for many years, and it is almost never maintained by whoever wrote it. It will
+probably be read by someone in the middle of the night, with the machine stopped and pressure to restart
+production. Good practices exist for that person.
+
+## Names and comments
+
+- Use **names that explain the function**: `PUMP_1_RUN` says more than `Q0.3` or `P1`.
+- Pick a **convention** and stick to it across the project: upper case or not, prefixes per equipment,
+  suffixes such as `_FAULT` or `_READY`.
+- Comment **every rung** explaining **why**, not what: "Stops the pump when the tank reaches high level to
+  prevent overflow" is useful; "Turns on Q0.0" adds nothing.
+- Keep the **variable table** up to date with a description of each signal and its terminal.
+
+## Program structure
+
+- **One rung, one idea**. If a rung needs a paragraph to explain it, split it.
+- Group the program by **equipment or function**: operating modes, pump 1, pump 2, alarms.
+- **Write each coil only once**. If the same output appears in two rungs, only the last one counts (the
+  simulator warns you). Combine the conditions in a single rung.
+- Separate **permissives** (everything ready to start), **commands** and **outputs**.
+- Initialise whatever is needed on the **first scan cycle** after start-up.
+
+## Fail-safe design
+
+Always ask yourself: **what happens if this wire breaks?**
+
+- **Stop** buttons are wired NC: a broken wire stops the machine instead of leaving it without a stop.
+- **4–20 mA** signals make a broken wire detectable (current close to 0 mA).
+- A **sensor** that should change state and does not within a reasonable time indicates a fault: watch it
+  with a timer and raise an alarm.
+- Outputs that move something dangerous must go to a **safe state** if the PLC stops.
+- **Alarms** stay latched until someone acknowledges them; they must not disappear without anyone
+  noticing.
+
+## Interlocks
+
+- Everything that must not happen at the same time must be **interlocked**: forward and reverse, filling
+  and draining, opening two valves that would mix incompatible products.
+- Critical interlocks are also made **in the wiring** or **mechanically**, not only in the program.
+- A command from an HMI or a SCADA goes through the same interlocks as a command from the push-button
+  station.
+
+## Safety does not depend on software alone
+
+This is the most important point of the whole course:
+
+<Callout type="safety">
+  A standard PLC **is not a safety device**. A program bug, a memory fault, a badly made online
+  change or an output with a shorted transistor can keep a motor energized. Functions that protect
+  people — emergency stop, light curtains, guard doors— must be handled by certified **safety
+  relays** or **safety PLCs**, and designed according to standards such as ISO 13849-1 or IEC 62061.
+  The emergency stop also follows ISO 13850.
+</Callout>
+
+The standard PLC can and should **monitor** safety (show which door is open, log who pressed the stop),
+but the safety action must work even if the PLC fails.
+
+## Online changes and testing
+
+- Test the logic in **simulation** before downloading it to the device. That is what this simulator is
+  for.
+- **Online changes** (editing the program while the machine runs) are useful but dangerous: think about
+  what the machine will do on the cycle right after the change.
+- Be careful when **forcing** inputs or outputs: the program stops controlling them. Always remove forces
+  when you finish and tell the people around.
+- Keep dated **backups** with a description of each change, and use **version control** if your team
+  allows it.
+
+## Cybersecurity
+
+- Protect the PLC with a **password** and limit who can download programs.
+- Do not connect the PLC directly to the internet or to the office network.
+- Document which computers and users have access to the project.
+
+<TrySimulator example="motor-start-stop" />
+
+## Summary
+
+- Write for the **next technician**: good names, comments that explain why, and an up-to-date variable
+  table.
+- **One rung, one idea**, and each coil written only once.
+- Design **fail-safe**: NC stops, 4–20 mA, sensor watchdogs, safe states.
+- **Interlock** incompatible actions, in the wiring too.
+- **People's safety** is handled by certified safety devices, not by the program alone.

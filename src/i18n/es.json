@@ -207,6 +207,116 @@
       "actuators": "Actuadores",
       "psu": "Fuente de poder",
       "comms": "Comunicaciones: PC, HMI, red"
+    },
+    "terminals": {
+      "title": "PLC compacto con sus bornes y puertos",
+      "hint": "Haz clic (o usa Tab y Enter) en un borne, LED o puerto para ver qué es y cómo se conecta.",
+      "empty": "Selecciona una parte del dibujo.",
+      "what": "Qué es",
+      "connect": "Cómo se conecta",
+      "generic": "Dibujo genérico de un PLC compacto de 24 VDC con salidas a relé. La posición y el nombre de los bornes cambian según la marca y el modelo: revisa siempre el manual.",
+      "parts": {
+        "power": {
+          "name": "Alimentación (L+ y M)",
+          "what": "Bornes por donde el PLC recibe su energía. En los modelos de 24 VDC, L+ es el positivo y M el negativo (0 V). En los de alimentación alterna se marcan L1 y N.",
+          "connect": "Desde la fuente de 24 VDC del tablero, protegida con un interruptor automático o un fusible. Respeta la polaridad y usa la sección de cable que indica el manual."
+        },
+        "pe": {
+          "name": "Tierra (PE)",
+          "what": "Conexión a tierra. Ayuda a descargar las interferencias eléctricas y, en equipos con partes metálicas, protege a las personas.",
+          "connect": "Con cable verde/amarillo, lo más corto posible, hasta la barra de tierra del tablero."
+        },
+        "inputCommon": {
+          "name": "Común de entradas (1M)",
+          "what": "Punto común del grupo de entradas: cierra el circuito de todas las entradas de ese grupo.",
+          "connect": "A 0 V si usas sensores PNP (entrada tipo sink) o a +24 V si usas sensores NPN (tipo source). Revisa en el manual si el módulo admite ambas formas."
+        },
+        "inputs": {
+          "name": "Entradas digitales (I0.0 a I0.7)",
+          "what": "Cada borne recibe la señal de un botón, selector, final de carrera o sensor.",
+          "connect": "Un hilo por señal desde el dispositivo de terreno. En un sensor de 3 hilos, el café va a +24 V, el azul a 0 V y el negro al borne de entrada."
+        },
+        "statusLeds": {
+          "name": "LED de estado",
+          "what": "Indican el modo del PLC: RUN (ejecutando el programa), STOP (detenido) y ERROR (falla de hardware o del programa).",
+          "connect": "No se conectan. Son lo primero que hay que mirar al revisar un tablero."
+        },
+        "modeSwitch": {
+          "name": "Selector RUN / STOP",
+          "what": "Algunos modelos tienen un selector físico para detener o poner en marcha el programa sin usar el software.",
+          "connect": "No se conecta. En muchos equipos actuales el modo se cambia desde el software o desde una pantalla."
+        },
+        "ioLeds": {
+          "name": "LED de entradas y salidas",
+          "what": "Un LED por punto. Muestran el estado eléctrico del borne, no lo que dice el programa: un LED de entrada encendido significa que llega tensión a ese borne.",
+          "connect": "No se conectan. Sirven para saber si un problema está en el cableado (el LED no enciende) o en el programa (el LED enciende, pero el programa no reacciona)."
+        },
+        "ethernet": {
+          "name": "Puerto Ethernet (RJ45)",
+          "what": "El puerto más usado hoy: programación y comunicación con pantallas HMI, sistemas SCADA y otros PLC, mediante protocolos como Modbus TCP, PROFINET o EtherNet/IP según la marca.",
+          "connect": "Con cable de red (categoría 5e o superior; en ambientes con ruido, apantallado) hacia un switch del tablero."
+        },
+        "rs485": {
+          "name": "Puerto serial RS-485",
+          "what": "Comunicación serial en bus, muy usada con Modbus RTU para variadores, medidores y equipos antiguos. Varios equipos comparten el mismo par de cables, a distancias de hasta unos 1200 m a baja velocidad.",
+          "connect": "Con par trenzado apantallado, uniendo A con A y B con B (algunos fabricantes invierten la marca de A y B). El bus lleva resistencias de terminación de 120 Ω en sus dos extremos."
+        },
+        "usb": {
+          "name": "Puerto USB",
+          "what": "Sirve para conectar el computador y cargar o revisar el programa.",
+          "connect": "Con cable corto, solo para programar y diagnosticar. No se usa como conexión permanente en planta."
+        },
+        "sdCard": {
+          "name": "Ranura de tarjeta de memoria",
+          "what": "Según el modelo, la tarjeta sirve para respaldar el programa, actualizar el firmware o guardar registros de datos.",
+          "connect": "Usa solo el tipo de tarjeta que indica el fabricante. En algunos equipos, retirarla con el PLC en marcha lo detiene o genera un error."
+        },
+        "expansion": {
+          "name": "Conector de expansión",
+          "what": "Bus lateral para agregar módulos: más entradas y salidas, señales analógicas o comunicaciones.",
+          "connect": "Los módulos se montan uno junto al otro en el riel. Conéctalos con el PLC sin energía, salvo que el fabricante permita hacerlo en caliente."
+        },
+        "outputCommon": {
+          "name": "Comunes de salida (1L y 2L)",
+          "what": "En las salidas a relé, alimentan los contactos de cada grupo. Cada grupo puede trabajar con una tensión distinta, por ejemplo 24 VDC en uno y 220 VAC en otro.",
+          "connect": "A la fase o al positivo que se quiere conmutar, con un fusible acorde a la corriente máxima del grupo."
+        },
+        "outputs": {
+          "name": "Salidas digitales (Q0.0 a Q0.5)",
+          "what": "Contactos que el PLC abre o cierra según el programa. Encienden pilotos y bobinas de contactores, solenoides o relés de interfaz.",
+          "connect": "Del borne de salida a la carga, y de la carga al neutro o a 0 V. Las cargas grandes, como un motor, se manejan siempre a través de un contactor."
+        },
+        "dinRail": {
+          "name": "Riel DIN",
+          "what": "El PLC se monta a presión sobre un riel metálico normalizado de 35 mm dentro del tablero.",
+          "connect": "Deja espacio arriba y abajo para la ventilación y las canaletas de cables, según indique el manual."
+        }
+      }
+    },
+    "languages": {
+      "label": "Lenguajes IEC 61131-3",
+      "intro": "El mismo programa en los cinco lenguajes: partida y parada de un motor con autorretención. Cambia de pestaña para compararlos.",
+      "network": "Peldaño 1",
+      "stepStopped": "Paso inicial: motor detenido",
+      "vars": {
+        "start": "MARCHA",
+        "stop": "PARO",
+        "motor": "MOTOR"
+      },
+      "names": {
+        "LD": "Diagrama de escalera (Ladder, LD)",
+        "FBD": "Diagrama de bloques de funciones (FBD)",
+        "ST": "Texto estructurado (ST)",
+        "IL": "Lista de instrucciones (IL)",
+        "SFC": "Diagrama funcional secuencial (SFC)"
+      },
+      "notes": {
+        "LD": "Contactos en serie son Y; en paralelo, O. El contacto MOTOR en paralelo con MARCHA es la autorretención. PARO es un pulsador NC, por eso se examina con un contacto NA.",
+        "FBD": "Las mismas operaciones como bloques: ≥1 es O (OR) y & es Y (AND). La salida MOTOR vuelve a entrar al bloque O.",
+        "ST": "Una sola línea con operadores de texto. ST es ideal para cálculos, condiciones complejas y bucles.",
+        "IL": "Instrucciones parecidas a ensamblador sobre un acumulador: cargar (LD), operar (OR, AND) y guardar (ST). La 3ª edición de la norma (2013) la declaró obsoleta y la 4ª (2025) la eliminó, pero aún aparece en equipos antiguos.",
+        "SFC": "Describe el proceso como pasos y transiciones. El motor funciona mientras el paso S1 está activo (acción N). SFC brilla en procesos de varias etapas."
+      }
     }
   },
   "simulator": {
@@ -671,5 +781,62 @@
     "completed": "Completado",
     "desktopNote": "Los desafíos se resuelven en el simulador, pensado para computadores (pantallas de 1024 px o más).",
     "moreSoon": "Vendrán más desafíos: la meta son más de 20, hasta secuencias con temporizadores, contadores y señales analógicas."
+  },
+  "brands": {
+    "indexTitle": "Marcas y software de PLC",
+    "indexDescription": "Comparación de Siemens, Allen-Bradley, Schneider Electric, Mitsubishi Electric, Omron, ABB, Delta y WEG: gamas, software de programación, licencias gratuitas o pagadas y nomenclatura de direcciones.",
+    "intro": "Los principios que aprendes aquí sirven para cualquier marca, pero cada fabricante tiene sus gamas, su software y su forma de nombrar las direcciones. Esta guía te ayuda a ubicarte.",
+    "reviewed": "Información revisada en fuentes oficiales: {date}",
+    "noPrices": "No publicamos precios: cambian según país, distribuidor y versión. Usamos rangos cualitativos.",
+    "ranges": "Gamas (de pequeña a grande)",
+    "software": "Software de programación",
+    "addressing": "Direcciones",
+    "sectors": "Dónde es fuerte",
+    "latam": "Presencia en Latinoamérica",
+    "difficulty": "Dificultad de aprendizaje",
+    "sources": "Fuentes oficiales",
+    "level": {
+      "low": "Baja",
+      "medium": "Media",
+      "high": "Alta"
+    },
+    "scale": {
+      "small": "pequeña",
+      "medium": "mediana",
+      "large": "grande"
+    },
+    "licence": {
+      "free": "Gratuito",
+      "paid": "Licencia pagada",
+      "high": "Licencia de alto costo"
+    },
+    "compareTitle": "Tabla comparativa",
+    "compareIntro": "Filtra las marcas según lo que te importa. La columna de software muestra la opción más accesible de cada marca.",
+    "filterLicence": "Software",
+    "filterLatam": "Presencia en Latinoamérica",
+    "filterDifficulty": "Dificultad",
+    "any": "Cualquiera",
+    "freeOnly": "Con opción gratuita",
+    "highOnly": "Alta",
+    "lowOnly": "Baja",
+    "brand": "Marca",
+    "cheapest": "Software más accesible",
+    "results": "{n} de {total} marcas",
+    "noResults": "Ninguna marca cumple esos filtros.",
+    "codesysTitle": "CODESYS: un entorno, muchas marcas",
+    "codesys": [
+      "CODESYS es un entorno de programación según IEC 61131-3 desarrollado por una empresa independiente. Muchos fabricantes lo usan como base de su propio software, por ejemplo ABB (Automation Builder), Schneider Electric (EcoStruxure Machine Expert) o WEG (PLC500).",
+      "Su sistema de desarrollo se descarga gratis. Lo que se paga es la licencia de ejecución (runtime) de cada equipo; sin ella, el PLC por software de prueba funciona en modo demo por tiempo limitado.",
+      "Por eso aprender CODESYS es una buena inversión: lo que sabes sirve en varias marcas."
+    ],
+    "expensiveTitle": "¿Por qué algunos softwares son tan caros?",
+    "expensive": [
+      "Las gamas pequeñas suelen tener software gratuito o barato: el fabricante gana vendiendo muchos equipos y quiere que sea fácil empezar.",
+      "En las gamas grandes el software es parte de un sistema que controla plantas completas: redundancia de CPU, seguridad funcional, control de movimiento, integración con HMI y SCADA, trabajo en equipo y control de versiones.",
+      "La licencia incluye soporte técnico, actualizaciones y compatibilidad con equipos instalados durante décadas. En una planta, una hora detenida cuesta mucho más que la licencia.",
+      "Para aprender no necesitas lo más caro: los conceptos (contactos, temporizadores, ciclo de scan) son los mismos, y las versiones gratuitas o de prueba bastan para practicar."
+    ],
+    "estimates": "La presencia en Latinoamérica y la dificultad de aprendizaje son estimaciones cualitativas de este sitio: dependen del país, del sector y de tu experiencia previa.",
+    "legal": "Sitio independiente y educativo, sin relación con los fabricantes. Las marcas y nombres de productos pertenecen a sus respectivos dueños. Verifica siempre la información vigente en el sitio oficial de cada fabricante."
   }
 }

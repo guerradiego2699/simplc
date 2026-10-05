@@ -1,0 +1,135 @@
+---
+title: Instrucciones fundamentales
+description: Contactos, bobinas, set y reset, flancos, autorretención y enclavamientos, temporizadores TON, TOF y TP, contadores CTU, CTD y CTUD, comparadores, matemáticas y MOVE.
+example: traffic-light
+updated: 2026-10-05
+---
+
+## Contactos y bobinas
+
+Son la base de todo programa Ladder:
+
+| Símbolo | Nombre                | Qué hace                                                          |
+| ------- | --------------------- | ----------------------------------------------------------------- |
+| `┤ ├`   | Contacto NA (abierto) | Conduce cuando el bit vale **1**                                  |
+| `┤/├`   | Contacto NC (cerrado) | Conduce cuando el bit vale **0**                                  |
+| `( )`   | Bobina                | Escribe en el bit el resultado del peldaño (1 si llega corriente) |
+| `(/)`   | Bobina negada         | Escribe lo contrario del resultado del peldaño                    |
+
+Un contacto **no es un botón**: es una pregunta sobre el valor de un bit. Un contacto NC de `I0.0` pregunta
+"¿I0.0 vale 0?", sin importar si en terreno hay un botón NA o NC.
+
+## Set y reset
+
+- **Set** `(S)`: si llega corriente, pone el bit en 1. Si no llega, **no hace nada**: el bit conserva su
+  valor.
+- **Reset** `(R)`: si llega corriente, pone el bit en 0.
+
+Juntos forman una **memoria**: una alarma que queda activa hasta que alguien la reconoce, o una máquina que
+recuerda en qué etapa va.
+
+<Callout type="tip">
+  Si el set y el reset del mismo bit están activos a la vez, gana **el que se ejecuta después**,
+  porque el PLC procesa los peldaños en orden. Ubica primero el que debe perder.
+</Callout>
+
+## Flancos
+
+Un **flanco positivo** (`P`) conduce solo durante **un ciclo de scan**, justo cuando la señal pasa de 0 a 1.
+Un **flanco negativo** (`N`) conduce un ciclo cuando pasa de 1 a 0.
+
+Se usan para que una acción ocurra **una sola vez** por pulsación, aunque el botón se mantenga presionado:
+sumar 1 a un contador, cambiar de modo, registrar un evento.
+
+## Autorretención y enclavamiento
+
+La **autorretención** mantiene una salida encendida después de soltar el botón que la activó: un contacto
+de la propia salida se pone en paralelo con el botón de marcha.
+
+```
+  ┤ MARCHA ├──┬──┤ PARO ├──( MOTOR )
+  ┤ MOTOR  ├──┘
+```
+
+En muchos lugares de habla hispana a esto también se le dice **enclavamiento**. Pero esa palabra tiene un
+segundo sentido muy importante: el **enclavamiento entre salidas** (_interlock_), que impide que dos
+acciones incompatibles ocurran a la vez. Por ejemplo, en un motor con inversión de giro, el contactor de
+giro a la derecha solo puede activarse si el de giro a la izquierda está apagado, y viceversa:
+
+```
+  ┤ DERECHA ├──┤/ IZQUIERDA_K ├──( DERECHA_K )
+  ┤ IZQUIERDA ├──┤/ DERECHA_K ├──( IZQUIERDA_K )
+```
+
+<Callout type="safety">
+  Un enclavamiento crítico, como el que evita un cortocircuito entre dos contactores, se hace
+  **también en el cableado**, con contactos auxiliares NC de cada contactor o con un enclavamiento
+  mecánico. El programa por sí solo no basta: un contactor con los contactos soldados no obedece al
+  PLC.
+</Callout>
+
+## Temporizadores
+
+Todos los temporizadores de IEC 61131-3 tienen una entrada **IN**, un tiempo preseleccionado **PT**, una
+salida **Q** y el tiempo transcurrido **ET**:
+
+| Tipo | Nombre                   | Comportamiento de Q                                            |
+| ---- | ------------------------ | -------------------------------------------------------------- |
+| TON  | Retardo a la conexión    | Se activa cuando IN lleva PT en 1. Se apaga apenas IN cae a 0. |
+| TOF  | Retardo a la desconexión | Se activa con IN; al caer IN, sigue en 1 durante PT.           |
+| TP   | Pulso                    | Al subir IN, entrega un pulso de duración exacta PT.           |
+
+Ejemplos típicos:
+
+- **TON**: confirmar que un sensor está activo por 2 s antes de reaccionar (filtrar rebotes), o esperar a
+  que arranque una bomba.
+- **TOF**: mantener un ventilador funcionando un rato después de apagar un horno.
+- **TP**: activar una electroválvula por un tiempo fijo cada vez que llega una orden.
+
+## Contadores
+
+| Tipo | Nombre                 | Comportamiento                                                  |
+| ---- | ---------------------- | --------------------------------------------------------------- |
+| CTU  | Contador ascendente    | Suma 1 en cada flanco de subida de CU. Q = 1 cuando CV ≥ PV.    |
+| CTD  | Contador descendente   | Resta 1 en cada flanco de CD. Q = 1 cuando CV ≤ 0. LD carga PV. |
+| CTUD | Ascendente/descendente | Suma con CU y resta con CD. QU = CV ≥ PV y QD = CV ≤ 0.         |
+
+La entrada **R** (reset) pone la cuenta en 0. Los contadores cuentan **flancos**, no el tiempo que la
+señal permanece activa: una caja que se queda detenida frente al sensor cuenta una sola vez.
+
+## Comparadores
+
+Comparan dos números y conducen si la comparación es verdadera: igual (`==`), distinto (`<>`), mayor
+(`>`), mayor o igual (`>=`), menor (`<`) y menor o igual (`<=`).
+
+Sirven para alarmas por nivel o temperatura, para actuar en ciertos momentos de un temporizador (como en el
+ejemplo del semáforo) o para comparar la cuenta de un contador con un valor variable.
+
+## Matemáticas y MOVE
+
+- **ADD**, **SUB**, **MUL**, **DIV**: suma, resta, multiplicación y división.
+- **MOVE**: copia un valor en otra dirección. Por ejemplo, cargar una receta.
+- **Escalado**: convierte el número que entrega un módulo analógico (por ejemplo, de 0 a 27 648) a
+  unidades de ingeniería (de 0 a 100 %, o de 0 a 10 bar).
+
+<Callout type="warning">
+  En la división entera se pierden los decimales (7 / 2 = 3), y dividir por cero es un error. Si
+  trabajas con medidas, convierte a REAL antes de calcular.
+</Callout>
+
+## Practica
+
+El ejemplo del semáforo usa un temporizador y comparadores sobre su tiempo transcurrido. Y en la sección
+de desafíos puedes poner a prueba set/reset, temporizadores y contadores con corrección automática.
+
+<TrySimulator example="traffic-light" />
+
+## Resumen
+
+- **Contactos** preguntan por un bit; **bobinas** lo escriben.
+- **Set/reset** forman memorias; gana la última instrucción ejecutada.
+- Los **flancos** duran un solo ciclo de scan.
+- **Autorretención** mantiene una salida; el **enclavamiento entre salidas** evita acciones incompatibles
+  y se refuerza en el cableado.
+- **TON**, **TOF** y **TP** manejan tiempos; **CTU**, **CTD** y **CTUD** cuentan flancos.
+- Comparadores, matemáticas y MOVE trabajan con números.

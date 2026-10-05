@@ -207,6 +207,116 @@
       "actuators": "Actuators",
       "psu": "Power supply",
       "comms": "Communication: PC, HMI, network"
+    },
+    "terminals": {
+      "title": "Compact PLC with its terminals and ports",
+      "hint": "Click (or use Tab and Enter) on a terminal, LED or port to see what it is and how it is wired.",
+      "empty": "Select a part of the drawing.",
+      "what": "What it is",
+      "connect": "How it is wired",
+      "generic": "Generic drawing of a compact 24 VDC PLC with relay outputs. Terminal positions and names change with brand and model: always check the manual.",
+      "parts": {
+        "power": {
+          "name": "Power supply (L+ and M)",
+          "what": "Terminals through which the PLC gets its power. On 24 VDC models, L+ is positive and M is negative (0 V). AC-powered models are marked L1 and N.",
+          "connect": "From the panel's 24 VDC power supply, protected by a circuit breaker or fuse. Mind the polarity and use the wire size given in the manual."
+        },
+        "pe": {
+          "name": "Earth (PE)",
+          "what": "Earth connection. It helps drain electrical interference and, on devices with metal parts, protects people.",
+          "connect": "With green/yellow wire, as short as possible, to the panel's earth bar."
+        },
+        "inputCommon": {
+          "name": "Input common (1M)",
+          "what": "Common point of the input group: it closes the circuit of every input in that group.",
+          "connect": "To 0 V when using PNP sensors (sink input) or to +24 V when using NPN sensors (source input). Check in the manual whether the module accepts both."
+        },
+        "inputs": {
+          "name": "Digital inputs (I0.0 to I0.7)",
+          "what": "Each terminal receives the signal of a push button, selector, limit switch or sensor.",
+          "connect": "One wire per signal from the field device. On a 3-wire sensor, brown goes to +24 V, blue to 0 V and black to the input terminal."
+        },
+        "statusLeds": {
+          "name": "Status LEDs",
+          "what": "They show the PLC mode: RUN (running the program), STOP (stopped) and ERROR (hardware or program fault).",
+          "connect": "Not wired. They are the first thing to look at when checking a panel."
+        },
+        "modeSwitch": {
+          "name": "RUN / STOP selector",
+          "what": "Some models have a physical selector to stop or start the program without the software.",
+          "connect": "Not wired. On many current devices the mode is changed from the software or a screen."
+        },
+        "ioLeds": {
+          "name": "Input and output LEDs",
+          "what": "One LED per point. They show the electrical state of the terminal, not what the program says: a lit input LED means voltage reaches that terminal.",
+          "connect": "Not wired. They tell you whether a problem is in the wiring (the LED does not light) or in the program (the LED lights but the program does not react)."
+        },
+        "ethernet": {
+          "name": "Ethernet port (RJ45)",
+          "what": "The most used port today: programming and communication with HMI screens, SCADA systems and other PLCs, using protocols such as Modbus TCP, PROFINET or EtherNet/IP depending on the brand.",
+          "connect": "With network cable (category 5e or higher; shielded in noisy environments) to a switch in the panel."
+        },
+        "rs485": {
+          "name": "RS-485 serial port",
+          "what": "Serial bus communication, widely used with Modbus RTU for drives, meters and older equipment. Several devices share the same pair of wires, over distances of up to about 1200 m at low speed.",
+          "connect": "With shielded twisted pair, joining A to A and B to B (some manufacturers swap the A and B marking). The bus has 120 Ω termination resistors at both ends."
+        },
+        "usb": {
+          "name": "USB port",
+          "what": "Used to connect the computer and download or check the program.",
+          "connect": "With a short cable, only for programming and diagnostics. It is not used as a permanent connection in a plant."
+        },
+        "sdCard": {
+          "name": "Memory card slot",
+          "what": "Depending on the model, the card backs up the program, updates the firmware or stores data logs.",
+          "connect": "Use only the card type given by the manufacturer. On some devices, removing it while the PLC is running stops it or raises an error."
+        },
+        "expansion": {
+          "name": "Expansion connector",
+          "what": "Side bus to add modules: more inputs and outputs, analog signals or communications.",
+          "connect": "Modules are mounted side by side on the rail. Connect them with the PLC powered off, unless the manufacturer allows hot swapping."
+        },
+        "outputCommon": {
+          "name": "Output commons (1L and 2L)",
+          "what": "On relay outputs, they feed the contacts of each group. Each group can work at a different voltage, for example 24 VDC on one and 230 VAC on another.",
+          "connect": "To the phase or positive to be switched, with a fuse matching the group's maximum current."
+        },
+        "outputs": {
+          "name": "Digital outputs (Q0.0 to Q0.5)",
+          "what": "Contacts the PLC opens or closes according to the program. They drive pilot lights and the coils of contactors, solenoids or interface relays.",
+          "connect": "From the output terminal to the load, and from the load to neutral or 0 V. Large loads, such as a motor, are always driven through a contactor."
+        },
+        "dinRail": {
+          "name": "DIN rail",
+          "what": "The PLC snaps onto a standard 35 mm metal rail inside the panel.",
+          "connect": "Leave space above and below for ventilation and cable ducts, as the manual specifies."
+        }
+      }
+    },
+    "languages": {
+      "label": "IEC 61131-3 languages",
+      "intro": "The same program in all five languages: motor start and stop with seal-in. Switch tabs to compare them.",
+      "network": "Rung 1",
+      "stepStopped": "Initial step: motor stopped",
+      "vars": {
+        "start": "START",
+        "stop": "STOP",
+        "motor": "MOTOR"
+      },
+      "names": {
+        "LD": "Ladder diagram (LD)",
+        "FBD": "Function block diagram (FBD)",
+        "ST": "Structured text (ST)",
+        "IL": "Instruction list (IL)",
+        "SFC": "Sequential function chart (SFC)"
+      },
+      "notes": {
+        "LD": "Contacts in series are AND; in parallel, OR. The MOTOR contact in parallel with START is the seal-in. STOP is an NC push button, so it is examined with an NO contact.",
+        "FBD": "The same operations as blocks: ≥1 is OR and & is AND. The MOTOR output feeds back into the OR block.",
+        "ST": "A single line with text operators. ST is ideal for calculations, complex conditions and loops.",
+        "IL": "Assembler-like instructions on an accumulator: load (LD), operate (OR, AND) and store (ST). The standard's 3rd edition (2013) deprecated it and the 4th (2025) removed it, but it still shows up on older equipment.",
+        "SFC": "Describes the process as steps and transitions. The motor runs while step S1 is active (N action). SFC shines in multi-stage processes."
+      }
     }
   },
   "simulator": {
@@ -671,5 +781,62 @@
     "completed": "Completed",
     "desktopNote": "Challenges are solved in the simulator, designed for computers (screens 1024 px or wider).",
     "moreSoon": "More challenges are coming: the goal is over 20, up to sequences with timers, counters and analog signals."
+  },
+  "brands": {
+    "indexTitle": "PLC brands and software",
+    "indexDescription": "Comparison of Siemens, Allen-Bradley, Schneider Electric, Mitsubishi Electric, Omron, ABB, Delta and WEG: product ranges, programming software, free or paid licences and address notation.",
+    "intro": "What you learn here applies to any brand, but each manufacturer has its own ranges, software and way of naming addresses. This guide helps you find your way.",
+    "reviewed": "Information checked against official sources: {date}",
+    "noPrices": "We do not publish prices: they change by country, distributor and version. We use qualitative ranges.",
+    "ranges": "Ranges (small to large)",
+    "software": "Programming software",
+    "addressing": "Addresses",
+    "sectors": "Where it is strong",
+    "latam": "Presence in Latin America",
+    "difficulty": "Learning difficulty",
+    "sources": "Official sources",
+    "level": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "scale": {
+      "small": "small",
+      "medium": "medium",
+      "large": "large"
+    },
+    "licence": {
+      "free": "Free",
+      "paid": "Paid licence",
+      "high": "High-cost licence"
+    },
+    "compareTitle": "Comparison table",
+    "compareIntro": "Filter the brands by what matters to you. The software column shows each brand's most accessible option.",
+    "filterLicence": "Software",
+    "filterLatam": "Presence in Latin America",
+    "filterDifficulty": "Difficulty",
+    "any": "Any",
+    "freeOnly": "With a free option",
+    "highOnly": "High",
+    "lowOnly": "Low",
+    "brand": "Brand",
+    "cheapest": "Most accessible software",
+    "results": "{n} of {total} brands",
+    "noResults": "No brand matches those filters.",
+    "codesysTitle": "CODESYS: one environment, many brands",
+    "codesys": [
+      "CODESYS is an IEC 61131-3 programming environment made by an independent company. Many manufacturers use it as the base of their own software, for example ABB (Automation Builder), Schneider Electric (EcoStruxure Machine Expert) or WEG (PLC500).",
+      "Its development system is a free download. What you pay for is each device's runtime licence; without it, the trial software PLC runs in demo mode for a limited time.",
+      "That is why learning CODESYS pays off: what you know works across several brands."
+    ],
+    "expensiveTitle": "Why is some software so expensive?",
+    "expensive": [
+      "Small ranges usually come with free or cheap software: the manufacturer earns by selling many devices and wants getting started to be easy.",
+      "In large ranges the software is part of a system that runs whole plants: CPU redundancy, functional safety, motion control, HMI and SCADA integration, teamwork and version control.",
+      "The licence includes technical support, updates and compatibility with equipment installed for decades. In a plant, one hour of downtime costs far more than the licence.",
+      "To learn you do not need the most expensive tool: the concepts (contacts, timers, scan cycle) are the same, and free or trial versions are enough to practise."
+    ],
+    "estimates": "Presence in Latin America and learning difficulty are this site's qualitative estimates: they depend on the country, the industry and your prior experience.",
+    "legal": "Independent educational site, not affiliated with any manufacturer. Brands and product names belong to their respective owners. Always check current information on each manufacturer's official site."
   }
 }

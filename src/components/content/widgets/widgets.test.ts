@@ -81,3 +81,22 @@ describe('sensor wiring', () => {
     expect(COM_WIRE.npn).toMatch(/V40$/); // +24 V rail
   });
 });
+
+describe('terminals diagram', () => {
+  it('every clickable part has a name, a description and wiring help in both languages', async () => {
+    const { PARTS, TOP_TERMINALS, BOTTOM_TERMINALS } = await import('./TerminalDiagram');
+    const es = (await import('@/i18n/es.json')).default.widgets.terminals.parts;
+    const en = (await import('@/i18n/en.json')).default.widgets.terminals.parts;
+    for (const part of PARTS) {
+      for (const dict of [es, en]) {
+        expect(dict[part].name.length).toBeGreaterThan(0);
+        expect(dict[part].what.length).toBeGreaterThan(0);
+        expect(dict[part].connect.length).toBeGreaterThan(0);
+      }
+    }
+    // Every terminal belongs to a known part and labels are unique.
+    const labels = [...TOP_TERMINALS, ...BOTTOM_TERMINALS].map((t) => t.label);
+    expect(new Set(labels).size).toBe(labels.length);
+    for (const t of [...TOP_TERMINALS, ...BOTTOM_TERMINALS]) expect(PARTS).toContain(t.part);
+  });
+});

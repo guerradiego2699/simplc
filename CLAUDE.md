@@ -172,6 +172,20 @@ dtMs, output)`, `read`, optional `command`), `models.ts` (lamp, motor, traffic, 
   allowed instructions. Page `[lang]/challenges/index.astro` marks completed cards with a small
   script. Client islands import `localizePath` from `@/i18n/paths` (no dictionaries).
 
+## Content II and brands (Phase 9)
+
+- All 10 Learn topics now have MDX in es/en. New MDX components: `<PlcTerminals />` (React
+  `widgets/TerminalDiagram.tsx`: clickable terminals/LEDs/ports; strings `widgets.terminals.parts`)
+  and `<LanguageTabs />` (plain Astro tabs: same start/stop program in LD via `StaticLadder`, FBD
+  and SFC as SVG, ST and IL as text; strings `widgets.languages`).
+- Brands: data in `src/config/brands.ts` (ranges, software with licence level free/paid/high, notes,
+  addressing, sectors, qualitative latam/difficulty, official source links, `BRANDS_REVIEWED`).
+  Page `[lang]/brands.astro` (cards, comparison table filtered by a small script, CODESYS and
+  "why so expensive" sections, legal note). **Never add prices**; re-verify with official sources
+  and bump `BRANDS_REVIEWED` when editing.
+- Mobile full-page screenshots taller than ~16 000 px repeat content (Chromium limit); measure
+  `scrollHeight` instead of trusting the image.
+
 ## Environment notes
 
 - Windows. Project lives in `C:\dev\simplc` (kept out of OneDrive on purpose: node_modules sync

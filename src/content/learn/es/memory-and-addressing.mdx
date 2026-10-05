@@ -1,0 +1,110 @@
+---
+title: Memoria y direccionamiento
+description: Bits, bytes y words; áreas de memoria de un PLC; marcas internas; y cómo nombran sus direcciones Siemens, Allen-Bradley, Mitsubishi, Omron, Schneider y el estándar IEC.
+example: motor-start-stop
+updated: 2026-10-05
+---
+
+## Bits, bytes y words
+
+Toda la memoria de un PLC está hecha de **bits**: celdas que valen 0 o 1. Los bits se agrupan en unidades
+más grandes:
+
+| Unidad     | Tamaño  | Ejemplo de uso                                            |
+| ---------- | ------- | --------------------------------------------------------- |
+| Bit        | 1 bit   | Un botón, una salida, una marca interna                   |
+| Byte       | 8 bits  | Un grupo de 8 entradas                                    |
+| Word       | 16 bits | Un número entero (INT), el valor de una entrada analógica |
+| Doble word | 32 bits | Un entero largo (DINT) o un número real (REAL)            |
+
+Los **tipos de datos** de la norma IEC 61131-3 le dan significado a esos bits. Los más usados son:
+
+- **BOOL**: verdadero o falso (1 bit).
+- **INT**: entero de 16 bits, de −32 768 a 32 767.
+- **DINT**: entero de 32 bits.
+- **REAL**: número con decimales de 32 bits (coma flotante).
+- **TIME**: una duración, como `T#5s` o `T#1m30s`.
+
+<Callout type="tip">
+  Un INT que pasa de 32 767 no da error: **da la vuelta** a −32 768. Es un error clásico en
+  contadores y acumuladores que crecen sin control. Si un valor puede ser grande, usa DINT o REAL.
+</Callout>
+
+## Áreas de memoria
+
+La memoria de datos de un PLC se divide en áreas con funciones distintas:
+
+- **Imagen de entradas**: copia del estado de las entradas, tomada al inicio de cada ciclo de scan.
+- **Imagen de salidas**: lo que el programa escribe; se copia a los bornes al final del ciclo.
+- **Marcas internas** (también llamadas bits de trabajo o relés internos): bits y números que el programa
+  usa como memoria propia, sin conexión con el exterior. Por ejemplo, para recordar que un ciclo terminó.
+- **Temporizadores y contadores**: cada uno con su estado y sus valores.
+- **Datos**: zonas para números, recetas y parámetros (bloques de datos, registros D, memoria DM, según la
+  marca).
+
+Algunas zonas son **retentivas**: conservan su valor aunque el PLC se apague. Se usan, por ejemplo, para
+contadores de producción o para horas de funcionamiento de un equipo.
+
+## Cómo se forma una dirección
+
+En el estilo que usa esta plataforma (el mismo de Siemens en inglés), la dirección `I0.3` se lee así:
+
+- `I`: área de **entradas** (_inputs_).
+- `0`: número de **byte**.
+- `.3`: número de **bit** dentro del byte, de 0 a 7.
+
+Después de `I0.7` viene `I1.0`, porque un byte tiene solo 8 bits. Con la misma lógica, `MW10` es la
+**word** de marcas que empieza en el byte 10.
+
+<Callout type="warning">
+  En Siemens, `MW10` ocupa los bytes 10 y 11, y `MW11` ocupa los bytes 11 y 12: **se solapan**. Si
+  usas ambas, escribir en una cambia la otra. Usa direcciones de word pares y deja espacio
+  suficiente entre ellas.
+</Callout>
+
+## Cada marca a su manera
+
+| Marca y familia                    | Entrada  | Salida   | Marca interna | Número   |
+| ---------------------------------- | -------- | -------- | ------------- | -------- |
+| Siemens S7                         | `I0.0`   | `Q0.0`   | `M0.0`        | `MW10`   |
+| IEC 61131-3 (direcciones directas) | `%IX0.0` | `%QX0.0` | `%MX0.0`      | `%MW10`  |
+| Schneider Electric (Modicon)       | `%I0.0`  | `%Q0.0`  | `%M0`         | `%MW10`  |
+| Mitsubishi Electric (MELSEC)       | `X0`     | `Y0`     | `M0`          | `D10`    |
+| Omron (CP, CJ)                     | `0.00`   | `100.00` | `W0.00`       | `D10`    |
+| Allen-Bradley (Logix)              | por tags | por tags | por tags      | por tags |
+
+Algunos detalles importantes:
+
+- **Mitsubishi** numera las entradas X y salidas Y en **octal**: después de `X7` viene `X10`. No existen
+  `X8` ni `X9`.
+- **Omron** usa canales de 16 bits: `0.00` a `0.15` son los bits del canal 0. En sus PLC compactos, las
+  salidas suelen empezar en el canal 100.
+- **Allen-Bradley** (familias Logix) trabaja con **tags**: variables con nombre como `Motor_Bomba`. Las
+  E/S físicas aparecen con nombres como `Local:1:I.Data.0`, y el programa usa alias con nombres claros.
+- Los PLC modernos de casi todas las marcas, sobre todo los basados en IEC 61131-3, permiten programar
+  con **variables simbólicas** en lugar de direcciones.
+
+## Direcciones y nombres simbólicos
+
+Una **tabla de variables** (o tabla de tags) asocia un nombre a cada dirección: `MARCHA` → `I0.0`. El
+programa queda mucho más fácil de leer:
+
+```
+  Con direcciones:   ┤ I0.0 ├──┤ I0.1 ├──( Q0.0 )
+  Con nombres:       ┤ MARCHA ├──┤ PARO ├──( MOTOR )
+```
+
+En el simulador puedes escribir tanto la dirección como el nombre, y cambiar el **estilo de direcciones**
+en la barra de herramientas para ver el mismo programa con la notación de Siemens, Allen-Bradley,
+Mitsubishi u Omron.
+
+<TrySimulator example="motor-start-stop" />
+
+## Resumen
+
+- La memoria se mide en **bits**, **bytes** (8 bits) y **words** (16 bits).
+- Los tipos de datos (BOOL, INT, DINT, REAL, TIME) dan significado a los bits.
+- Hay áreas de **entradas**, **salidas**, **marcas internas**, **temporizadores**, **contadores** y
+  **datos**; algunas son retentivas.
+- Cada marca nombra sus direcciones distinto, pero la idea es la misma.
+- Usa **nombres simbólicos**: un programa con buenos nombres se explica solo.
