@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   ChevronDown,
   Download,
+  FileCode,
   FolderOpen,
   FilePlus2,
   FileText,
@@ -22,9 +23,15 @@ import { SPEEDS, ZOOM } from '@/simulator/store/simulator-store';
 import { ADDRESS_STYLES, type AddressStyle } from '@/simulator/addressing/styles';
 import type { Language } from '@/simulator/project/types';
 import { fmt, useController, useLocale, useSim, useStoreApi, useStrings } from './context';
-import { downloadProject, openProjectFile } from './file-actions';
+import { downloadProject, exportSt, openProjectFile, stSourceOf } from './file-actions';
+import { getChallenge } from '@/simulator/challenges';
 
 const LANGUAGES: Language[] = ['LD', 'ST', 'FBD', 'IL', 'SFC'];
+
+/** Informational banner over the editor (outside render: it reads the clock). */
+function showNotice(store: ReturnType<typeof useStoreApi>, text: string) {
+  store.getState().setNotice({ kind: 'info', text, id: Date.now() });
+}
 
 const iconBtn =
   'inline-flex size-8 items-center justify-center rounded-md text-text hover:bg-surface disabled:opacity-35 disabled:hover:bg-transparent';
@@ -34,18 +41,40 @@ export function Toolbar() {
   const store = useStoreApi();
   const controller = useController();
   const locale = useLocale();
-  const { status, speed, canUndo, canRedo, zoom, language, style, visualizing } = useSim(
-    useShallow((s) => ({
-      status: s.status,
-      speed: s.speed,
-      canUndo: s.past.length > 0,
-      canRedo: s.future.length > 0,
-      zoom: s.zoom,
-      language: s.project.language,
-      style: s.addressStyle,
-      visualizing: s.scanView.active,
-    })),
-  );
+  const { status, speed, canUndo, canRedo, zoom, language, style, visualizing, inChallenge } =
+    useSim(
+      useShallow((s) => ({
+        status: s.status,
+        speed: s.speed,
+        canUndo: s.past.length > 0,
+        canRedo: s.future.length > 0,
+        zoom: s.zoom,
+        language: s.project.language,
+        style: s.addressStyle,
+        visualizing: s.scanView.active,
+        inChallenge: getChallenge(s.project.challenge) !== undefined,
+      })),
+    );
+  const [askConvert, setAskConvert] = useState(false);
+
+  const notice = (text: string) => showNotice(store, text);
+  /** LD → ST converts the Ladder program; ST → LD goes back to the Ladder kept in the project. */
+  const toSt = (convert: boolean) => {
+    setAskConvert(false);
+    const st = convert ? stSourceOf(store, t) : undefined;
+    store.getState().commit((p) => ({ ...p, language: 'ST', ...(st !== undefined ? { st } : {}) }));
+    if (convert) notice(t.st.converted);
+  };
+  const chooseLanguage = (l: Language) => {
+    if (l === language) return;
+    if (l === 'ST') {
+      if (store.getState().project.st?.trim()) setAskConvert(true);
+      else toSt(true);
+    } else if (l === 'LD') {
+      store.getState().commit((p) => ({ ...p, language: 'LD' }));
+      notice(t.st.backToLd);
+    }
+  };
 
   const replace = (next: ReturnType<typeof emptyProject>): boolean => {
     if (!window.confirm(t.toolbar.confirmDiscard)) return false;
@@ -75,6 +104,12 @@ export function Toolbar() {
             Icon: Download,
             testId: 'menu-download',
             onSelect: () => downloadProject(store, t),
+          },
+          {
+            label: t.toolbar.exportSt,
+            Icon: FileCode,
+            testId: 'menu-export-st',
+            onSelect: () => exportSt(store, t),
           },
           ...EXAMPLES.map((example) => ({
             label: fmt(t.toolbar.loadExample, { name: example.title[locale] }),
@@ -120,9 +155,19 @@ export function Toolbar() {
           <button
             key={l}
             type="button"
-            disabled={l !== 'LD'}
+            disabled={!(l === 'LD' || (l === 'ST' && !inChallenge))}
             aria-pressed={l === language}
-            title={l === 'LD' ? l : `${l} — ${t.toolbar.comingSoon}`}
+            data-language={l}
+            onClick={() => chooseLanguage(l)}
+            title={
+              l === 'LD'
+                ? l
+                : l === 'ST'
+                  ? inChallenge
+                    ? t.toolbar.languageInChallenge
+                    : l
+                  : fmt(t.toolbar.languageSoon, { language: l })
+            }
             className="h-6 rounded px-2 font-mono text-xs font-semibold text-text-muted disabled:opacity-40 aria-pressed:bg-primary aria-pressed:text-on-primary"
           >
             {l}
@@ -269,6 +314,72 @@ export function Toolbar() {
         >
           <ZoomIn size={17} aria-hidden="true" />
         </button>
+      </div>
+      {askConvert && (
+        <ConvertDialog
+          onConvert={() => toSt(true)}
+          onKeep={() => toSt(false)}
+          onCancel={() => setAskConvert(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+/** LD → ST when an ST program already exists: convert again or keep it. */
+function ConvertDialog({
+  onConvert,
+  onKeep,
+  onCancel,
+}: {
+  onConvert: () => void;
+  onKeep: () => void;
+  onCancel: () => void;
+}) {
+  const t = useStrings();
+  const first = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    first.current?.focus();
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && onCancel();
+    window.addEventListener('keydown', esc);
+    return () => window.removeEventListener('keydown', esc);
+  }, [onCancel]);
+  const btn = 'h-9 rounded-md px-3 text-sm font-medium';
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-text/30 p-4">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="convert-question"
+        className="w-full max-w-md rounded-lg border border-border bg-bg p-5 shadow-xl"
+      >
+        <p id="convert-question" className="text-sm text-text">
+          {t.st.convertQuestion}
+        </p>
+        <div className="mt-5 flex flex-wrap justify-end gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            className={`${btn} text-text hover:bg-surface-2`}
+          >
+            {t.st.cancel}
+          </button>
+          <button
+            type="button"
+            onClick={onKeep}
+            className={`${btn} border border-border text-text hover:border-primary`}
+          >
+            {t.st.convertKeep}
+          </button>
+          <button
+            ref={first}
+            type="button"
+            onClick={onConvert}
+            className={`${btn} bg-primary text-on-primary hover:bg-primary-hover`}
+          >
+            {t.st.convertReplace}
+          </button>
+        </div>
       </div>
     </div>
   );

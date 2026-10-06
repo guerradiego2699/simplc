@@ -73,3 +73,22 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Live values shown after assignments in the ST editor (Monaco decorations). */
+.st-live-value {
+  color: var(--text-muted);
+  font-style: italic;
+}
+.st-live-on {
+  color: var(--wire-on);
+}
+
+/* Code must show what learners type: no programming ligatures (<= stays "<=", not "≤"). */
+code,
+pre,
+kbd,
+samp,
+.font-mono {
+  font-variant-ligatures: none;
+  font-feature-settings: 'calt' 0;
+}

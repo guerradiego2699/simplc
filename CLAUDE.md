@@ -205,6 +205,28 @@ dtMs, output)`, `read`, optional `command`), `models.ts` (lamp, motor, traffic, 
 - Lighthouse (desktop, local preview) scored ≥ 95 on all categories. Run it with
   `CHROME_PATH=<msedge.exe> npx lighthouse@12 <url>` against the `preview` launch config (port 4331).
 
+## Structured Text (Phase 11)
+
+- `src/simulator/languages/st/`: `lexer.ts`, `parser.ts` (→ `ast.ts`, first syntax error stops),
+  `compile.ts` (`compileSt(source, tags)` → one IR network + `StDiagnostic`s with line/col ranges
+  - `symbols`). Names resolve: VAR locals → tags → addresses. VAR data locals are allocated from
+    the top of memory (M31.7↓, MW63↓, MD31↓); TON/CTU… declare instances (tag/address of a T/C, or a
+    free T31↓/C31↓); R_TRIG/F_TRIG are edge temps. FB calls must be declared. No `**`, RETURN or
+    functions except `*_TO_INT/REAL/TIME`. Engine IR gained `exit` (EXIT in loops).
+- `from-ladder.ts`: LD → ST that mirrors the Ladder evaluation order exactly; equivalence tests
+  run 300 random Ladder programs side by side with their conversion — keep them passing.
+- Project: `language` 'LD' | 'ST' and optional `st` source (both programs kept);
+  `project/compile-project.ts` compiles whichever is active (`compiled.st` holds ST results).
+  Toolbar: LD → ST converts (dialog if an ST program exists), ST → LD returns to the kept Ladder;
+  disabled in challenges. File menu: export `.st`.
+- Editor: Monaco loaded lazily (`editor/StPanels.tsx` → `React.lazy(StEditor)`), core + selected
+  contributions only (`editor/monaco.ts`), theme built from CSS tokens (normalised to #rrggbb —
+  minified CSS shortens hex). Snippets panel replaces the palette, quick reference replaces
+  Properties, console lists ST errors (click → `stReveal`), live values as decorations in RUN.
+- Learn code blocks: Shiki with `src/lib/shiki/st.tmLanguage.json` and a token-based theme;
+  write ```st for Structured Text, leave ASCII diagrams without a language. Code fonts have
+  ligatures disabled.
+
 ## Environment notes
 
 - Windows. Project lives in `C:\dev\simplc` (kept out of OneDrive on purpose: node_modules sync

@@ -2,7 +2,9 @@
  * Download / open project files from the UI (browser APIs live here, not in the pure file module).
  */
 import { SITE } from '@/config/site';
+import { ladderToSt } from '@/simulator/languages/st/from-ladder';
 import {
+  FILE_EXTENSION,
   fileNameFor,
   parseProjectFile,
   serializeProject,
@@ -65,4 +67,31 @@ export async function openProjectFile(
   controller.stop();
   store.getState().replaceProject(result.project);
   notify(store, 'info', fmt(t.file.loaded, { name: result.project.name || t.toolbar.untitled }));
+}
+
+/** The program as Structured Text: the ST source, or the conversion of the Ladder program. */
+export function stSourceOf(store: SimulatorStoreApi, t: SimStrings): string {
+  const { project } = store.getState();
+  if (project.language === 'ST') return project.st ?? '';
+  return ladderToSt(project.ladder, project.tags, {
+    header: fmt(t.st.header, { name: project.name || t.toolbar.untitled }),
+    rung: t.st.rung,
+    rungVariable: t.st.rungVariable,
+  });
+}
+
+/** Downloads the program as a .st text file (Ladder projects are converted first). */
+export function exportSt(store: SimulatorStoreApi, t: SimStrings): void {
+  const project = store.getState().project;
+  const fileName = fileNameFor(project.name, t.file.fallbackName).replace(FILE_EXTENSION, '.st');
+  const blob = new Blob([stSourceOf(store, t)], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  notify(store, 'info', fmt(t.file.exported, { file: fileName }));
 }

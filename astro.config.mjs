@@ -3,6 +3,8 @@ import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
+import stGrammar from './src/lib/shiki/st.tmLanguage.json' with { type: 'json' };
+import { plcampusTheme } from './src/lib/shiki/theme.mjs';
 import tailwindcss from '@tailwindcss/vite';
 
 /** "https://x/es/learn/" → "https://x/es/learn"; locale home pages keep their slash. */
@@ -23,8 +25,12 @@ export default defineConfig({
       redirectToDefaultLocale: false,
     },
   },
-  // Code blocks in Learn pages are ASCII diagrams; themed highlighting arrives with ST (Phase 11).
-  markdown: { syntaxHighlight: false },
+  // ```st blocks are highlighted with our Structured Text grammar; other blocks (ASCII ladder
+  // diagrams) stay plain. Colours come from CSS tokens (src/lib/shiki/theme.mjs).
+  markdown: {
+    syntaxHighlight: 'shiki',
+    shikiConfig: { theme: plcampusTheme, langs: [stGrammar], wrap: false },
+  },
   integrations: [
     react(),
     mdx(),

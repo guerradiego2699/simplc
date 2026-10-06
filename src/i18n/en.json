@@ -352,7 +352,10 @@
       "open": "Open file… (Ctrl+O)",
       "download": "Download project (Ctrl+S)",
       "projectName": "Project name",
-      "untitled": "Untitled project"
+      "untitled": "Untitled project",
+      "exportSt": "Export structured text (.st)",
+      "languageSoon": "{language}: coming soon",
+      "languageInChallenge": "Challenges are solved in Ladder for now"
     },
     "palette": {
       "title": "Instructions",
@@ -493,7 +496,33 @@
       "MISSING_PARAM": "Parameter “{param}” is missing.",
       "TYPE_MISMATCH": "Wrong data type: {expected} was expected but {actual} was given.",
       "INVALID_INSTANCE": "“{instance}” is not a valid instance: use T0–T31 for timers and C0–C31 for counters.",
-      "DUPLICATE_INSTANCE": "{instance} is used in {count} places: they share the same timer or counter."
+      "DUPLICATE_INSTANCE": "{instance} is used in {count} places: they share the same timer or counter.",
+      "ST_SYNTAX": "Expected {expected}, but found {found}.",
+      "ST_BAD_CHAR": "Invalid character: “{char}”.",
+      "ST_UNCLOSED_COMMENT": "A comment is opened and never closed: “*)” is missing.",
+      "ST_UNKNOWN_TYPE": "“{type}” is not an available type. Use BOOL, INT, REAL, TIME, TON, TOF, TP, CTU, CTD, CTUD, R_TRIG or F_TRIG.",
+      "ST_UNKNOWN_NAME": "“{name}” is not declared: add it to the variable table, declare it in VAR or use an address such as I0.0.",
+      "ST_UNKNOWN_MEMBER": "“{name}” has no output “{member}”.",
+      "ST_NOT_A_VALUE": "“{name}” is not a value.",
+      "ST_NOT_WRITABLE": "“{name}” cannot be written.",
+      "ST_NOT_CALLABLE": "“{name}” is not a function block: declare a TON, CTU, R_TRIG… in VAR.",
+      "ST_UNDECLARED_FB": "Declare the type of “{name}” before calling it, for example: VAR {name} : {example}; END_VAR",
+      "ST_MISSING_PARAM": "Parameter {param} is missing in the call to {name} ({type}).",
+      "ST_UNKNOWN_PARAM": "{type} has no parameter {param}.",
+      "ST_DUPLICATE_PARAM": "Parameter {param} appears twice.",
+      "ST_DUPLICATE_CALL": "{name} is called more than once: each edge detector is called once per cycle.",
+      "ST_DUPLICATE_NAME": "“{name}” is declared twice.",
+      "ST_NAME_CONFLICT": "“{name}” already exists in the variable table or is an address: use another name.",
+      "ST_NO_FREE_MEMORY": "There is no free memory left for “{name}”.",
+      "ST_BAD_INIT": "“{name}” does not accept an initial value.",
+      "ST_BAD_LITERAL": "“{text}” is not a valid value.",
+      "ST_UNKNOWN_FUNCTION": "Function {name} is not available. You can use conversions such as TO_REAL, TO_INT or TO_TIME.",
+      "ST_ARGUMENT_COUNT": "{name} takes {count} argument.",
+      "ST_UNSUPPORTED": "“{feature}” is not available in this simulator yet.",
+      "ST_CASE_LABEL": "CASE labels must be integers, such as 1, 2..5 or -1.",
+      "ST_FOR_VARIABLE": "A FOR variable must be an integer (INT): “{name}” is not.",
+      "ST_FOR_STEP": "The BY step of a FOR must be a constant integer other than 0.",
+      "ST_EXIT_OUTSIDE_LOOP": "EXIT can only be used inside a FOR, WHILE or REPEAT."
     },
     "faults": {
       "WATCHDOG": "Cycle time exceeded (watchdog): the PLC went to STOP."
@@ -604,7 +633,8 @@
         "read": "Input terminals are copied to the input image. From now on the program sees these values, even if you flip a switch.",
         "execute": "Rung {n} was executed: its results are now in the output image and the markers.",
         "write": "The output image was copied to the terminals: only now do the output LEDs change.",
-        "housekeeping": "The PLC serves communications and checks itself. Cycle {n} is over; the next one begins."
+        "housekeeping": "The PLC serves communications and checks itself. Cycle {n} is over; the next one begins.",
+        "executeSt": "The ST program ran from start to end: its results are now in the output image and the markers."
       },
       "inputs": "Inputs",
       "outputs": "Outputs",
@@ -624,7 +654,8 @@
         "INVALID_CONTENT": "Could not open: the file content is not valid (at “{path}”).",
         "READ_ERROR": "The file could not be read."
       },
-      "exampleLoaded": "Example “{name}” loaded. Press ▶ Run to try it."
+      "exampleLoaded": "Example “{name}” loaded. Press ▶ Run to try it.",
+      "exported": "Program exported as {file}."
     },
     "plant": {
       "title": "Virtual plant",
@@ -732,6 +763,73 @@
       "paletteLimited": "Only the instructions allowed in this challenge are shown.",
       "plantNote": "This challenge uses the virtual plant: the test cases simulate it too.",
       "howItWorks": "Checking runs your program in simulated time for each test case and compares the outputs at given moments. You do not need to put the PLC in RUN."
+    },
+    "st": {
+      "editorLabel": "Structured text editor",
+      "loading": "Loading the text editor…",
+      "loadError": "The text editor could not be loaded. Check your connection and reload the page.",
+      "location": "Line {line}, col. {col}",
+      "endOfProgram": "the end of the program",
+      "tokens": {
+        "identifier": "a name",
+        "expression": "an expression",
+        "statement": "a statement",
+        "type": "a data type",
+        "end": "the end of the program"
+      },
+      "value": "Current value: {value}",
+      "local": "Local variable ({type}) at {address}",
+      "tag": "Variable table entry ({type}) at {address}",
+      "header": "{name} — converted from Ladder",
+      "rung": "Rung {n}",
+      "rungVariable": "RUNG",
+      "empty": "(* Write your structured text program here. *)\n",
+      "convertQuestion": "You already have a structured text program. Do you want to replace it with the conversion of your current Ladder program?",
+      "convertReplace": "Convert the Ladder",
+      "convertKeep": "Keep my ST",
+      "cancel": "Cancel",
+      "converted": "We converted your Ladder program to structured text. The Ladder is kept: you can go back to it any time.",
+      "backToLd": "You are back on the Ladder program. Structured text is not converted to Ladder automatically (it can contain loops and calculations with no equivalent drawing); your ST is kept.",
+      "snippets": {
+        "title": "Templates",
+        "hint": "Click a template to insert it at the cursor. Use Tab to move to the next field.",
+        "if": "IF … THEN",
+        "ifElse": "IF … ELSE",
+        "case": "CASE",
+        "for": "FOR",
+        "while": "WHILE",
+        "var": "VAR block",
+        "ton": "TON timer",
+        "ctu": "CTU counter",
+        "rtrig": "R_TRIG edge",
+        "placeholders": {
+          "condition": "condition",
+          "output": "output",
+          "value": "value",
+          "variable": "i",
+          "timer": "timer",
+          "counter": "counter",
+          "edge": "edge",
+          "input": "input"
+        }
+      },
+      "help": {
+        "title": "ST quick reference",
+        "intro": "Use names from the variable table or addresses such as I0.0, Q0.0 and MW10. Ctrl+Space shows suggestions.",
+        "items": [
+          "Assignment: MOTOR := START AND NOT STOP;",
+          "Comparison: =, <>, <, >, <=, >=   Logic: AND, OR, XOR, NOT",
+          "Numbers: 5, 1.5, 16#FF   Times: T#5s, T#1m30s, T#250ms",
+          "Comments: (* … *) or // to the end of the line",
+          "Your own variables: VAR count : INT := 0; END_VAR",
+          "Timer: VAR t : TON; END_VAR  t(IN := START, PT := T#5s);  Q0.1 := t.Q;",
+          "Counter: VAR c : CTU; END_VAR  c(CU := SENSOR, R := RESET, PV := 10);",
+          "Edge: VAR e : R_TRIG; END_VAR  e(CLK := BUTTON);  IF e.Q THEN … END_IF;",
+          "Conversions: TO_REAL(x), TO_INT(x), TO_TIME(x)"
+        ]
+      },
+      "quote": "“{text}”",
+      "helpTab": "Reference"
     }
   },
   "examples": {

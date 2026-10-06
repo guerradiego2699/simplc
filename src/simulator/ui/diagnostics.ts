@@ -2,21 +2,35 @@
 import type { LadderDiagnostic } from '@/simulator/languages/ladder/compile';
 import { fmt, type SimStrings } from './context';
 
+/** Anything with a stable code and message parameters (Ladder, ST or engine diagnostics). */
+export interface CodedMessage {
+  code: string;
+  params: Record<string, string | number>;
+}
+
 /** Parameter values that are themselves translatable (param names, data types). */
-function translateParams(d: LadderDiagnostic, t: SimStrings): Record<string, string | number> {
+function translateParams(d: CodedMessage, t: SimStrings): Record<string, string | number> {
   const params = { ...d.params };
   const paramNames = t.params as Record<string, string>;
   const types = t.types as Record<string, string>;
   if (typeof params['param'] === 'string')
     params['param'] = paramNames[params['param']] ?? params['param'];
-  for (const key of ['expected', 'actual'] as const) {
+  for (const key of d.code === 'ST_SYNTAX' ? [] : (['expected', 'actual'] as const)) {
     const v = params[key];
     if (typeof v === 'string') params[key] = types[v] ?? v;
+  }
+  // ST syntax errors: describe what was expected; an empty "found" is the end of the program.
+  if (d.code === 'ST_SYNTAX') {
+    const quote = (text: string) => fmt(t.st.quote, { text });
+    const expected = String(params['expected'] ?? '');
+    params['expected'] = (t.st.tokens as Record<string, string>)[expected] ?? quote(expected);
+    const found = String(params['found'] ?? '');
+    params['found'] = found === '' ? t.st.endOfProgram : quote(found);
   }
   return params;
 }
 
-export function diagnosticMessage(d: LadderDiagnostic, t: SimStrings): string {
+export function diagnosticMessage(d: CodedMessage, t: SimStrings): string {
   const template = (t.diagnostics as Record<string, string>)[d.code] ?? d.code;
   return fmt(template, translateParams(d, t));
 }

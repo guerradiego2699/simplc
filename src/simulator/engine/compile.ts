@@ -85,6 +85,10 @@ function inferType(e: Expr, temps: Map<string, DataType>): DataType {
   }
 }
 
+/** Thrown by an `exit` statement and caught by the innermost `while`. */
+class ExitLoop {}
+const EXIT = new ExitLoop();
+
 interface Scope {
   ctx: ExecContext;
   tempTypes: Map<string, DataType>;
@@ -213,10 +217,19 @@ function compileStmtInner(s: Stmt, scope: Scope): Action {
       return () => {
         while (condition()) {
           if (++ctx.steps > ctx.maxSteps) throw new WatchdogError();
-          body();
+          try {
+            body();
+          } catch (e) {
+            if (e === EXIT) break;
+            throw e;
+          }
         }
       };
     }
+    case 'exit':
+      return () => {
+        throw EXIT;
+      };
     case 'timer': {
       const ref = resolveRef(memory, s.instance);
       const state = memory.timers[ref.kind === 'timer' ? ref.index : 0] as TimerState;
@@ -259,7 +272,12 @@ export function compileProgram(program: IrProgram, ctx: ExecContext): CompiledNe
       id: net.id,
       run: () => {
         ctx.temps.clear();
-        block();
+        try {
+          block();
+        } catch (e) {
+          // An EXIT outside any loop just ends the network.
+          if (e !== EXIT) throw e;
+        }
       },
     };
   });

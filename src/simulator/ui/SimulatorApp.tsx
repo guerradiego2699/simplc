@@ -4,6 +4,7 @@ import type { Locale } from '@/config/site';
 import { IoBoard } from '@/simulator/io-panel/IoBoard';
 import { LadderEditor } from '@/simulator/languages/ladder/editor/LadderEditor';
 import { Palette } from '@/simulator/languages/ladder/editor/Palette';
+import { StEditorHost, StHelp, StSnippets } from '@/simulator/languages/st/editor/StPanels';
 import { InstructionIcon } from '@/simulator/languages/ladder/editor/symbols';
 import { motorStartStopProject } from '@/simulator/project/examples';
 import { SimulationController } from '@/simulator/store/controller';
@@ -110,12 +111,13 @@ function openRequestedContent(store: SimulatorStoreApi, t: SimStrings, locale: L
 function Workspace() {
   const t = useStrings();
   const store = useStoreApi();
-  const { rightWidth, bottomHeight, rightTab, bottomTab, inChallenge } = useSim(
+  const { rightWidth, bottomHeight, rightTab, bottomTab, inChallenge, isSt } = useSim(
     useShallow((s) => ({
       rightWidth: s.rightWidth,
       bottomHeight: s.bottomHeight,
       rightTab: s.rightTab,
       inChallenge: getChallenge(s.project.challenge) !== undefined,
+      isSt: s.project.language === 'ST',
       bottomTab: s.bottomTab,
     })),
   );
@@ -124,11 +126,9 @@ function Workspace() {
     <div className="flex h-full flex-col overflow-hidden bg-bg text-text" data-testid="simulator">
       <Toolbar />
       <div className="flex min-h-0 flex-1">
-        <div className="w-52 shrink-0">
-          <Palette />
-        </div>
+        <div className="w-52 shrink-0">{isSt ? <StSnippets /> : <Palette />}</div>
         <main className="relative min-w-0 flex-1">
-          <LadderEditor />
+          {isSt ? <StEditorHost /> : <LadderEditor />}
           <NoticeBanner />
         </main>
         <Resizer
@@ -157,7 +157,11 @@ function Workspace() {
                     },
                   ]
                 : []),
-              { id: 'properties', label: t.properties.title, content: <PropertiesPanel /> },
+              {
+                id: 'properties',
+                label: isSt ? t.st.helpTab : t.properties.title,
+                content: isSt ? <StHelp /> : <PropertiesPanel />,
+              },
               { id: 'variables', label: t.variables.title, content: <VariablesPanel /> },
               { id: 'monitor', label: t.monitor.title, content: <MonitorPanel /> },
             ]}

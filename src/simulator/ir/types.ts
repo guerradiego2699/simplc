@@ -160,6 +160,11 @@ export interface WhileStmt extends NodeMeta {
   body: Stmt[];
 }
 
+/** Leaves the innermost enclosing `while` (ST EXIT). Outside a loop it does nothing. */
+export interface ExitStmt extends NodeMeta {
+  kind: 'exit';
+}
+
 /**
  * Timer call (IEC TON / TOF / TP). `instance` is a timer address ("T0"). The preset is TIME
  * (or INT, read as milliseconds). Q, ET and PT are then readable as T0, T0.ET, T0.PT.
@@ -188,7 +193,15 @@ export interface CounterStmt extends NodeMeta {
 }
 
 export type Stmt =
-  AssignStmt | SetStmt | ResetStmt | LetStmt | IfStmt | WhileStmt | TimerStmt | CounterStmt;
+  | AssignStmt
+  | SetStmt
+  | ResetStmt
+  | LetStmt
+  | IfStmt
+  | WhileStmt
+  | ExitStmt
+  | TimerStmt
+  | CounterStmt;
 
 // ---------------------------------------------------------------------------------------------
 // Program

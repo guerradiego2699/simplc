@@ -8,8 +8,8 @@ import { Pause, Play, SkipForward, X } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { parseAddress } from '@/simulator/engine';
 import { formatAddressStyled } from '@/simulator/addressing/styles';
-import { allElements } from '@/simulator/languages/ladder/model';
-import { resolveOperand, tagForAddress } from '@/simulator/project/tags';
+import { irAddresses } from '@/simulator/ir/walk';
+import { tagForAddress } from '@/simulator/project/tags';
 import { InputControl } from '@/simulator/io-panel/IoBoard';
 import { fmt, useController, useSim, useStrings } from './context';
 
@@ -18,13 +18,15 @@ const PHASES = ['read', 'execute', 'write', 'housekeeping'] as const;
 export function ScanPanel() {
   const t = useStrings();
   const controller = useController();
-  const { scanView, snapshot, ladder, tags, style, io, controls } = useSim(
+  const { scanView, snapshot, ladder, ir, language, tags, style, io, controls } = useSim(
     useShallow((s) => ({
       scanView: s.scanView,
       io: s.project.io,
       controls: s.ioControls,
       snapshot: s.snapshot,
       ladder: s.project.ladder,
+      ir: s.compiled.ir,
+      language: s.project.language,
       tags: s.project.tags,
       style: s.addressStyle,
     })),
@@ -38,24 +40,21 @@ export function ScanPanel() {
   const explanation = !event
     ? t.scan.explain.idle
     : event.phase === 'execute'
-      ? fmt(t.scan.explain.execute, { n: rungNumber })
+      ? language === 'ST'
+        ? t.scan.explain.executeSt
+        : fmt(t.scan.explain.execute, { n: rungNumber })
       : fmt(t.scan.explain[event.phase], { n: snapshot?.scanCount ?? 0 });
 
   // Inputs and outputs used by the program, to compare terminal vs image.
   const { inputs, outputs } = useMemo(() => {
-    const used = new Set<string>();
-    for (const el of allElements(ladder)) {
-      for (const text of [el.operand, ...Object.values(el.params ?? {})]) {
-        const res = resolveOperand(text, tags);
-        if (res.ok) used.add(res.address);
-      }
-    }
+    // From the compiled program, so it works for every language.
+    const used = ir ? irAddresses(ir) : new Set<string>();
     const bits = [...used].filter((a) => parseAddress(a)?.kind === 'bit').sort();
     return {
       inputs: bits.filter((a) => a.startsWith('I')),
       outputs: bits.filter((a) => a.startsWith('Q')),
     };
-  }, [ladder, tags]);
+  }, [ir]);
 
   const bit = (arr: boolean[] | undefined, address: string) => {
     const ref = parseAddress(address);

@@ -352,7 +352,10 @@
       "open": "Abrir archivo… (Ctrl+O)",
       "download": "Descargar proyecto (Ctrl+S)",
       "projectName": "Nombre del proyecto",
-      "untitled": "Proyecto sin nombre"
+      "untitled": "Proyecto sin nombre",
+      "exportSt": "Exportar texto estructurado (.st)",
+      "languageSoon": "{language}: próximamente",
+      "languageInChallenge": "Los desafíos se resuelven en Ladder por ahora"
     },
     "palette": {
       "title": "Instrucciones",
@@ -493,7 +496,33 @@
       "MISSING_PARAM": "Falta el parámetro «{param}».",
       "TYPE_MISMATCH": "Tipo de dato incorrecto: se esperaba {expected} y se recibió {actual}.",
       "INVALID_INSTANCE": "«{instance}» no es una instancia válida: usa T0–T31 para temporizadores y C0–C31 para contadores.",
-      "DUPLICATE_INSTANCE": "{instance} se usa en {count} lugares: comparten el mismo temporizador o contador."
+      "DUPLICATE_INSTANCE": "{instance} se usa en {count} lugares: comparten el mismo temporizador o contador.",
+      "ST_SYNTAX": "Se esperaba {expected}, pero se encontró {found}.",
+      "ST_BAD_CHAR": "Carácter no válido: «{char}».",
+      "ST_UNCLOSED_COMMENT": "Un comentario se abre y nunca se cierra: falta «*)».",
+      "ST_UNKNOWN_TYPE": "«{type}» no es un tipo disponible. Usa BOOL, INT, REAL, TIME, TON, TOF, TP, CTU, CTD, CTUD, R_TRIG o F_TRIG.",
+      "ST_UNKNOWN_NAME": "«{name}» no está declarado: agrégalo a la tabla de variables, decláralo en VAR o usa una dirección como I0.0.",
+      "ST_UNKNOWN_MEMBER": "«{name}» no tiene la salida «{member}».",
+      "ST_NOT_A_VALUE": "«{name}» no es un valor.",
+      "ST_NOT_WRITABLE": "No se puede escribir en «{name}».",
+      "ST_NOT_CALLABLE": "«{name}» no es un bloque de función: declara un TON, CTU, R_TRIG… en VAR.",
+      "ST_UNDECLARED_FB": "Declara el tipo de «{name}» antes de llamarlo, por ejemplo: VAR {name} : {example}; END_VAR",
+      "ST_MISSING_PARAM": "Falta el parámetro {param} en la llamada a {name} ({type}).",
+      "ST_UNKNOWN_PARAM": "{type} no tiene el parámetro {param}.",
+      "ST_DUPLICATE_PARAM": "El parámetro {param} aparece dos veces.",
+      "ST_DUPLICATE_CALL": "{name} se llama más de una vez: cada detector de flanco se llama una sola vez por ciclo.",
+      "ST_DUPLICATE_NAME": "«{name}» está declarado dos veces.",
+      "ST_NAME_CONFLICT": "«{name}» ya existe en la tabla de variables o es una dirección: usa otro nombre.",
+      "ST_NO_FREE_MEMORY": "No queda memoria libre para «{name}».",
+      "ST_BAD_INIT": "«{name}» no admite un valor inicial.",
+      "ST_BAD_LITERAL": "«{text}» no es un valor válido.",
+      "ST_UNKNOWN_FUNCTION": "La función {name} no está disponible. Puedes usar conversiones como TO_REAL, TO_INT o TO_TIME.",
+      "ST_ARGUMENT_COUNT": "{name} recibe {count} argumento.",
+      "ST_UNSUPPORTED": "«{feature}» todavía no está disponible en este simulador.",
+      "ST_CASE_LABEL": "Las etiquetas de CASE deben ser números enteros, como 1, 2..5 o -1.",
+      "ST_FOR_VARIABLE": "La variable de un FOR debe ser un entero (INT): «{name}» no lo es.",
+      "ST_FOR_STEP": "El paso BY de un FOR debe ser un número entero constante distinto de 0.",
+      "ST_EXIT_OUTSIDE_LOOP": "EXIT solo se puede usar dentro de un FOR, WHILE o REPEAT."
     },
     "faults": {
       "WATCHDOG": "Tiempo de ciclo excedido (watchdog): el PLC pasó a STOP."
@@ -604,7 +633,8 @@
         "read": "Se copian los bornes de entrada a la imagen de entradas. Desde ahora, el programa verá estos valores aunque cambies un interruptor.",
         "execute": "Se ejecutó el peldaño {n}: sus resultados quedaron en la imagen de salidas y en las marcas.",
         "write": "La imagen de salidas se copió a los bornes: recién ahora cambian los LED de salida.",
-        "housekeeping": "El PLC atiende comunicaciones y revisa su estado. El ciclo {n} terminó; empieza el siguiente."
+        "housekeeping": "El PLC atiende comunicaciones y revisa su estado. El ciclo {n} terminó; empieza el siguiente.",
+        "executeSt": "Se ejecutó el programa ST de principio a fin: sus resultados quedaron en la imagen de salidas y en las marcas."
       },
       "inputs": "Entradas",
       "outputs": "Salidas",
@@ -624,7 +654,8 @@
         "INVALID_CONTENT": "No se pudo abrir: el contenido del archivo no es válido (en «{path}»).",
         "READ_ERROR": "No se pudo leer el archivo."
       },
-      "exampleLoaded": "Ejemplo «{name}» cargado. Pulsa ▶ Ejecutar para probarlo."
+      "exampleLoaded": "Ejemplo «{name}» cargado. Pulsa ▶ Ejecutar para probarlo.",
+      "exported": "Programa exportado como {file}."
     },
     "plant": {
       "title": "Planta virtual",
@@ -732,6 +763,73 @@
       "paletteLimited": "Solo se muestran las instrucciones permitidas en este desafío.",
       "plantNote": "Este desafío usa la planta virtual: los casos de prueba también la simulan.",
       "howItWorks": "La verificación ejecuta tu programa en tiempo simulado con cada caso de prueba y compara las salidas en momentos concretos. No necesitas poner el PLC en RUN."
+    },
+    "st": {
+      "editorLabel": "Editor de texto estructurado",
+      "loading": "Cargando el editor de texto…",
+      "loadError": "No se pudo cargar el editor de texto. Revisa tu conexión y recarga la página.",
+      "location": "Línea {line}, col. {col}",
+      "endOfProgram": "el fin del programa",
+      "tokens": {
+        "identifier": "un nombre",
+        "expression": "una expresión",
+        "statement": "una instrucción",
+        "type": "un tipo de dato",
+        "end": "el fin del programa"
+      },
+      "value": "Valor actual: {value}",
+      "local": "Variable local ({type}) en {address}",
+      "tag": "Variable de la tabla ({type}) en {address}",
+      "header": "{name} — convertido desde Ladder",
+      "rung": "Peldaño {n}",
+      "rungVariable": "PELDANO",
+      "empty": "(* Escribe aquí tu programa en texto estructurado. *)\n",
+      "convertQuestion": "Ya tienes un programa en texto estructurado. ¿Quieres reemplazarlo por la conversión de tu programa Ladder actual?",
+      "convertReplace": "Convertir el Ladder",
+      "convertKeep": "Mantener mi ST",
+      "cancel": "Cancelar",
+      "converted": "Convertimos tu programa Ladder a texto estructurado. El Ladder queda guardado: puedes volver a él cuando quieras.",
+      "backToLd": "Volviste al programa Ladder. El texto estructurado no se convierte solo a Ladder (puede tener bucles y cálculos sin un dibujo equivalente); tu ST queda guardado.",
+      "snippets": {
+        "title": "Plantillas",
+        "hint": "Haz clic en una plantilla para insertarla donde está el cursor. Usa Tab para pasar al siguiente campo.",
+        "if": "IF … THEN",
+        "ifElse": "IF … ELSE",
+        "case": "CASE",
+        "for": "FOR",
+        "while": "WHILE",
+        "var": "Bloque VAR",
+        "ton": "Temporizador TON",
+        "ctu": "Contador CTU",
+        "rtrig": "Flanco R_TRIG",
+        "placeholders": {
+          "condition": "condicion",
+          "output": "salida",
+          "value": "valor",
+          "variable": "i",
+          "timer": "temporizador",
+          "counter": "contador",
+          "edge": "flanco",
+          "input": "entrada"
+        }
+      },
+      "help": {
+        "title": "Referencia rápida de ST",
+        "intro": "Usa los nombres de la tabla de variables o direcciones como I0.0, Q0.0 y MW10. Ctrl+Espacio muestra sugerencias.",
+        "items": [
+          "Asignación: MOTOR := MARCHA AND NOT PARO;",
+          "Comparación: =, <>, <, >, <=, >=   Lógica: AND, OR, XOR, NOT",
+          "Números: 5, 1.5, 16#FF   Tiempos: T#5s, T#1m30s, T#250ms",
+          "Comentarios: (* … *) o // hasta el final de la línea",
+          "Variables propias: VAR veces : INT := 0; END_VAR",
+          "Temporizador: VAR t : TON; END_VAR  t(IN := MARCHA, PT := T#5s);  Q0.1 := t.Q;",
+          "Contador: VAR c : CTU; END_VAR  c(CU := SENSOR, R := RESET, PV := 10);",
+          "Flanco: VAR f : R_TRIG; END_VAR  f(CLK := BOTON);  IF f.Q THEN … END_IF;",
+          "Conversiones: TO_REAL(x), TO_INT(x), TO_TIME(x)"
+        ]
+      },
+      "quote": "«{text}»",
+      "helpTab": "Referencia"
     }
   },
   "examples": {

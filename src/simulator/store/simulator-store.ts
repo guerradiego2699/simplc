@@ -6,7 +6,7 @@ import { create } from 'zustand';
 import { parseInstance, type MemorySnapshot, type ScanEvent, type Value } from '@/simulator/engine';
 import { ADDRESS_STYLES, type AddressStyle } from '@/simulator/addressing/styles';
 import { spec } from '@/simulator/languages/ladder/catalog';
-import { compileLadder, type LadderCompileResult } from '@/simulator/languages/ladder/compile';
+import { compileProject, type ProjectCompileResult } from '@/simulator/project/compile-project';
 import {
   addRung,
   allElements,
@@ -88,7 +88,9 @@ export interface SimulatorState {
   project: Project;
   past: Project[];
   future: Project[];
-  compiled: LadderCompileResult;
+  compiled: ProjectCompileResult;
+  /** Ask the ST editor to move the cursor (from the console); `id` changes on every request. */
+  stReveal: { line: number; col: number; id: number } | null;
   selection: Selection;
   /** Ask the properties panel to focus the operand field (after inserting an element). */
   focusOperand: number;
@@ -235,7 +237,7 @@ export function createSimulatorStore(initial: Project) {
       lastCommit = coalesceKey ? { key: coalesceKey, at: now } : null;
       set({
         project,
-        compiled: compileLadder(project.ladder, project.tags),
+        compiled: compileProject(project),
         ...(pushHistory
           ? { past: coalesce ? past : [...past, before].slice(-HISTORY_LIMIT), future: [] }
           : {}),
@@ -251,7 +253,8 @@ export function createSimulatorStore(initial: Project) {
       project: initial,
       past: [],
       future: [],
-      compiled: compileLadder(initial.ladder, initial.tags),
+      compiled: compileProject(initial),
+      stReveal: null,
       selection: null,
       focusOperand: 0,
       drag: null,

@@ -254,6 +254,8 @@ export function analyze(
           expect(typeOf(s.condition), isBool, 'BOOL', s.source);
           s.body.forEach((x) => visitStmt(x, true));
           return;
+        case 'exit':
+          return;
         case 'timer':
           checkInstance(s.instance, 'timer', s.source);
           expect(typeOf(s.input), isBool, 'BOOL', s.source);

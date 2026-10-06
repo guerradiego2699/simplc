@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Check, CircleAlert } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
-import { indexDiagnostics } from './diagnostics';
+import { diagnosticCounts } from '@/simulator/project/compile-project';
 import { fmt, useController, useLocale, useSim, useStoreApi, useStrings } from './context';
 
 export function StatusBar() {
@@ -9,16 +9,16 @@ export function StatusBar() {
   const locale = useLocale();
   const store = useStoreApi();
   const controller = useController();
-  const { status, timeMs, diagnostics, zoom, autosave } = useSim(
+  const { status, timeMs, compiled, zoom, autosave } = useSim(
     useShallow((s) => ({
       status: s.status,
       timeMs: s.snapshot?.timeMs ?? 0,
-      diagnostics: s.compiled.diagnostics,
+      compiled: s.compiled,
       zoom: s.zoom,
       autosave: s.autosave,
     })),
   );
-  const { errors, warnings } = useMemo(() => indexDiagnostics(diagnostics), [diagnostics]);
+  const { errors, warnings } = useMemo(() => diagnosticCounts(compiled), [compiled]);
 
   const mode = status === 'running' ? 'RUN' : status === 'paused' ? 'PAUSE' : 'STOP';
   const dot =
