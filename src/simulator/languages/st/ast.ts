@@ -45,14 +45,20 @@ export interface VarRef {
   range: Range;
 }
 
-export type Expression =
+/**
+ * Expressions. `temp` (a network-local temporary) is never produced by the ST parser: IL and SFC
+ * build ASTs that use it. `probe` (any node) records the node's value for live display.
+ */
+export type Expression = (
   | VarRef
   | { kind: 'bool'; value: boolean; range: Range }
   | { kind: 'number'; text: string; range: Range }
   | { kind: 'time'; text: string; range: Range }
   | { kind: 'unary'; op: 'NOT' | '-'; arg: Expression; range: Range }
   | { kind: 'binary'; op: string; left: Expression; right: Expression; range: Range }
-  | { kind: 'call'; name: string; args: Expression[]; range: Range };
+  | { kind: 'call'; name: string; args: Expression[]; range: Range }
+  | { kind: 'temp'; name: string; range: Range }
+) & { probe?: string };
 
 export interface Param {
   name: string;
@@ -93,6 +99,8 @@ export type Statement =
   | { kind: 'while'; condition: Expression; body: Statement[]; range: Range }
   | { kind: 'repeat'; body: Statement[]; until: Expression; range: Range }
   | { kind: 'exit'; range: Range }
+  /** Internal (IL / SFC): declares or overwrites a network-local temporary. */
+  | { kind: 'let'; name: string; value: Expression; range: Range }
   | { kind: 'return'; range: Range };
 
 export interface StProgram {

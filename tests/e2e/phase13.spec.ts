@@ -21,10 +21,9 @@ const NEW_EXAMPLES = [
 ] as const;
 
 test.describe('new example pages', () => {
-  test('gallery shows 13 examples; only the batch mixer is still coming', async ({ page }) => {
+  test('gallery shows all 14 examples', async ({ page }) => {
     await page.goto('/es/examples');
-    await expect(page.locator('[data-example]')).toHaveCount(13);
-    await expect(page.getByText('Mezcladora por lotes (batch)')).toBeVisible();
+    await expect(page.locator('[data-example]')).toHaveCount(14);
     await expect(page.getByRole('link', { name: 'Portón automático' })).toHaveAttribute(
       'href',
       '/es/examples/automatic-gate',

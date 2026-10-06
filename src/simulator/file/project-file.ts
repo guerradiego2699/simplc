@@ -3,10 +3,13 @@
  *
  * {
  *   "format": "plcampus-project",
- *   "version": 1,
+ *   "version": 2,
  *   "savedAt": "2026-09-29T12:00:00.000Z",
  *   "project": { name, language, ladder, tags, io, plant }
  * }
+ *
+ * Versions: 1 = Ladder + ST; 2 (Phase 14) adds the optional `il` source and `sfc` chart. A
+ * version 1 file is a valid version 2 file, so no migration is needed.
  *
  * Files are validated with Zod (mini build: tiny bundle). On import every element, rung and tag
  * gets a fresh id, so hand-edited files with repeated ids cannot confuse the editor.
@@ -20,9 +23,10 @@ import {
   type Series,
 } from '@/simulator/languages/ladder/model';
 import type { Project } from '@/simulator/project/types';
+import { SFC_QUALIFIERS, type SfcProgram } from '@/simulator/languages/sfc/model';
 
 export const FILE_FORMAT = 'plcampus-project';
-export const FILE_VERSION = 1;
+export const FILE_VERSION = 2;
 export const FILE_EXTENSION = '.plcampus.json';
 
 // ---------------------------------------------------------------------------------------------
@@ -83,6 +87,33 @@ const tagSchema = z.object({
   comment: text(200),
 });
 
+const sfcSchema = z.object({
+  steps: z
+    .array(
+      z.object({
+        id: text(64),
+        name: text(64),
+        initial: z.boolean(),
+        comment: text(500),
+        actions: z
+          .array(
+            z.object({
+              id: z.optional(z.string()),
+              qualifier: z.enum(SFC_QUALIFIERS),
+              variable: text(64),
+            }),
+          )
+          .check(z.maxLength(50)),
+      }),
+    )
+    .check(z.maxLength(200)),
+  transitions: z
+    .array(
+      z.object({ id: z.optional(z.string()), from: text(64), to: text(64), condition: text(1000) }),
+    )
+    .check(z.maxLength(500)),
+});
+
 const projectSchema = z.object({
   name: text(100),
   language: z.enum(['LD', 'ST', 'FBD', 'IL', 'SFC']),
@@ -100,6 +131,8 @@ const projectSchema = z.object({
   }),
   plant: z.nullable(z.string()),
   st: z.optional(text(200_000)),
+  il: z.optional(text(200_000)),
+  sfc: z.optional(sfcSchema),
   challenge: z.optional(z.string().check(z.maxLength(80))),
 });
 
@@ -246,6 +279,33 @@ function withFreshIds(p: z.infer<typeof projectSchema>): Project {
     io: { inputs, outputs },
     plant: p.plant,
     ...(p.st !== undefined ? { st: p.st } : {}),
+    ...(p.il !== undefined ? { il: p.il } : {}),
+    ...(p.sfc !== undefined ? { sfc: sfcWithFreshIds(p.sfc) } : {}),
     ...(p.challenge !== undefined ? { challenge: p.challenge } : {}),
+  };
+}
+
+/** New ids for steps, transitions and actions (transitions follow their steps). */
+function sfcWithFreshIds(sfc: z.infer<typeof sfcSchema>): SfcProgram {
+  const ids = new Map(sfc.steps.map((s) => [s.id, newId('step')]));
+  return {
+    steps: sfc.steps.map((s) => ({
+      id: ids.get(s.id)!,
+      name: s.name,
+      initial: s.initial,
+      comment: s.comment,
+      actions: s.actions.map((a) => ({
+        id: newId('act'),
+        qualifier: a.qualifier,
+        variable: a.variable,
+      })),
+    })),
+    transitions: sfc.transitions.map((t) => ({
+      id: newId('tr'),
+      // Unknown step ids become empty: the compiler reports them.
+      from: ids.get(t.from) ?? '',
+      to: ids.get(t.to) ?? '',
+      condition: t.condition,
+    })),
   };
 }

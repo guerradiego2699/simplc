@@ -61,7 +61,7 @@ test.describe('saving and loading projects', () => {
     ]);
     expect(download.suggestedFilename()).toBe('partida-motor-n-1.plcampus.json');
     const content = JSON.parse(await readFile((await download.path())!, 'utf8'));
-    expect(content).toMatchObject({ format: 'plcampus-project', version: 1 });
+    expect(content).toMatchObject({ format: 'plcampus-project', version: 2 });
     expect(content.project.name).toBe('Partida motor Nº1');
     expect(content.project.ladder.rungs).toHaveLength(1);
     await expect(notice(page)).toContainText('partida-motor-n-1.plcampus.json');

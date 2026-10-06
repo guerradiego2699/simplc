@@ -23,7 +23,8 @@ import { SPEEDS, ZOOM } from '@/simulator/store/simulator-store';
 import { ADDRESS_STYLES, type AddressStyle } from '@/simulator/addressing/styles';
 import type { Language } from '@/simulator/project/types';
 import { fmt, useController, useLocale, useSim, useStoreApi, useStrings } from './context';
-import { downloadProject, exportSt, openProjectFile, stSourceOf } from './file-actions';
+import { downloadProject, exportSt, ilSourceOf, openProjectFile, stSourceOf } from './file-actions';
+import { starterSfc } from '@/simulator/languages/sfc/model';
 import { getChallenge } from '@/simulator/challenges';
 
 const LANGUAGES: Language[] = ['LD', 'ST', 'FBD', 'IL', 'SFC'];
@@ -55,25 +56,40 @@ export function Toolbar() {
         inChallenge: getChallenge(s.project.challenge) !== undefined,
       })),
     );
-  const [askConvert, setAskConvert] = useState(false);
+  const [askConvert, setAskConvert] = useState<'ST' | 'IL' | null>(null);
 
   const notice = (text: string) => showNotice(store, text);
-  /** LD → ST converts the Ladder program; ST → LD goes back to the Ladder kept in the project. */
-  const toSt = (convert: boolean) => {
-    setAskConvert(false);
-    const st = convert ? stSourceOf(store, t) : undefined;
-    store.getState().commit((p) => ({ ...p, language: 'ST', ...(st !== undefined ? { st } : {}) }));
-    if (convert) notice(t.st.converted);
+  /**
+   * LD → ST / IL converts the Ladder program (kept in the project); going back to LD returns to
+   * that Ladder program. SFC is never converted: it starts from a small chart.
+   */
+  const toText = (target: 'ST' | 'IL', convert: boolean) => {
+    setAskConvert(null);
+    const source = convert ? (target === 'ST' ? stSourceOf : ilSourceOf)(store, t) : undefined;
+    const key = target === 'ST' ? 'st' : 'il';
+    store.getState().commit((p) => ({
+      ...p,
+      language: target,
+      ...(source !== undefined ? { [key]: source } : {}),
+    }));
+    if (convert) notice(target === 'ST' ? t.st.converted : t.il.converted);
   };
   const chooseLanguage = (l: Language) => {
     if (l === language) return;
-    if (l === 'ST') {
-      if (store.getState().project.st?.trim()) setAskConvert(true);
-      else toSt(true);
-    } else if (l === 'LD' || l === 'FBD') {
+    const project = store.getState().project;
+    if (l === 'ST' || l === 'IL') {
+      // ST, IL and SFC cannot be converted: the kept Ladder program is converted instead.
+      if ((l === 'ST' ? project.st : project.il)?.trim()) setAskConvert(l);
+      else toText(l, true);
+    } else if (l === 'SFC') {
+      store.getState().commit((p) => ({ ...p, language: 'SFC', sfc: p.sfc ?? starterSfc() }));
+      notice(project.sfc ? t.sfc.openedSfc : t.sfc.toSfc);
+    } else {
       // Ladder and FBD are two views of the same program: switching is instant and lossless.
       store.getState().commit((p) => ({ ...p, language: l }));
       if (language === 'ST') notice(l === 'LD' ? t.st.backToLd : t.fbd.fromSt);
+      else if (language === 'IL') notice(t.il.backToLd);
+      else if (language === 'SFC') notice(t.sfc.backToLd);
       else notice(l === 'FBD' ? t.fbd.toFbd : t.fbd.toLd);
     }
   };
@@ -107,12 +123,25 @@ export function Toolbar() {
             testId: 'menu-download',
             onSelect: () => downloadProject(store, t),
           },
-          {
-            label: t.toolbar.exportSt,
-            Icon: FileCode,
-            testId: 'menu-export-st',
-            onSelect: () => exportSt(store, t),
-          },
+          ...(language === 'SFC'
+            ? []
+            : language === 'IL'
+              ? [
+                  {
+                    label: t.toolbar.exportIl,
+                    Icon: FileCode,
+                    testId: 'menu-export-il',
+                    onSelect: () => exportSt(store, t, 'il'),
+                  },
+                ]
+              : [
+                  {
+                    label: t.toolbar.exportSt,
+                    Icon: FileCode,
+                    testId: 'menu-export-st',
+                    onSelect: () => exportSt(store, t),
+                  },
+                ]),
           ...EXAMPLES.map((example) => ({
             label: fmt(t.toolbar.loadExample, { name: example.title[locale] }),
             Icon: FileText,
@@ -157,18 +186,14 @@ export function Toolbar() {
           <button
             key={l}
             type="button"
-            disabled={!(l === 'LD' || l === 'FBD' || (l === 'ST' && !inChallenge))}
+            disabled={!(l === 'LD' || l === 'FBD' || !inChallenge)}
             aria-pressed={l === language}
             data-language={l}
             onClick={() => chooseLanguage(l)}
             title={
-              l === 'LD' || l === 'FBD'
-                ? l
-                : l === 'ST'
-                  ? inChallenge
-                    ? t.toolbar.languageInChallenge
-                    : l
-                  : fmt(t.toolbar.languageSoon, { language: l })
+              l !== 'LD' && l !== 'FBD' && inChallenge
+                ? t.toolbar.languageInChallenge
+                : t.toolbar.languageNames[l]
             }
             className="h-6 rounded px-2 font-mono text-xs font-semibold text-text-muted disabled:opacity-40 aria-pressed:bg-primary aria-pressed:text-on-primary"
           >
@@ -319,21 +344,24 @@ export function Toolbar() {
       </div>
       {askConvert && (
         <ConvertDialog
-          onConvert={() => toSt(true)}
-          onKeep={() => toSt(false)}
-          onCancel={() => setAskConvert(false)}
+          language={askConvert}
+          onConvert={() => toText(askConvert, true)}
+          onKeep={() => toText(askConvert, false)}
+          onCancel={() => setAskConvert(null)}
         />
       )}
     </div>
   );
 }
 
-/** LD → ST when an ST program already exists: convert again or keep it. */
+/** LD → ST / IL when a program in that language already exists: convert again or keep it. */
 function ConvertDialog({
+  language,
   onConvert,
   onKeep,
   onCancel,
 }: {
+  language: 'ST' | 'IL';
   onConvert: () => void;
   onKeep: () => void;
   onCancel: () => void;
@@ -356,7 +384,7 @@ function ConvertDialog({
         className="w-full max-w-md rounded-lg border border-border bg-bg p-5 shadow-xl"
       >
         <p id="convert-question" className="text-sm text-text">
-          {t.st.convertQuestion}
+          {language === 'IL' ? t.il.convertQuestion : t.st.convertQuestion}
         </p>
         <div className="mt-5 flex flex-wrap justify-end gap-2">
           <button
@@ -371,7 +399,7 @@ function ConvertDialog({
             onClick={onKeep}
             className={`${btn} border border-border text-text hover:border-primary`}
           >
-            {t.st.convertKeep}
+            {language === 'IL' ? t.il.convertKeep : t.st.convertKeep}
           </button>
           <button
             ref={first}

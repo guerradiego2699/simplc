@@ -31,13 +31,27 @@ export class ParseError extends Error {
 }
 
 export function parseSt(source: string): StProgram {
-  let tokens: Token[];
+  return createParser(tokenizeOrThrow(source)).program();
+}
+
+/** Tokenizes, turning lexer errors into ParseErrors. */
+export function tokenizeOrThrow(source: string): Token[] {
   try {
-    tokens = tokenize(source);
+    return tokenize(source);
   } catch (e) {
     if (e instanceof LexError) throw new ParseError(e.message, e.range, e.params);
     throw e;
   }
+}
+
+export type StParser = ReturnType<typeof createParser>;
+
+/**
+ * Recursive-descent parser over a token list. Besides `program()` (a whole ST program) it exposes
+ * the pieces the IL parser reuses: expressions, variable references, VAR blocks and the
+ * parameter list of a function block call.
+ */
+export function createParser(tokens: Token[]) {
   let i = 0;
 
   const peek = (k = 0): Token => tokens[Math.min(i + k, tokens.length - 1)]!;
@@ -172,6 +186,28 @@ export function parseSt(source: string): StProgram {
   const xorExpr = binaryLevel(['XOR'], andExpr);
   const expression = binaryLevel(['OR'], xorExpr);
 
+  /** `(PARAM := value, …)` of a function block call; returns the parameters. */
+  const callParams = (): Param[] => {
+    expectOp('(');
+    const params: Param[] = [];
+    if (!isOp(')')) {
+      do {
+        if (params.length) next(); // the comma
+        const name = expectIdent();
+        if (!isOp(':=')) fail(':=');
+        next();
+        const value = expression();
+        params.push({
+          name: name.text.toUpperCase(),
+          value,
+          range: span(name.range, value.range),
+        });
+      } while (isOp(','));
+    }
+    expectOp(')');
+    return params;
+  };
+
   // ----------------------------------------------------------------------------- statements
 
   const statementsUntil = (...terminators: string[]): Statement[] => {
@@ -218,23 +254,7 @@ export function parseSt(source: string): StProgram {
     // Function block call: NAME(PARAM := value, …);
     if (t.kind === 'ident' && isOp('(', peek(1))) {
       next();
-      next();
-      const params: Param[] = [];
-      if (!isOp(')')) {
-        do {
-          if (params.length) next(); // the comma
-          const name = expectIdent();
-          if (!isOp(':=')) fail(':=');
-          next();
-          const value = expression();
-          params.push({
-            name: name.text.toUpperCase(),
-            value,
-            range: span(name.range, value.range),
-          });
-        } while (isOp(','));
-      }
-      expectOp(')');
+      const params = callParams();
       const end = expectOp(';');
       return { kind: 'fbcall', name: t.text, params, range: span(t.range, end.range) };
     }
@@ -395,18 +415,40 @@ export function parseSt(source: string): StProgram {
     return decls;
   };
 
-  let name: string | undefined;
-  if (isKw('PROGRAM')) {
-    next();
-    name = expectIdent().text;
-  }
-  const vars: VarDecl[] = [];
-  while (isKw('VAR')) vars.push(...varBlock());
-  const body = statementsUntil('END_PROGRAM');
-  if (name !== undefined || isKw('END_PROGRAM')) {
-    expectKw('END_PROGRAM');
-    optionalSemicolon();
-  }
-  if (peek().kind !== 'eof') fail('end');
-  return { ...(name ? { name } : {}), vars, body };
+  const program = (): StProgram => {
+    let name: string | undefined;
+    if (isKw('PROGRAM')) {
+      next();
+      name = expectIdent().text;
+    }
+    const vars: VarDecl[] = [];
+    while (isKw('VAR')) vars.push(...varBlock());
+    const body = statementsUntil('END_PROGRAM');
+    if (name !== undefined || isKw('END_PROGRAM')) {
+      expectKw('END_PROGRAM');
+      optionalSemicolon();
+    }
+    if (peek().kind !== 'eof') fail('end');
+    return { ...(name ? { name } : {}), vars, body };
+  };
+
+  return {
+    peek,
+    next,
+    isKw,
+    isOp,
+    fail,
+    span,
+    expectOp,
+    expectIdent,
+    expression,
+    varRef,
+    varBlock,
+    callParams,
+    program,
+    /** Index of the next token (to detect progress). */
+    get position() {
+      return i;
+    },
+  };
 }

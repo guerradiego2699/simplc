@@ -6,6 +6,7 @@ import type { Locale } from '@/config/site';
 import {
   contentProject,
   contentRungSchema,
+  contentSfcSchema,
   localizedListSchema,
   localizedSchema,
   plantIdSchema,
@@ -23,6 +24,8 @@ const exampleSchema = z.object({
   io: z.array(signalSchema),
   steps: localizedListSchema,
   rungs: z.array(contentRungSchema),
+  /** Examples written in SFC (the Ladder program is then empty). */
+  sfc: z.optional(contentSfcSchema),
 });
 
 export type Example = z.infer<typeof exampleSchema>;
@@ -49,6 +52,12 @@ export const getExample = (id: string | null | undefined): Example | undefined =
 /** The example as a simulator project in one language. */
 export const exampleProject = (example: Example, locale: Locale): Project =>
   contentProject(
-    { name: example.title[locale], io: example.io, rungs: example.rungs, plant: example.plant },
+    {
+      name: example.title[locale],
+      io: example.io,
+      rungs: example.rungs,
+      plant: example.plant,
+      sfc: example.sfc,
+    },
     locale,
   );

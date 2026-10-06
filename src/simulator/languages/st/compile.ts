@@ -153,7 +153,20 @@ export function compileSt(source: string, tags: readonly Tag[]): StCompileResult
     }
     throw e;
   }
-  return new Compiler(program, tags).run();
+  return compileStProgram(program, tags);
+}
+
+/**
+ * Compiles an already-built AST. IL and SFC translate to this AST (they may use `temp`, `let`
+ * and `probe`), so they share name resolution, VAR blocks, FB calls and type checks with ST.
+ * Diagnostics keep the AST's range objects, so callers can map them back by identity.
+ */
+export function compileStProgram(
+  program: StProgram,
+  tags: readonly Tag[],
+  network: { id: string; label: string } = { id: ST_NETWORK_ID, label: program.name ?? 'ST' },
+): StCompileResult {
+  return new Compiler(program, tags, network).run();
 }
 
 function tagSymbols(tags: readonly Tag[]): StSymbol[] {
@@ -190,10 +203,12 @@ class Compiler {
   private tempCount = 0;
   private readonly program: StProgram;
   private readonly tags: readonly Tag[];
+  private readonly network: { id: string; label: string };
 
-  constructor(program: StProgram, tags: readonly Tag[]) {
+  constructor(program: StProgram, tags: readonly Tag[], network: { id: string; label: string }) {
     this.program = program;
     this.tags = tags;
+    this.network = network;
   }
 
   run(): StCompileResult {
@@ -203,7 +218,7 @@ class Compiler {
 
     const ir: IrProgram = {
       version: 1,
-      networks: [{ id: ST_NETWORK_ID, label: this.program.name ?? 'ST', body }],
+      networks: [{ id: this.network.id, label: this.network.label, body }],
     };
 
     for (const d of analyze(ir, DEFAULT_LAYOUT, { warnDuplicateOutputs: false })) {
@@ -294,6 +309,9 @@ class Compiler {
         case 'fbcall':
           add(s.name);
           s.params.forEach((p) => visitExpr(p.value));
+          break;
+        case 'let':
+          visitExpr(s.value);
           break;
         case 'if':
           s.branches.forEach((b) => {
@@ -474,6 +492,12 @@ class Compiler {
   // --------------------------------------------------------------------------- expressions
 
   private expr(e: Expression): Expr | null {
+    const result = this.exprNode(e);
+    if (result && e.probe) result.probe = e.probe;
+    return result;
+  }
+
+  private exprNode(e: Expression): Expr | null {
     const s = this.src(e.range);
     switch (e.kind) {
       case 'bool':
@@ -496,6 +520,8 @@ class Compiler {
       }
       case 'var':
         return this.readOf(e);
+      case 'temp':
+        return { kind: 'temp', name: e.name, ...s };
       case 'unary': {
         if (e.op === '-' && e.arg.kind === 'number') {
           const lit = parseLiteral(`-${e.arg.text}`);
@@ -564,6 +590,10 @@ class Compiler {
       }
       case 'fbcall':
         return this.fbCall(st);
+      case 'let': {
+        const value = this.expr(st.value);
+        return value ? [{ kind: 'let', name: st.name, value, ...this.src(st.range) }] : [];
+      }
       case 'if': {
         let elseBody: Stmt[] | undefined = st.else ? this.block(st.else) : undefined;
         for (let k = st.branches.length - 1; k >= 0; k--) {

@@ -1,6 +1,7 @@
 /**
  * The plant models. Addresses are fixed per plant and documented in each example.
  */
+import { mixerPlant } from './mixer';
 import {
   conveyorPlant,
   gatePlant,
@@ -121,6 +122,7 @@ export const PLANTS: Record<PlantId, PlantModel> = {
   conveyor: conveyorPlant as PlantModel,
   parking: parkingPlant as PlantModel,
   sorter: sorterPlant as PlantModel,
+  mixer: mixerPlant as PlantModel,
   pumps: pumpsPlant as PlantModel,
   oven: ovenPlant as PlantModel,
   levelControl: levelControlPlant as PlantModel,

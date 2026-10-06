@@ -3,6 +3,7 @@
  */
 import { SITE } from '@/config/site';
 import { ladderToSt } from '@/simulator/languages/st/from-ladder';
+import { ladderToIl } from '@/simulator/languages/il/from-ladder';
 import {
   FILE_EXTENSION,
   fileNameFor,
@@ -80,11 +81,26 @@ export function stSourceOf(store: SimulatorStoreApi, t: SimStrings): string {
   });
 }
 
-/** Downloads the program as a .st text file (Ladder projects are converted first). */
-export function exportSt(store: SimulatorStoreApi, t: SimStrings): void {
+/** The program as Instruction List: the IL source, or the conversion of the Ladder program. */
+export function ilSourceOf(store: SimulatorStoreApi, t: SimStrings): string {
+  const { project } = store.getState();
+  if (project.language === 'IL') return project.il ?? '';
+  return ladderToIl(project.ladder, project.tags, {
+    header: fmt(t.st.header, { name: project.name || t.toolbar.untitled }),
+    rung: t.st.rung,
+    rungVariable: t.st.rungVariable,
+  });
+}
+
+/** Downloads the program as text: .st (ST, or Ladder converted) or .il (IL source). */
+export function exportSt(store: SimulatorStoreApi, t: SimStrings, kind: 'st' | 'il' = 'st'): void {
   const project = store.getState().project;
-  const fileName = fileNameFor(project.name, t.file.fallbackName).replace(FILE_EXTENSION, '.st');
-  const blob = new Blob([stSourceOf(store, t)], { type: 'text/plain;charset=utf-8' });
+  const fileName = fileNameFor(project.name, t.file.fallbackName).replace(
+    FILE_EXTENSION,
+    '.' + kind,
+  );
+  const text = kind === 'il' ? ilSourceOf(store, t) : stSourceOf(store, t);
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;

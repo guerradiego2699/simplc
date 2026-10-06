@@ -1,3 +1,4 @@
+import { starterSfc } from '@/simulator/languages/sfc/model';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { compileLadder } from '@/simulator/languages/ladder/compile';
 import {
@@ -52,8 +53,30 @@ describe('project file', () => {
     );
     expect(json).toMatchObject({
       format: 'plcampus-project',
-      version: 1,
+      version: 2,
       savedAt: '2026-01-02T03:04:05.000Z',
+    });
+  });
+
+  it('reads version 1 files and round-trips IL and SFC programs (version 2)', () => {
+    const v1 = JSON.parse(serializeProject(motorStartStopProject(TEXTS)));
+    v1.version = 1;
+    expect(parseProjectFile(JSON.stringify(v1)).ok).toBe(true);
+
+    const sfc = starterSfc();
+    const p = { ...motorStartStopProject(TEXTS), language: 'SFC' as const, il: 'LD I0.0', sfc };
+    const result = parseProjectFile(serializeProject(p));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.project.il).toBe('LD I0.0');
+    const loaded = result.project.sfc!;
+    expect(loaded.steps.map((s) => s.name)).toEqual(['S0', 'S1']);
+    // Fresh ids, transitions still connect the same steps.
+    expect(loaded.steps[0]!.id).not.toBe(sfc.steps[0]!.id);
+    expect(loaded.transitions[0]).toMatchObject({
+      from: loaded.steps[0]!.id,
+      to: loaded.steps[1]!.id,
+      condition: 'I0.0',
     });
   });
 

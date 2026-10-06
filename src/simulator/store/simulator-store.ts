@@ -26,6 +26,7 @@ import {
 } from '@/simulator/languages/ladder/model';
 import type { Validation } from '@/simulator/challenges/validator';
 import { resolveOperand } from '@/simulator/project/tags';
+import { removeStep, removeTransition } from '@/simulator/languages/sfc/model';
 import type { Project } from '@/simulator/project/types';
 
 export type SimStatus = 'stopped' | 'running' | 'paused';
@@ -79,6 +80,12 @@ export interface ChallengeSession {
   result: { validation: Validation; ladder: LadderProgram } | null;
 }
 
+/** What is selected in the SFC editor. */
+export interface SfcSelection {
+  kind: 'step' | 'transition';
+  id: string;
+}
+
 export const SPEEDS = [0.25, 0.5, 1, 2, 4] as const;
 export const ZOOM = { min: 0.5, max: 2, step: 0.1 } as const;
 const HISTORY_LIMIT = 100;
@@ -92,6 +99,8 @@ export interface SimulatorState {
   /** Ask the ST editor to move the cursor (from the console); `id` changes on every request. */
   stReveal: { line: number; col: number; id: number } | null;
   selection: Selection;
+  /** Selected step or transition in the SFC editor. */
+  sfcSelection: SfcSelection | null;
   /** Ask the properties panel to focus the operand field (after inserting an element). */
   focusOperand: number;
   drag: DragState | null;
@@ -129,6 +138,9 @@ interface Actions {
   undo(): void;
   redo(): void;
   select(selection: Selection): void;
+  selectSfc(selection: SfcSelection | null): void;
+  /** Deletes the selected SFC step (with its transitions) or transition. Undoable. */
+  deleteSfcSelection(): void;
   insertFromPalette(item: PaletteItem): void;
   dropAt(target: InsertTarget, item: DragItem): void;
   deleteSelection(): void;
@@ -258,6 +270,7 @@ export function createSimulatorStore(initial: Project) {
       future: [],
       compiled: compileProject(initial),
       stReveal: null,
+      sfcSelection: null,
       selection: null,
       focusOperand: 0,
       drag: null,
@@ -402,7 +415,26 @@ export function createSimulatorStore(initial: Project) {
       replaceProject(project) {
         lastCommit = null;
         get().commit(() => project);
-        set({ selection: null, drag: null });
+        set({ selection: null, sfcSelection: null, drag: null });
+      },
+
+      selectSfc(sfcSelection) {
+        set({ sfcSelection });
+      },
+
+      deleteSfcSelection() {
+        const sel = get().sfcSelection;
+        if (!sel) return;
+        get().commit((p) =>
+          p.sfc
+            ? {
+                ...p,
+                sfc:
+                  sel.kind === 'step' ? removeStep(p.sfc, sel.id) : removeTransition(p.sfc, sel.id),
+              }
+            : p,
+        );
+        set({ sfcSelection: null });
       },
 
       setNotice(notice) {

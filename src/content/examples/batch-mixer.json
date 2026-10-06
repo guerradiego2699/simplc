@@ -1,0 +1,155 @@
+{
+  "id": "batch-mixer",
+  "order": 11,
+  "level": 4,
+  "plant": "mixer",
+  "title": {
+    "es": "Mezcladora por lotes (batch) en SFC",
+    "en": "Batch mixer in SFC"
+  },
+  "summary": {
+    "es": "Una secuencia clásica: cargar el ingrediente A, luego el B, mezclar durante 8 segundos y vaciar. Está escrita en SFC (diagrama de etapas y transiciones), el lenguaje pensado justamente para procesos por pasos.",
+    "en": "A classic sequence: load ingredient A, then B, mix for 8 seconds and drain. It is written in SFC (steps and transitions chart), the language designed precisely for step-by-step processes."
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": { "es": "MARCHA", "en": "START" },
+      "description": { "es": "Pulsador de marcha de un lote", "en": "Start batch push button" },
+      "mode": "button-no"
+    },
+    {
+      "address": "I0.1",
+      "name": { "es": "PARO", "en": "STOP" },
+      "description": {
+        "es": "Pulsador de paro (NC: 1 en reposo); impide iniciar un lote",
+        "en": "Stop push button (NC: 1 at rest); prevents starting a batch"
+      },
+      "mode": "button-nc"
+    },
+    {
+      "address": "I0.2",
+      "name": { "es": "NIVEL_A", "en": "LEVEL_A" },
+      "description": {
+        "es": "Sensor de nivel del ingrediente A, 40 % (planta)",
+        "en": "Ingredient A level switch, 40 % (plant)"
+      }
+    },
+    {
+      "address": "I0.3",
+      "name": { "es": "LLENO", "en": "FULL" },
+      "description": {
+        "es": "Sensor de estanque lleno, 80 % (planta)",
+        "en": "Tank full switch, 80 % (plant)"
+      }
+    },
+    {
+      "address": "I0.4",
+      "name": { "es": "VACIO", "en": "EMPTY" },
+      "description": {
+        "es": "Sensor de estanque vacío (planta)",
+        "en": "Tank empty switch (plant)"
+      }
+    },
+    {
+      "address": "Q0.0",
+      "name": { "es": "VALVULA_A", "en": "VALVE_A" },
+      "description": { "es": "Válvula del ingrediente A", "en": "Ingredient A valve" }
+    },
+    {
+      "address": "Q0.1",
+      "name": { "es": "VALVULA_B", "en": "VALVE_B" },
+      "description": { "es": "Válvula del ingrediente B", "en": "Ingredient B valve" }
+    },
+    {
+      "address": "Q0.2",
+      "name": { "es": "AGITADOR", "en": "AGITATOR" },
+      "description": { "es": "Motor del agitador", "en": "Agitator motor" }
+    },
+    {
+      "address": "Q0.3",
+      "name": { "es": "VALVULA_SALIDA", "en": "DRAIN_VALVE" },
+      "description": { "es": "Válvula de vaciado", "en": "Drain valve" }
+    },
+    {
+      "address": "Q0.4",
+      "name": { "es": "LOTE_LISTO", "en": "BATCH_DONE" },
+      "description": {
+        "es": "Luz de lote terminado (queda encendida hasta el próximo lote)",
+        "en": "Batch done light (stays on until the next batch)"
+      }
+    }
+  ],
+  "steps": {
+    "es": [
+      "Pulsa ▶ Ejecutar (F5). La etapa inicial REPOSO (doble borde) se activa sola. Pulsa MARCHA: la transición se cumple porque el estanque está vacío y PARO está en reposo.",
+      "LLENAR_A abre VALVULA_A (acción N: solo mientras la etapa está activa) y apaga LOTE_LISTO (R). Al llegar al 40 %, NIVEL_A cumple la transición y pasa a LLENAR_B, que carga hasta LLENO.",
+      "MEZCLAR enciende el agitador. Su transición usa el tiempo de la etapa: MEZCLAR.T >= T#8s. Mira cómo corre el tiempo dentro de la etapa activa.",
+      "VACIAR abre la salida y enciende LOTE_LISTO con S (queda encendida). Con el estanque vacío se vuelve a REPOSO (la flecha → REPOSO es un salto). La planta califica cada lote: prueba bajar el tiempo de mezcla a T#3s y verás un lote con error."
+    ],
+    "en": [
+      "Press ▶ Run (F5). The initial step IDLE (double border) becomes active by itself. Press START: the transition is true because the tank is empty and STOP is at rest.",
+      "FILL_A opens VALVE_A (action N: only while the step is active) and turns BATCH_DONE off (R). At 40 %, LEVEL_A makes the transition true and moves on to FILL_B, which fills up to FULL.",
+      "MIX turns the agitator on. Its transition uses the step time: MIX.T >= T#8s. Watch the time run inside the active step.",
+      "DRAIN opens the outlet and turns BATCH_DONE on with S (it stays on). With the tank empty it returns to IDLE (the arrow → IDLE is a jump). The plant grades each batch: try lowering the mixing time to T#3s and you will get a bad batch."
+    ]
+  },
+  "rungs": [],
+  "sfc": {
+    "steps": [
+      {
+        "name": { "es": "REPOSO", "en": "IDLE" },
+        "initial": true,
+        "comment": {
+          "es": "Espera la orden de marcha con el estanque vacío.",
+          "en": "Waits for the start command with the tank empty."
+        },
+        "actions": []
+      },
+      {
+        "name": { "es": "LLENAR_A", "en": "FILL_A" },
+        "comment": { "es": "Carga el ingrediente A.", "en": "Loads ingredient A." },
+        "actions": [
+          { "qualifier": "N", "variable": "Q0.0" },
+          { "qualifier": "R", "variable": "Q0.4" }
+        ]
+      },
+      {
+        "name": { "es": "LLENAR_B", "en": "FILL_B" },
+        "comment": { "es": "Carga el ingrediente B.", "en": "Loads ingredient B." },
+        "actions": [{ "qualifier": "N", "variable": "Q0.1" }]
+      },
+      {
+        "name": { "es": "MEZCLAR", "en": "MIX" },
+        "comment": { "es": "Mezcla durante 8 segundos.", "en": "Mixes for 8 seconds." },
+        "actions": [{ "qualifier": "N", "variable": "Q0.2" }]
+      },
+      {
+        "name": { "es": "VACIAR", "en": "DRAIN" },
+        "comment": {
+          "es": "Vacía el estanque y avisa que el lote está listo.",
+          "en": "Empties the tank and signals that the batch is done."
+        },
+        "actions": [
+          { "qualifier": "N", "variable": "Q0.3" },
+          { "qualifier": "S", "variable": "Q0.4" }
+        ]
+      }
+    ],
+    "transitions": [
+      {
+        "from": 0,
+        "to": 1,
+        "condition": { "es": "MARCHA AND PARO AND VACIO", "en": "START AND STOP AND EMPTY" }
+      },
+      { "from": 1, "to": 2, "condition": { "es": "NIVEL_A", "en": "LEVEL_A" } },
+      { "from": 2, "to": 3, "condition": { "es": "LLENO", "en": "FULL" } },
+      {
+        "from": 3,
+        "to": 4,
+        "condition": { "es": "MEZCLAR.T >= T#8s", "en": "MIX.T >= T#8s" }
+      },
+      { "from": 4, "to": 0, "condition": { "es": "VACIO", "en": "EMPTY" } }
+    ]
+  }
+}

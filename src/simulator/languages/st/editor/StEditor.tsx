@@ -1,11 +1,13 @@
 /**
- * Structured Text editor (Monaco). Default export so it can be loaded with React.lazy.
+ * Text program editor (Monaco) for Structured Text and Instruction List. Default export so it
+ * can be loaded with React.lazy.
  *
- * - The source lives in `project.st`; edits are committed to the store (undoable, coalesced).
+ * - The source lives in `project.st` / `project.il`; edits are committed to the store (undoable,
+ *   coalesced).
  * - Diagnostics from the compiler become squiggles; the console can move the cursor to them.
  * - Completion: keywords, types, tags, VAR locals and timer/counter members after a dot.
- * - In RUN, each assignment line shows the current value of its target, and hovering a name
- *   shows its address and live value.
+ * - In RUN, ST lines that assign show the target's value; IL lines show the current result (CR)
+ *   after the instruction. Hovering a name shows its address and live value.
  */
 import { useEffect, useRef } from 'react';
 import { parseAddress, type MemorySnapshot } from '@/simulator/engine';
@@ -13,11 +15,14 @@ import { formatAddressStyled } from '@/simulator/addressing/styles';
 import { formatValue, liveValue } from '@/simulator/languages/ladder/editor/ElementView';
 import { diagnosticMessage } from '@/simulator/ui/diagnostics';
 import { fmt, useLocale, useStoreApi, useStrings } from '@/simulator/ui/context';
+import { ilProbe } from '../../il/compile';
 import type { StSymbol } from '../compile';
 import { ST_TYPES } from '../ast';
 import { KEYWORDS } from '../lexer';
 import { stEditorBridge } from './bridge';
-import { applyTheme, monaco, ST_LANGUAGE } from './monaco';
+import { applyTheme, IL_KEYWORDS, IL_LANGUAGE, monaco, ST_LANGUAGE } from './monaco';
+
+export type TextLanguage = 'ST' | 'IL';
 
 /** Members of each kind of instance, offered after "name.". */
 const MEMBERS: Record<string, string[]> = {
@@ -54,12 +59,12 @@ function instanceKind(name: string): keyof typeof MEMBERS | null {
   return null;
 }
 
-let providersRegistered = false;
-function registerProviders() {
-  if (providersRegistered) return;
-  providersRegistered = true;
+const registered = new Set<string>();
+function registerProviders(languageId: string, keywords: readonly string[]) {
+  if (registered.has(languageId)) return;
+  registered.add(languageId);
 
-  monaco.languages.registerCompletionItemProvider(ST_LANGUAGE, {
+  monaco.languages.registerCompletionItemProvider(languageId, {
     triggerCharacters: ['.'],
     provideCompletionItems(model, position) {
       const word = model.getWordUntilPosition(position);
@@ -95,7 +100,7 @@ function registerProviders() {
             insertText: s.name,
             range,
           })),
-          ...[...KEYWORDS].map((k) => ({
+          ...keywords.map((k) => ({
             label: k,
             kind: monaco.languages.CompletionItemKind.Keyword,
             insertText: k,
@@ -112,7 +117,7 @@ function registerProviders() {
     },
   });
 
-  monaco.languages.registerHoverProvider(ST_LANGUAGE, {
+  monaco.languages.registerHoverProvider(languageId, {
     provideHover(model, position) {
       const word = model.getWordAtPosition(position);
       if (!word) return null;
@@ -138,7 +143,7 @@ function registerProviders() {
 /** Assignment target at the start of a line ("x := …"), for live values. */
 const ASSIGNMENT = /^\s*([A-Za-z_%][\w.%]*)\s*:=/;
 
-export default function StEditor() {
+export default function StEditor({ language = 'ST' }: { language?: TextLanguage }) {
   const t = useStrings();
   const locale = useLocale();
   const store = useStoreApi();
@@ -147,11 +152,14 @@ export default function StEditor() {
   useEffect(() => {
     const element = host.current;
     if (!element) return;
-    registerProviders();
+    const il = language === 'IL';
+    const languageId = il ? IL_LANGUAGE : ST_LANGUAGE;
+    const field = il ? 'il' : 'st';
+    registerProviders(languageId, il ? IL_KEYWORDS : [...KEYWORDS]);
     applyTheme();
 
     const state = store.getState();
-    const model = monaco.editor.createModel(state.project.st ?? '', ST_LANGUAGE);
+    const model = monaco.editor.createModel(state.project[field] ?? '', languageId);
     const editor = monaco.editor.create(element, {
       model,
       automaticLayout: true,
@@ -163,7 +171,7 @@ export default function StEditor() {
       wordBasedSuggestions: 'off',
       fixedOverflowWidgets: true,
       renderLineHighlight: 'line',
-      ariaLabel: t.st.editorLabel,
+      ariaLabel: il ? t.il.editorLabel : t.st.editorLabel,
       padding: { top: 8 },
     });
 
@@ -186,8 +194,8 @@ export default function StEditor() {
     let applying = false;
     const changes = model.onDidChangeContent(() => {
       if (applying) return;
-      const st = model.getValue();
-      store.getState().commit((p) => ({ ...p, st }), 'st-edit');
+      const text = model.getValue();
+      store.getState().commit((p) => ({ ...p, [field]: text }), `${field}-edit`);
     });
 
     let decorations = editor.createDecorationsCollection();
@@ -195,23 +203,23 @@ export default function StEditor() {
     const sync = () => {
       const s = store.getState();
       // Store → editor (undo/redo, opened file, conversion).
-      const st = s.project.st ?? '';
-      if (st !== model.getValue()) {
+      const text = s.project[field] ?? '';
+      if (text !== model.getValue()) {
         applying = true;
         const selection = editor.getSelection();
         model.pushEditOperations(
           selection ? [selection] : [],
-          [{ range: model.getFullModelRange(), text: st }],
+          [{ range: model.getFullModelRange(), text }],
           () => null,
         );
         applying = false;
       }
       // Diagnostics → squiggles.
-      const result = s.compiled.st;
+      const result = s.compiled[field];
       live.symbols = result?.symbols ?? [];
       monaco.editor.setModelMarkers(
         model,
-        'st',
+        field,
         (result?.diagnostics ?? []).map((d) => {
           const word = model.getWordAtPosition({
             lineNumber: d.range.start.line,
@@ -231,6 +239,20 @@ export default function StEditor() {
       );
     };
 
+    const decoration = (line: number, content: string, on: boolean) => {
+      const end = model.getLineMaxColumn(line);
+      return {
+        range: new monaco.Range(line, end, line, end),
+        options: {
+          showIfCollapsed: true,
+          after: {
+            content,
+            inlineClassName: on ? 'st-live-value st-live-on' : 'st-live-value',
+          },
+        },
+      };
+    };
+
     const showLiveValues = () => {
       const s = store.getState();
       live.snapshot = s.snapshot;
@@ -240,6 +262,19 @@ export default function StEditor() {
       }
       const list: monaco.editor.IModelDeltaDecoration[] = [];
       for (let line = 1; line <= model.getLineCount(); line++) {
+        if (il) {
+          // The current result after this instruction.
+          const v = s.probes[ilProbe(line)];
+          if (v === undefined) continue;
+          const text =
+            typeof v === 'boolean'
+              ? v
+                ? 'TRUE'
+                : 'FALSE'
+              : v.toLocaleString(numberLocale, { maximumFractionDigits: 3 });
+          list.push(decoration(line, `   ${fmt(t.il.cr, { value: text })}`, v === true));
+          continue;
+        }
         const m = ASSIGNMENT.exec(model.getLineContent(line));
         if (!m) continue;
         const name = m[1] ?? '';
@@ -247,17 +282,9 @@ export default function StEditor() {
         if (!address) continue;
         const v = liveValue(address, s.snapshot);
         if (v === undefined) continue;
-        const end = model.getLineMaxColumn(line);
-        list.push({
-          range: new monaco.Range(line, end, line, end),
-          options: {
-            showIfCollapsed: true,
-            after: {
-              content: `   ${name} = ${formatValue(v, address, numberLocale)}`,
-              inlineClassName: v === true ? 'st-live-value st-live-on' : 'st-live-value',
-            },
-          },
-        });
+        list.push(
+          decoration(line, `   ${name} = ${formatValue(v, address, numberLocale)}`, v === true),
+        );
       }
       decorations.set(list);
     };
@@ -265,8 +292,9 @@ export default function StEditor() {
     sync();
     showLiveValues();
     const unsubscribe = store.subscribe((s, prev) => {
-      if (s.project.st !== prev.project.st || s.compiled !== prev.compiled) sync();
-      if (s.snapshot !== prev.snapshot || s.status !== prev.status) showLiveValues();
+      if (s.project[field] !== prev.project[field] || s.compiled !== prev.compiled) sync();
+      if (s.snapshot !== prev.snapshot || s.status !== prev.status || s.probes !== prev.probes)
+        showLiveValues();
       if (s.stReveal && s.stReveal !== prev.stReveal) {
         const position = { lineNumber: s.stReveal.line, column: s.stReveal.col };
         editor.setPosition(position);
@@ -305,7 +333,13 @@ export default function StEditor() {
       editor.dispose();
       model.dispose();
     };
-  }, [store, t, locale]);
+  }, [store, t, locale, language]);
 
-  return <div ref={host} className="h-full w-full" data-testid="st-editor" />;
+  return (
+    <div
+      ref={host}
+      className="h-full w-full"
+      data-testid={language === 'IL' ? 'il-editor' : 'st-editor'}
+    />
+  );
 }

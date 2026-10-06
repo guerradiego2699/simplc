@@ -119,6 +119,7 @@ const simulatorHref = `${localizePath(locale, '/simulator')}?example=${example.i
           name={example.title[locale]}
           program={project.ladder}
           tags={project.tags}
+          sfc={project.language === 'SFC' ? project.sfc : undefined}
         />
       </div>
     </section>

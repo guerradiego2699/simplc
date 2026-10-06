@@ -6,6 +6,7 @@
  * Colours come from tokens. Green (--led-on) is used only for signals that are logically
  * active (an energized output, a sensor that is on).
  */
+import { MixerView } from './MixerView';
 import { label, Status, svgClass, usePrefersReducedMotion, useRotorAngle } from './shared';
 import type { Dictionary } from '@/i18n';
 import type { PlantId } from '@/simulator/plants/types';
@@ -65,6 +66,8 @@ export function PlantView(props: PlantViewProps) {
       return <OvenView {...props} />;
     case 'levelControl':
       return <LevelControlView {...props} />;
+    case 'mixer':
+      return <MixerView {...props} />;
   }
 }
 

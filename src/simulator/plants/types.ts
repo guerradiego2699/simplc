@@ -17,6 +17,7 @@ export const PLANT_IDS = [
   'conveyor',
   'parking',
   'sorter',
+  'mixer',
   'pumps',
   'oven',
   'levelControl',

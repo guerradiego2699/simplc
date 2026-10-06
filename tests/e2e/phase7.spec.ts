@@ -12,13 +12,13 @@ const noHorizontalScroll = async (page: Page) =>
   );
 
 test.describe('examples pages', () => {
-  test('gallery lists the examples and the upcoming one', async ({ page }) => {
+  test('gallery lists all the examples', async ({ page }) => {
     await page.goto('/es/examples');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(
       'Ejemplos resueltos con plantas virtuales',
     );
-    await expect(page.locator('[data-example]')).toHaveCount(13);
-    await expect(page.getByText('Próximamente')).toHaveCount(1);
+    await expect(page.locator('[data-example]')).toHaveCount(14);
+    await expect(page.getByText('Próximamente')).toHaveCount(0);
     await expect(page.getByRole('link', { name: 'Semáforo de un cruce' })).toHaveAttribute(
       'href',
       '/es/examples/traffic-light',

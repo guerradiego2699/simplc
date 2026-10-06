@@ -1,11 +1,12 @@
 /**
- * Everything around the ST editor that is NOT Monaco (so it loads immediately): the lazy editor
- * host, the snippet palette and the quick-reference panel.
+ * Everything around the text editor (ST and IL) that is NOT Monaco (so it loads immediately):
+ * the lazy editor host, the snippet palette and the quick-reference panel.
  */
 import { Component, lazy, Suspense, type ReactNode } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { useStrings, type SimStrings } from '@/simulator/ui/context';
 import { stEditorBridge } from './bridge';
+import type { TextLanguage } from './StEditor';
 
 const StEditor = lazy(() => import('./StEditor'));
 
@@ -22,7 +23,7 @@ class LoadBoundary extends Component<
   }
 }
 
-export function StEditorHost() {
+export function StEditorHost({ language = 'ST' }: { language?: TextLanguage }) {
   const t = useStrings();
   const message = (text: string) => (
     <p className="p-4 text-sm text-text-muted" role="status">
@@ -32,16 +33,21 @@ export function StEditorHost() {
   return (
     <LoadBoundary fallback={message(t.st.loadError)}>
       <Suspense fallback={message(t.st.loading)}>
-        <StEditor />
+        {/* key: a fresh editor (model, language) when switching between ST and IL */}
+        <StEditor key={language} language={language} />
       </Suspense>
     </LoadBoundary>
   );
 }
 
 type Placeholders = SimStrings['st']['snippets']['placeholders'];
+interface Snippet {
+  id: string;
+  code: (p: Placeholders) => string;
+}
 
 /** Monaco snippets; placeholders follow the UI language. */
-const SNIPPETS: { id: keyof SimStrings['st']['snippets']; code: (p: Placeholders) => string }[] = [
+const ST_SNIPPETS: Snippet[] = [
   {
     id: 'if',
     code: (p) => `IF \${1:${p.condition}} THEN\n\t\${2:${p.output}} := TRUE;\nEND_IF;\n`,
@@ -84,9 +90,54 @@ const SNIPPETS: { id: keyof SimStrings['st']['snippets']; code: (p: Placeholders
   },
 ];
 
-export function StSnippets() {
+const IL_SNIPPETS: Snippet[] = [
+  {
+    id: 'sealIn',
+    code: (p) =>
+      `LD    \${1:${p.input}}\nOR    \${2:${p.output}}\nANDN  \${3:${p.stop}}\nST    \${2:${p.output}}\n`,
+  },
+  {
+    id: 'deferred',
+    code: (p) => `LD    \${1:a}\nAND(  \${2:b}\nOR    \${3:c}\n)\nST    \${4:${p.output}}\n`,
+  },
+  {
+    id: 'setReset',
+    code: (p) =>
+      `LD    \${1:${p.input}}\nS     \${3:${p.output}}\nLD    \${2:${p.stop}}\nR     \${3:${p.output}}\n`,
+  },
+  {
+    id: 'compare',
+    code: (p) => `LD    \${1:MW0}\nGE    \${2:10}\nST    \${3:${p.output}}\n`,
+  },
+  {
+    id: 'math',
+    code: () => `LD    \${1:MW0}\nADD   \${2:1}\nST    \${1:MW0}\n`,
+  },
+  {
+    id: 'ton',
+    code: (p) =>
+      `(* VAR ${p.timer} : TON; END_VAR *)\nCAL   \${1:${p.timer}}(IN := \${2:${p.input}}, PT := \${3:T#5s})\nLD    \${1:${p.timer}}.Q\nST    \${4:${p.output}}\n`,
+  },
+  {
+    id: 'ctu',
+    code: (p) =>
+      `(* VAR ${p.counter} : CTU; END_VAR *)\nCAL   \${1:${p.counter}}(CU := \${2:${p.input}}, R := \${3:FALSE}, PV := \${4:10})\nLD    \${1:${p.counter}}.Q\nST    \${5:${p.output}}\n`,
+  },
+  {
+    id: 'jump',
+    code: (p) => `LD    \${1:${p.condition}}\nJMPCN \${2:SALTO}\n\${3}\n\${2:SALTO}:\n`,
+  },
+  {
+    id: 'var',
+    code: (p) => `VAR\n\t\${1:${p.value}} : \${2:INT} := 0;\nEND_VAR\n`,
+  },
+];
+
+export function StSnippets({ language = 'ST' }: { language?: TextLanguage }) {
   const t = useStrings();
   const s = t.st.snippets;
+  const names = (language === 'IL' ? t.il.snippets : s) as unknown as Record<string, string>;
+  const list = language === 'IL' ? IL_SNIPPETS : ST_SNIPPETS;
   return (
     <aside
       aria-label={s.title}
@@ -96,7 +147,7 @@ export function StSnippets() {
         {s.title}
       </h2>
       <ul className="flex flex-col gap-0.5 p-2">
-        {SNIPPETS.map(({ id, code }) => (
+        {list.map(({ id, code }) => (
           <li key={id}>
             <button
               type="button"
@@ -105,7 +156,7 @@ export function StSnippets() {
               className="flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left font-mono text-[13px] text-text hover:bg-surface-2"
             >
               <ChevronRight size={13} aria-hidden="true" className="text-text-muted" />
-              {s[id] as string}
+              {names[id]}
             </button>
           </li>
         ))}
@@ -115,9 +166,9 @@ export function StSnippets() {
   );
 }
 
-export function StHelp() {
+export function StHelp({ language = 'ST' }: { language?: TextLanguage }) {
   const t = useStrings();
-  const h = t.st.help;
+  const h = language === 'IL' ? t.il.help : t.st.help;
   return (
     <div className="h-full overflow-y-auto p-3 text-sm" data-testid="st-help">
       <h2 className="font-semibold text-text">{h.title}</h2>
@@ -126,7 +177,7 @@ export function StHelp() {
         {h.items.map((item) => (
           <li
             key={item}
-            className="rounded border border-border bg-bg px-2 py-1.5 font-mono text-[11.5px] leading-relaxed text-text"
+            className="rounded border border-border bg-bg px-2 py-1.5 font-mono text-[11.5px] leading-relaxed whitespace-pre-wrap text-text"
           >
             {item}
           </li>

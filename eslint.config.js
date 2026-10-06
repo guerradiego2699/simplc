@@ -40,6 +40,8 @@ export default defineConfig(
       'src/simulator/plants/*.ts',
       'src/simulator/challenges/validator.ts',
       'src/simulator/languages/st/*.ts',
+      'src/simulator/languages/il/*.ts',
+      'src/simulator/languages/sfc/*.ts',
     ],
     ignores: ['**/__tests__/**', '**/*.test.ts'],
     rules: {

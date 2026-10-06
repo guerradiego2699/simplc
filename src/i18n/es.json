@@ -354,8 +354,15 @@
       "projectName": "Nombre del proyecto",
       "untitled": "Proyecto sin nombre",
       "exportSt": "Exportar texto estructurado (.st)",
-      "languageSoon": "{language}: próximamente",
-      "languageInChallenge": "Los desafíos se resuelven en Ladder por ahora"
+      "languageInChallenge": "Los desafíos se resuelven en Ladder por ahora",
+      "languageNames": {
+        "LD": "Ladder (diagrama de contactos)",
+        "ST": "Texto estructurado",
+        "FBD": "Diagrama de bloques de funciones",
+        "IL": "Lista de instrucciones",
+        "SFC": "Diagrama funcional secuencial (etapas y transiciones)"
+      },
+      "exportIl": "Exportar lista de instrucciones (.il)"
     },
     "palette": {
       "title": "Instrucciones",
@@ -527,7 +534,28 @@
       "ST_CASE_LABEL": "Las etiquetas de CASE deben ser números enteros, como 1, 2..5 o -1.",
       "ST_FOR_VARIABLE": "La variable de un FOR debe ser un entero (INT): «{name}» no lo es.",
       "ST_FOR_STEP": "El paso BY de un FOR debe ser un número entero constante distinto de 0.",
-      "ST_EXIT_OUTSIDE_LOOP": "EXIT solo se puede usar dentro de un FOR, WHILE o REPEAT."
+      "ST_EXIT_OUTSIDE_LOOP": "EXIT solo se puede usar dentro de un FOR, WHILE o REPEAT.",
+      "IL_UNKNOWN_OPERATOR": "«{name}» no es un operador de IL.",
+      "IL_MISSING_OPERAND": "{name} necesita un operando.",
+      "IL_UNEXPECTED_OPERAND": "Sobra algo después de {name}: va una instrucción por línea.",
+      "IL_NOT_A_VARIABLE": "{name} necesita una variable o dirección donde escribir.",
+      "IL_NEEDS_LOAD": "Aquí el resultado actual no tiene valor: carga uno con LD antes de {name}.",
+      "IL_UNKNOWN_LABEL": "No existe la etiqueta {name}.",
+      "IL_DUPLICATE_LABEL": "La etiqueta {name} está repetida.",
+      "IL_BACKWARD_JUMP": "No se puede saltar hacia atrás (a {name}): sería un bucle dentro del ciclo de scan.",
+      "IL_UNCLOSED_PAREN": "Falta cerrar el paréntesis con ) en una línea propia.",
+      "IL_UNEXPECTED_PAREN": "Este ) no cierra ningún paréntesis abierto.",
+      "IL_NO_DEFERRED": "{name} no admite paréntesis.",
+      "SFC_NO_STEPS": "El SFC no tiene etapas.",
+      "SFC_NO_INITIAL": "Falta marcar la etapa inicial.",
+      "SFC_MANY_INITIAL": "Solo puede haber una etapa inicial.",
+      "SFC_BAD_STEP_NAME": "«{name}» no es un nombre válido: usa letras, números y _ (sin espacios y sin empezar con un número).",
+      "SFC_DUPLICATE_STEP": "Ya existe una etapa llamada {name}.",
+      "SFC_UNKNOWN_STEP": "La transición apunta a una etapa que no existe.",
+      "SFC_EMPTY_CONDITION": "La transición no tiene condición.",
+      "SFC_EMPTY_ACTION": "La acción no tiene variable.",
+      "SFC_UNREACHABLE": "Ninguna transición lleva a la etapa {name}: nunca se activará.",
+      "SFC_MIXED_QUALIFIERS": "{variable} se usa con N/P y también con S/R en otras etapas: el resultado puede confundir."
     },
     "faults": {
       "WATCHDOG": "Tiempo de ciclo excedido (watchdog): el PLC pasó a STOP."
@@ -679,7 +707,8 @@
         "sorter": "Cinta clasificadora",
         "pumps": "Estanque con dos bombas",
         "oven": "Horno eléctrico",
-        "levelControl": "Estanque con válvula proporcional"
+        "levelControl": "Estanque con válvula proporcional",
+        "mixer": "Mezcladora por lotes"
       },
       "empty": "No hay una planta conectada. Elige una para que tu programa controle una máquina simulada: las salidas mueven la planta y sus sensores llegan a las entradas.",
       "connections": "Conexiones",
@@ -761,6 +790,16 @@
         "levelControl": {
           "QW0": "Válvula de entrada (0–27648 = 0–100 %)",
           "IW0": "Transmisor de nivel (0–27648 = 0–100 %)"
+        },
+        "mixer": {
+          "Q0_0": "Válvula del ingrediente A",
+          "Q0_1": "Válvula del ingrediente B",
+          "Q0_2": "Motor del agitador",
+          "Q0_3": "Válvula de vaciado",
+          "Q0_4": "Luz de lote terminado",
+          "I0_2": "Sensor de nivel A (≥ 40 %)",
+          "I0_3": "Sensor de estanque lleno (≥ 80 %)",
+          "I0_4": "Sensor de estanque vacío (≤ 1 %)"
         }
       },
       "lamp": {
@@ -866,6 +905,19 @@
       "levelControl": {
         "valve": "Válvula",
         "setpoint": "Consigna"
+      },
+      "mixer": {
+        "ingredientA": "Ingrediente A: {n} %",
+        "ingredientB": "Ingrediente B: {n} %",
+        "mixing": "Mezcla: {s} de {total} s",
+        "ok": "Lotes correctos: {n}",
+        "bad": "Lotes con error: {n}",
+        "lastOk": "Último lote: correcto",
+        "lastBad": "Último lote con error: revisa las cantidades y el tiempo de mezcla.",
+        "spilled": "¡El estanque se rebalsó!",
+        "agitator": "Agitador",
+        "drain": "Salida",
+        "done": "Lote listo"
       }
     },
     "challenge": {
@@ -943,7 +995,8 @@
           "timer": "temporizador",
           "counter": "contador",
           "edge": "flanco",
-          "input": "entrada"
+          "input": "entrada",
+          "stop": "paro"
         }
       },
       "help": {
@@ -987,6 +1040,103 @@
       "fromSt": "Volviste al programa en bloques, que es el mismo que el de Ladder. El texto estructurado no se convierte solo a FBD; tu ST queda guardado.",
       "orBlock": "Bloque OR (≥1)",
       "nothingSelected": "Selecciona una entrada, un bloque o una red para ver sus propiedades."
+    },
+    "il": {
+      "editorLabel": "Editor de lista de instrucciones (IL)",
+      "cr": "RA = {value}",
+      "convertQuestion": "Ya tienes un programa en lista de instrucciones. ¿Quieres reemplazarlo por la conversión de tu programa Ladder actual?",
+      "convertKeep": "Mantener mi IL",
+      "converted": "Convertimos tu programa Ladder a lista de instrucciones (IL). El Ladder queda guardado: puedes volver a él cuando quieras.",
+      "backToLd": "Volviste al programa Ladder. La lista de instrucciones no se convierte sola a Ladder (puede tener saltos sin un dibujo equivalente); tu IL queda guardado.",
+      "executeScan": "Se ejecutó la lista de instrucciones de arriba abajo: cada línea trabajó sobre el resultado actual (RA).",
+      "snippets": {
+        "sealIn": "Autorretención",
+        "deferred": "AND( … )",
+        "setReset": "S / R",
+        "compare": "Comparación GE",
+        "math": "Suma ADD",
+        "ton": "Temporizador TON",
+        "ctu": "Contador CTU",
+        "jump": "Salto JMPCN",
+        "var": "Bloque VAR"
+      },
+      "help": {
+        "title": "Referencia rápida de IL",
+        "intro": "IL trabaja con un acumulador, el resultado actual (RA): se carga, se combina y se guarda, una instrucción por línea. La 3.ª edición de IEC 61131-3 (2013) lo declaró obsoleto, pero aún se ve en equipos antiguos. En RUN, cada línea muestra su RA.",
+        "items": [
+          "LD x / LDN x: carga x (o NOT x) en el RA",
+          "ST q / STN q: guarda el RA (o su negación) en q",
+          "S q / R q: si el RA es 1, activa / desactiva q",
+          "AND, OR, XOR (y ANDN, ORN, XORN): combinan el RA con un operando",
+          "AND( b … ): operación diferida; el paréntesis se cierra con ) en su propia línea",
+          "ADD, SUB, MUL, DIV, MOD: aritmética   GT, GE, EQ, NE, LE, LT: comparan y dejan un BOOL",
+          "JMP / JMPC / JMPCN ETIQUETA: salta hacia adelante; ETIQUETA: marca el destino",
+          "CAL t(IN := x, PT := T#5s): llama un temporizador o contador declarado en VAR",
+          "RET / RETC: termina el programa en este ciclo",
+          "Conversiones como operador: TO_REAL, TO_INT"
+        ]
+      }
+    },
+    "sfc": {
+      "label": "Editor SFC (diagrama de etapas y transiciones)",
+      "stepLabel": "Etapa {name}",
+      "initialStepLabel": "Etapa inicial {name}",
+      "transitionLabel": "Transición de {from} a {to}: {condition}",
+      "jump": "→ {name}",
+      "time": "{time}",
+      "toolbar": "Herramientas SFC",
+      "addStep": "Agregar etapa",
+      "addTransition": "Agregar transición",
+      "setInitial": "Marcar como etapa inicial",
+      "moveUp": "Subir",
+      "moveDown": "Bajar",
+      "delete": "Eliminar",
+      "step": "Etapa",
+      "transition": "Transición",
+      "name": "Nombre",
+      "comment": "Comentario",
+      "initial": "Etapa inicial (activa al arrancar)",
+      "actions": "Acciones",
+      "addAction": "Agregar acción",
+      "removeAction": "Quitar acción",
+      "qualifier": "Calificador",
+      "variable": "Variable",
+      "noActions": "Esta etapa no tiene acciones: solo espera su transición.",
+      "qualifiers": {
+        "N": "N — encendida mientras la etapa está activa",
+        "S": "S — se enciende y queda encendida (set)",
+        "R": "R — se apaga (reset)",
+        "P": "P — pulso de un ciclo al entrar en la etapa"
+      },
+      "from": "Desde la etapa",
+      "to": "Va a la etapa",
+      "condition": "Condición",
+      "conditionHint": "Expresión BOOL como en ST. Puedes usar ETAPA.X (etapa activa) y ETAPA.T (tiempo en la etapa), por ejemplo MEZCLAR.T >= T#10s.",
+      "priority": "Prioridad {n} de {total}",
+      "raisePriority": "Subir prioridad",
+      "lowerPriority": "Bajar prioridad",
+      "noSelection": "Selecciona una etapa o una transición del diagrama para editarla.",
+      "toSfc": "SFC es otra forma de pensar el programa (etapas y transiciones), así que tu Ladder no se convierte automáticamente: queda guardado y puedes volver a él. Empezamos con un SFC de dos etapas.",
+      "openedSfc": "Volviste a tu programa SFC.",
+      "backToLd": "Volviste al programa Ladder. Tu SFC queda guardado.",
+      "executeScan": "Se ejecutó el SFC: se evaluaron las transiciones de la etapa activa y luego sus acciones.",
+      "location": {
+        "step": "Etapa {name}",
+        "transition": "{from} → {to}",
+        "action": "Acción de {name}",
+        "program": "SFC"
+      },
+      "help": {
+        "title": "Cómo funciona SFC",
+        "items": [
+          "Una etapa es un estado de la máquina. La etapa inicial (doble borde) se activa al arrancar.",
+          "Una transición pasa a la etapa siguiente cuando su condición es 1. Haz clic en ella para escribir la condición.",
+          "Varias transiciones desde una etapa forman una selección: gana la de menor número (prioridad).",
+          "Acciones: N mientras la etapa está activa, S y R guardan, P da un pulso al entrar.",
+          "ETAPA.T es el tiempo que lleva activa una etapa: úsalo para esperas (MEZCLAR.T >= T#10s).",
+          "Una flecha → ETAPA es un salto: así se cierra el ciclo y se vuelve al inicio."
+        ]
+      }
     }
   },
   "examples": {
@@ -1010,9 +1160,7 @@
     "plantPreviewNote": "Vista en reposo. En el simulador la planta se mueve según las salidas de tu programa.",
     "desktopNote": "El simulador está pensado para computadores (pantallas de 1024 px o más).",
     "rung": "Peldaño {n}",
-    "upcoming": {
-      "11": "Mezcladora por lotes (batch)"
-    }
+    "upcoming": {}
   },
   "challenges": {
     "indexTitle": "Desafíos de programación PLC",

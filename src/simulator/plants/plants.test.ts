@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { PlcRuntime } from '@/simulator/engine';
 import { EXAMPLES, exampleProject, getExample } from '@/simulator/examples';
 import { compileLadder } from '@/simulator/languages/ladder/compile';
+import { compileProject, diagnosticCounts } from '@/simulator/project/compile-project';
 import { scanWithPlant } from './coupling';
 import { motorPlant, PLANTS, tankPlant, TANK } from './models';
 import type { PlantIo, PlantModel } from './types';
@@ -36,8 +37,8 @@ function runExample(id: string) {
 }
 
 describe('examples', () => {
-  it('the examples follow the spec order (11, the batch mixer, comes with SFC)', () => {
-    expect(EXAMPLES.map((e) => e.order)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14]);
+  it('the examples follow the spec order (all 14)', () => {
+    expect(EXAMPLES.map((e) => e.order)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
   });
 
   it('every example builds a clean project in both languages', () => {
@@ -46,7 +47,8 @@ describe('examples', () => {
         const p = exampleProject(example, locale);
         expect(p.name).toBe(example.title[locale]);
         expect(p.plant).toBe(example.plant);
-        expect(compileLadder(p.ladder, p.tags).diagnostics).toEqual([]);
+        // In its own language (Ladder, or SFC for the batch mixer): no errors, no warnings.
+        expect(diagnosticCounts(compileProject(p))).toEqual({ errors: 0, warnings: 0 });
         expect(example.steps[locale].length).toBeGreaterThan(0);
       }
     }

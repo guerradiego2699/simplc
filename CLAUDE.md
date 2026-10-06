@@ -259,6 +259,33 @@ dtMs, output)`, `read`, optional `command`), `models.ts` (lamp, motor, traffic, 
   `PlantPanel` passes `word()` = QW image while RUN, 0 otherwise (physical outputs drop in STOP).
 - E2E: `tests/e2e/phase13.spec.ts` (sets speed ×4 via the "Velocidad" select).
 
+## IL and SFC (Phase 14)
+
+- Both reuse the ST compiler: they build an ST AST (`st/ast.ts` gained internal `temp`/`let`
+  nodes and a `probe` on any expression) and call `compileStProgram(ast, tags, network)`. The ST
+  parser is `createParser(tokens)` (expressions, varRef, VAR blocks, call params are reusable).
+- IL (`languages/il/compile.ts`): one instruction per line, CR kept as an expression and frozen in
+  a temp before any write; deferred `OP(` … `)`, N/C/CN modifiers, forward-only jumps (guards with
+  `il_jmp_*` temps), `CAL fb(…)`, RET, conversions as operators. Probe `il:<line>` = CR → shown in
+  the editor in RUN. `from-ladder.ts` converts ALL Ladder (helper BOOL vars for timer/counter
+  inputs, JMPCN around boxes); equivalence tests = 300 random programs + examples.
+- Editor: `st/editor/StEditor.tsx` serves ST and IL (`language` prop, source `project.st`/`il`,
+  result `compiled.st`/`il`); Monaco language `iec-il` in `monaco.ts`. Snippets/help per language.
+- SFC (`languages/sfc/`): `model.ts` (steps in drawing order, one initial, transitions with ST
+  conditions, selection branches by list priority, jumps anywhere; actions N/S/R/P on BOOL
+  variables; `STEP.X`, `STEP.T`; pure ops incl. `renameStep` updating conditions), `compile.ts`
+  (step flags/timers as `SFC_X_*`/`SFC_T_*` locals; transitions first, then actions in the same
+  scan; diagnostics mapped to step/transition/action by range identity; probe `sfc:<tid>`),
+  `layout.ts`, `editor/SfcDiagram.tsx` (pure SVG), `SfcEditor.tsx` (+ `SfcProperties`, `SfcHelp`),
+  `StaticSfc.tsx`. Store: `sfcSelection`, `deleteSfcSelection`. No parallel branches.
+- Project `il?`, `sfc?`; file format v2 (v1 still loads). Toolbar: LD/FBD → IL converts (asks if
+  IL exists), SFC never converts (starter chart + notice). IL/SFC disabled in challenges.
+- Example 11 `batch-mixer` is SFC: content `sfc` (step names/conditions per language, action
+  variables as addresses → tag names, transitions by step index); plant `plants/mixer.ts`
+  (grades each batch). Example pages: LD/FBD/ST/IL tabs, or the SFC chart. E2E: phase14.spec.ts.
+- UI scripts: don't pipe JS/TS with backslashes through bash heredocs (python `\b` became a
+  backspace); write a .cjs script with the Write tool and run it with node.
+
 ## Environment notes
 
 - Windows. Project lives in `C:\dev\simplc` (kept out of OneDrive on purpose: node_modules sync

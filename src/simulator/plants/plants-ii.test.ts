@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { PlcRuntime } from '@/simulator/engine';
 import { exampleProject, getExample } from '@/simulator/examples';
-import { compileLadder } from '@/simulator/languages/ladder/compile';
+import { compileProject, diagnosticCounts } from '@/simulator/project/compile-project';
+import { MIXER, type MixerState } from './mixer';
 import { scanWithPlant } from './coupling';
 import { PLANTS } from './models';
 import {
@@ -22,8 +23,9 @@ import type { PlantModel } from './types';
 function runExample<S>(id: string) {
   const example = getExample(id)!;
   const project = exampleProject(example, 'es');
-  const { ir, diagnostics } = compileLadder(project.ladder, project.tags);
-  expect(diagnostics).toEqual([]);
+  const compiled = compileProject(project);
+  expect(diagnosticCounts(compiled)).toEqual({ errors: 0, warnings: 0 });
+  const ir = compiled.ir;
   const rt = new PlcRuntime();
   rt.load(ir!);
   rt.start();
@@ -208,5 +210,46 @@ describe('14 · analog level control', () => {
     expect(sim.rt.getAnalogOutput('QW0')).toBeGreaterThan(0);
     sim.run(100, { 'I0.0': false });
     expect(sim.rt.getAnalogOutput('QW0')).toBe(0);
+  });
+});
+
+describe('11 · batch mixer (SFC)', () => {
+  it('runs A → B → mix 8 s → drain, grades the batch as good and lights BATCH_DONE', () => {
+    const sim = runExample<MixerState>('batch-mixer');
+    expect(exampleProject(getExample('batch-mixer')!, 'es').language).toBe('SFC');
+    sim.run(50, { 'I0.1': true });
+    sim.run(50, { 'I0.0': true });
+    sim.run(4500, { 'I0.0': false });
+    expect(q(sim, 'Q0.0')).toBe(false); // A done at 40 %
+    expect(sim.state.a).toBeGreaterThan(39);
+    expect(sim.state.a).toBeLessThan(41.5);
+    sim.run(4500);
+    expect(q(sim, 'Q0.2')).toBe(true); // mixing
+    sim.run(MIXER.mixMs + 7000);
+    expect(sim.state.ok).toBe(1);
+    expect(sim.state.bad).toBe(0);
+    expect(q(sim, 'Q0.4')).toBe(true);
+    expect(q(sim, 'Q0.3')).toBe(false); // back to idle
+  });
+
+  it('a too-short mix is graded as a bad batch', () => {
+    const example = getExample('batch-mixer')!;
+    const project = exampleProject(example, 'en');
+    const sfc = project.sfc!;
+    const mix = sfc.transitions.find((t) => t.condition.startsWith('MIX.T'))!;
+    mix.condition = 'MIX.T >= T#3s';
+    const compiled = compileProject(project);
+    const rt = new PlcRuntime();
+    rt.load(compiled.ir!);
+    rt.start();
+    const plant = PLANTS.mixer as PlantModel<MixerState>;
+    let state = plant.initial();
+    rt.setInput('I0.1', true);
+    rt.setInput('I0.0', true);
+    for (let t = 0; t < 30_000; t += rt.cycleTimeMs) {
+      if (t === 100) rt.setInput('I0.0', false);
+      state = scanWithPlant(rt, plant, state);
+    }
+    expect(state.bad).toBe(1);
   });
 });

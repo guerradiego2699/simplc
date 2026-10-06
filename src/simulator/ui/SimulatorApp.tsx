@@ -6,6 +6,7 @@ import { LadderEditor } from '@/simulator/languages/ladder/editor/LadderEditor';
 import { Palette } from '@/simulator/languages/ladder/editor/Palette';
 import { StEditorHost, StHelp, StSnippets } from '@/simulator/languages/st/editor/StPanels';
 import { FbdEditor } from '@/simulator/languages/fbd/editor/FbdEditor';
+import { SfcEditor, SfcHelp, SfcProperties } from '@/simulator/languages/sfc/editor/SfcEditor';
 import { FbdIcon } from '@/simulator/languages/fbd/editor/icons';
 import { InstructionIcon } from '@/simulator/languages/ladder/editor/symbols';
 import { motorStartStopProject } from '@/simulator/project/examples';
@@ -113,14 +114,13 @@ function openRequestedContent(store: SimulatorStoreApi, t: SimStrings, locale: L
 function Workspace() {
   const t = useStrings();
   const store = useStoreApi();
-  const { rightWidth, bottomHeight, rightTab, bottomTab, inChallenge, isSt, isFbd } = useSim(
+  const { rightWidth, bottomHeight, rightTab, bottomTab, inChallenge, language } = useSim(
     useShallow((s) => ({
       rightWidth: s.rightWidth,
       bottomHeight: s.bottomHeight,
       rightTab: s.rightTab,
       inChallenge: getChallenge(s.project.challenge) !== undefined,
-      isSt: s.project.language === 'ST',
-      isFbd: s.project.language === 'FBD',
+      language: s.project.language,
       bottomTab: s.bottomTab,
     })),
   );
@@ -129,9 +129,25 @@ function Workspace() {
     <div className="flex h-full flex-col overflow-hidden bg-bg text-text" data-testid="simulator">
       <Toolbar />
       <div className="flex min-h-0 flex-1">
-        <div className="w-52 shrink-0">{isSt ? <StSnippets /> : <Palette />}</div>
+        <div className="w-52 shrink-0">
+          {language === 'ST' || language === 'IL' ? (
+            <StSnippets language={language} />
+          ) : language === 'SFC' ? (
+            <SfcHelp />
+          ) : (
+            <Palette />
+          )}
+        </div>
         <main className="relative min-w-0 flex-1">
-          {isSt ? <StEditorHost /> : isFbd ? <FbdEditor /> : <LadderEditor />}
+          {language === 'ST' || language === 'IL' ? (
+            <StEditorHost language={language} />
+          ) : language === 'SFC' ? (
+            <SfcEditor />
+          ) : language === 'FBD' ? (
+            <FbdEditor />
+          ) : (
+            <LadderEditor />
+          )}
           <NoticeBanner />
         </main>
         <Resizer
@@ -162,8 +178,15 @@ function Workspace() {
                 : []),
               {
                 id: 'properties',
-                label: isSt ? t.st.helpTab : t.properties.title,
-                content: isSt ? <StHelp /> : <PropertiesPanel />,
+                label: language === 'ST' || language === 'IL' ? t.st.helpTab : t.properties.title,
+                content:
+                  language === 'ST' || language === 'IL' ? (
+                    <StHelp language={language} />
+                  ) : language === 'SFC' ? (
+                    <SfcProperties />
+                  ) : (
+                    <PropertiesPanel />
+                  ),
               },
               { id: 'variables', label: t.variables.title, content: <VariablesPanel /> },
               { id: 'monitor', label: t.monitor.title, content: <MonitorPanel /> },
@@ -356,12 +379,19 @@ function Shortcuts() {
         e.preventDefault();
         store.getState().redo();
       } else if (e.key === 'Delete' || e.key === 'Backspace') {
-        if (store.getState().selection) {
+        const s = store.getState();
+        if (s.project.language === 'SFC') {
+          if (s.sfcSelection) {
+            e.preventDefault();
+            s.deleteSfcSelection();
+          }
+        } else if (s.selection) {
           e.preventDefault();
-          store.getState().deleteSelection();
+          s.deleteSelection();
         }
       } else if (e.key === 'Escape') {
         store.getState().select(null);
+        store.getState().selectSfc(null);
       }
     };
     window.addEventListener('keydown', onKey);

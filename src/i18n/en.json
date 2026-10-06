@@ -354,8 +354,15 @@
       "projectName": "Project name",
       "untitled": "Untitled project",
       "exportSt": "Export structured text (.st)",
-      "languageSoon": "{language}: coming soon",
-      "languageInChallenge": "Challenges are solved in Ladder for now"
+      "languageInChallenge": "Challenges are solved in Ladder for now",
+      "languageNames": {
+        "LD": "Ladder diagram",
+        "ST": "Structured Text",
+        "FBD": "Function Block Diagram",
+        "IL": "Instruction List",
+        "SFC": "Sequential Function Chart (steps and transitions)"
+      },
+      "exportIl": "Export Instruction List (.il)"
     },
     "palette": {
       "title": "Instructions",
@@ -527,7 +534,28 @@
       "ST_CASE_LABEL": "CASE labels must be integers, such as 1, 2..5 or -1.",
       "ST_FOR_VARIABLE": "A FOR variable must be an integer (INT): “{name}” is not.",
       "ST_FOR_STEP": "The BY step of a FOR must be a constant integer other than 0.",
-      "ST_EXIT_OUTSIDE_LOOP": "EXIT can only be used inside a FOR, WHILE or REPEAT."
+      "ST_EXIT_OUTSIDE_LOOP": "EXIT can only be used inside a FOR, WHILE or REPEAT.",
+      "IL_UNKNOWN_OPERATOR": "“{name}” is not an IL operator.",
+      "IL_MISSING_OPERAND": "{name} needs an operand.",
+      "IL_UNEXPECTED_OPERAND": "Something extra after {name}: one instruction per line.",
+      "IL_NOT_A_VARIABLE": "{name} needs a variable or address to write to.",
+      "IL_NEEDS_LOAD": "The current result has no value here: load one with LD before {name}.",
+      "IL_UNKNOWN_LABEL": "There is no label {name}.",
+      "IL_DUPLICATE_LABEL": "Label {name} is repeated.",
+      "IL_BACKWARD_JUMP": "Jumping backwards (to {name}) is not allowed: it would be a loop inside the scan cycle.",
+      "IL_UNCLOSED_PAREN": "The parenthesis must be closed with ) on its own line.",
+      "IL_UNEXPECTED_PAREN": "This ) does not close any open parenthesis.",
+      "IL_NO_DEFERRED": "{name} does not take parentheses.",
+      "SFC_NO_STEPS": "The SFC has no steps.",
+      "SFC_NO_INITIAL": "The initial step is missing.",
+      "SFC_MANY_INITIAL": "There can be only one initial step.",
+      "SFC_BAD_STEP_NAME": "“{name}” is not a valid name: use letters, digits and _ (no spaces, not starting with a digit).",
+      "SFC_DUPLICATE_STEP": "There is already a step called {name}.",
+      "SFC_UNKNOWN_STEP": "The transition points to a step that does not exist.",
+      "SFC_EMPTY_CONDITION": "The transition has no condition.",
+      "SFC_EMPTY_ACTION": "The action has no variable.",
+      "SFC_UNREACHABLE": "No transition leads to step {name}: it will never become active.",
+      "SFC_MIXED_QUALIFIERS": "{variable} is used with N/P and also with S/R in other steps: the result can be confusing."
     },
     "faults": {
       "WATCHDOG": "Cycle time exceeded (watchdog): the PLC went to STOP."
@@ -679,7 +707,8 @@
         "sorter": "Sorting conveyor",
         "pumps": "Tank with two pumps",
         "oven": "Electric oven",
-        "levelControl": "Tank with proportional valve"
+        "levelControl": "Tank with proportional valve",
+        "mixer": "Batch mixer"
       },
       "empty": "No plant is connected. Pick one so your program controls a simulated machine: the outputs drive the plant and its sensors reach the inputs.",
       "connections": "Connections",
@@ -761,6 +790,16 @@
         "levelControl": {
           "QW0": "Inlet valve (0–27648 = 0–100 %)",
           "IW0": "Level transmitter (0–27648 = 0–100 %)"
+        },
+        "mixer": {
+          "Q0_0": "Ingredient A valve",
+          "Q0_1": "Ingredient B valve",
+          "Q0_2": "Agitator motor",
+          "Q0_3": "Drain valve",
+          "Q0_4": "Batch done light",
+          "I0_2": "Level A switch (≥ 40 %)",
+          "I0_3": "Tank full switch (≥ 80 %)",
+          "I0_4": "Tank empty switch (≤ 1 %)"
         }
       },
       "lamp": {
@@ -866,6 +905,19 @@
       "levelControl": {
         "valve": "Valve",
         "setpoint": "Setpoint"
+      },
+      "mixer": {
+        "ingredientA": "Ingredient A: {n} %",
+        "ingredientB": "Ingredient B: {n} %",
+        "mixing": "Mixing: {s} of {total} s",
+        "ok": "Good batches: {n}",
+        "bad": "Bad batches: {n}",
+        "lastOk": "Last batch: good",
+        "lastBad": "Last batch was wrong: check the amounts and the mixing time.",
+        "spilled": "The tank overflowed!",
+        "agitator": "Agitator",
+        "drain": "Drain",
+        "done": "Batch done"
       }
     },
     "challenge": {
@@ -943,7 +995,8 @@
           "timer": "timer",
           "counter": "counter",
           "edge": "edge",
-          "input": "input"
+          "input": "input",
+          "stop": "stop"
         }
       },
       "help": {
@@ -987,6 +1040,103 @@
       "fromSt": "You are back on the block program, which is the same as the Ladder one. Structured text is not converted to FBD automatically; your ST is kept.",
       "orBlock": "OR block (≥1)",
       "nothingSelected": "Select an input, a block or a network to see its properties."
+    },
+    "il": {
+      "editorLabel": "Instruction List (IL) editor",
+      "cr": "CR = {value}",
+      "convertQuestion": "You already have an Instruction List program. Replace it with the conversion of your current Ladder program?",
+      "convertKeep": "Keep my IL",
+      "converted": "We converted your Ladder program to Instruction List (IL). The Ladder program is kept: you can go back to it at any time.",
+      "backToLd": "Back to the Ladder program. Instruction List is not converted back to Ladder automatically (it can have jumps with no equivalent drawing); your IL is kept.",
+      "executeScan": "The instruction list ran from top to bottom: each line worked on the current result (CR).",
+      "snippets": {
+        "sealIn": "Seal-in",
+        "deferred": "AND( … )",
+        "setReset": "S / R",
+        "compare": "Compare GE",
+        "math": "Add ADD",
+        "ton": "TON timer",
+        "ctu": "CTU counter",
+        "jump": "Jump JMPCN",
+        "var": "VAR block"
+      },
+      "help": {
+        "title": "IL quick reference",
+        "intro": "IL works with an accumulator, the current result (CR): you load it, combine it and store it, one instruction per line. The 3rd edition of IEC 61131-3 (2013) marked it as deprecated, but it is still found on older equipment. In RUN, every line shows its CR.",
+        "items": [
+          "LD x / LDN x: load x (or NOT x) into the CR",
+          "ST q / STN q: store the CR (or its negation) in q",
+          "S q / R q: if the CR is 1, set / reset q",
+          "AND, OR, XOR (and ANDN, ORN, XORN): combine the CR with an operand",
+          "AND( b … ): deferred operation; close it with ) on its own line",
+          "ADD, SUB, MUL, DIV, MOD: arithmetic   GT, GE, EQ, NE, LE, LT: compare, leaving a BOOL",
+          "JMP / JMPC / JMPCN LABEL: jump forward; LABEL: marks the target",
+          "CAL t(IN := x, PT := T#5s): call a timer or counter declared in VAR",
+          "RET / RETC: end the program for this scan",
+          "Conversions as operators: TO_REAL, TO_INT"
+        ]
+      }
+    },
+    "sfc": {
+      "label": "SFC editor (steps and transitions chart)",
+      "stepLabel": "Step {name}",
+      "initialStepLabel": "Initial step {name}",
+      "transitionLabel": "Transition from {from} to {to}: {condition}",
+      "jump": "→ {name}",
+      "time": "{time}",
+      "toolbar": "SFC tools",
+      "addStep": "Add step",
+      "addTransition": "Add transition",
+      "setInitial": "Make initial step",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "delete": "Delete",
+      "step": "Step",
+      "transition": "Transition",
+      "name": "Name",
+      "comment": "Comment",
+      "initial": "Initial step (active at start-up)",
+      "actions": "Actions",
+      "addAction": "Add action",
+      "removeAction": "Remove action",
+      "qualifier": "Qualifier",
+      "variable": "Variable",
+      "noActions": "This step has no actions: it only waits for its transition.",
+      "qualifiers": {
+        "N": "N — on while the step is active",
+        "S": "S — turns on and stays on (set)",
+        "R": "R — turns off (reset)",
+        "P": "P — one-scan pulse when the step starts"
+      },
+      "from": "From step",
+      "to": "Goes to step",
+      "condition": "Condition",
+      "conditionHint": "A BOOL expression as in ST. You can use STEP.X (step active) and STEP.T (time in the step), e.g. MIX.T >= T#10s.",
+      "priority": "Priority {n} of {total}",
+      "raisePriority": "Raise priority",
+      "lowerPriority": "Lower priority",
+      "noSelection": "Select a step or a transition in the chart to edit it.",
+      "toSfc": "SFC is a different way of thinking about the program (steps and transitions), so your Ladder program is not converted automatically: it is kept and you can go back to it. We start with a two-step SFC.",
+      "openedSfc": "Back to your SFC program.",
+      "backToLd": "Back to the Ladder program. Your SFC is kept.",
+      "executeScan": "The SFC ran: the active step's transitions were evaluated, then its actions.",
+      "location": {
+        "step": "Step {name}",
+        "transition": "{from} → {to}",
+        "action": "Action of {name}",
+        "program": "SFC"
+      },
+      "help": {
+        "title": "How SFC works",
+        "items": [
+          "A step is a state of the machine. The initial step (double border) is active at start-up.",
+          "A transition moves on to the next step when its condition is 1. Click it to write the condition.",
+          "Several transitions from one step form a selection: the lowest number (priority) wins.",
+          "Actions: N while the step is active, S and R are stored, P gives a pulse on entry.",
+          "STEP.T is how long a step has been active: use it for waits (MIX.T >= T#10s).",
+          "An arrow → STEP is a jump: that is how the cycle closes and returns to the start."
+        ]
+      }
     }
   },
   "examples": {
@@ -1010,9 +1160,7 @@
     "plantPreviewNote": "Shown at rest. In the simulator the plant moves according to your program's outputs.",
     "desktopNote": "The simulator is designed for computers (screens 1024 px or wider).",
     "rung": "Rung {n}",
-    "upcoming": {
-      "11": "Batch mixer"
-    }
+    "upcoming": {}
   },
   "challenges": {
     "indexTitle": "PLC programming challenges",

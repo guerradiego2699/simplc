@@ -33,10 +33,12 @@ import '/node_modules/monaco-editor/esm/vs/base/browser/ui/codicons/codicon/codi
 import EditorWorker from 'monaco-editor/editor/editor.worker?worker';
 import { ST_TYPES } from '../ast';
 import { KEYWORDS } from '../lexer';
+import { IL_MNEMONICS } from '../../il/compile';
 
 export { monaco };
 
 export const ST_LANGUAGE = 'iec-st';
+export const IL_LANGUAGE = 'iec-il';
 export const ST_THEME = 'plcampus';
 
 declare global {
@@ -99,6 +101,57 @@ monaco.languages.setMonarchTokensProvider(ST_LANGUAGE, {
     ],
     cComment: [
       [/\*\//, 'comment', '@pop'],
+      [/./, 'comment'],
+    ],
+  },
+});
+
+// ------------------------------------------------------------------------- Instruction List
+
+/** Words highlighted as keywords in IL: operators plus the declaration keywords. */
+export const IL_KEYWORDS = [
+  ...IL_MNEMONICS.keys(),
+  'PROGRAM',
+  'END_PROGRAM',
+  'VAR',
+  'END_VAR',
+  'TRUE',
+  'FALSE',
+];
+
+monaco.languages.register({ id: IL_LANGUAGE, extensions: ['.il'], aliases: ['Instruction List'] });
+
+monaco.languages.setLanguageConfiguration(IL_LANGUAGE, {
+  comments: { lineComment: '//', blockComment: ['(*', '*)'] },
+  brackets: [['(', ')']],
+  autoClosingPairs: [{ open: '(*', close: ' *)', notIn: ['comment'] }],
+});
+
+monaco.languages.setMonarchTokensProvider(IL_LANGUAGE, {
+  ignoreCase: true,
+  keywords: IL_KEYWORDS,
+  typeKeywords: [...ST_TYPES],
+  tokenizer: {
+    root: [
+      [/\(\*/, 'comment', '@blockComment'],
+      [/\/\/.*$/, 'comment'],
+      [/^\s*[a-z_]\w*\s*:(?!=)/, 'type'],
+      [/(?:T|TIME)#-?[0-9a-z_.]+/, 'number.time'],
+      [/%[a-z]{1,2}\d+(?:\.\d+)?/, 'variable.address'],
+      [/\b[IQMS]\d+\.[0-7]\b/, 'variable.address'],
+      [/\b(?:MW|MD|IW|QW)\d+\b/, 'variable.address'],
+      [/\b[TC]\d+\b/, 'variable.address'],
+      [/(?:2|8|16)#[0-9a-f_]+/, 'number'],
+      [/\d[\d_]*(?:\.\d[\d_]*)?(?:e[+-]?\d+)?/, 'number'],
+      [
+        /[a-z_]\w*/,
+        { cases: { '@keywords': 'keyword', '@typeKeywords': 'type', '@default': 'identifier' } },
+      ],
+      [/:=|[()]/, 'delimiter'],
+      [/[;,.:]/, 'delimiter'],
+    ],
+    blockComment: [
+      [/\*\)/, 'comment', '@pop'],
       [/./, 'comment'],
     ],
   },

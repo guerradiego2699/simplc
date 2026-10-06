@@ -1,6 +1,7 @@
 ---
 /**
- * A program shown in Ladder, FBD and Structured Text, as tabs (example pages).
+ * A program shown in Ladder, FBD, Structured Text and Instruction List, as tabs (example pages).
+ * SFC examples show their chart (an SFC has no automatic conversion to the other languages).
  * Same tab behaviour as LanguageTabs; plain Astro + a small script.
  */
 import { Code } from 'astro:components';
@@ -12,6 +13,9 @@ import { StaticFbd } from '@/simulator/languages/fbd/editor/StaticFbd';
 import { StaticLadder } from '@/simulator/languages/ladder/editor/StaticLadder';
 import type { LadderProgram } from '@/simulator/languages/ladder/model';
 import { ladderToSt } from '@/simulator/languages/st/from-ladder';
+import { ladderToIl } from '@/simulator/languages/il/from-ladder';
+import { StaticSfc } from '@/simulator/languages/sfc/editor/StaticSfc';
+import type { SfcProgram } from '@/simulator/languages/sfc/model';
 import type { Tag } from '@/simulator/project/types';
 
 interface Props {
@@ -20,19 +24,23 @@ interface Props {
   name: string;
   program: LadderProgram;
   tags: readonly Tag[];
+  /** SFC examples: the chart (then only the SFC tab is shown). */
+  sfc?: SfcProgram | undefined;
 }
 
-const { id, locale, name, program, tags } = Astro.props;
+const { id, locale, name, program, tags, sfc } = Astro.props;
 const dict = getDictionary(locale);
 const names = dict.widgets.languages.names;
 const rungLabel = (n: number) => format(dict.examples.rung, { n });
 const networkLabel = (n: number) => format(dict.simulator.fbd.network, { n });
-const st = ladderToSt(program, tags, {
+const texts = {
   header: format(dict.simulator.st.header, { name }),
   rung: dict.simulator.st.rung,
   rungVariable: dict.simulator.st.rungVariable,
-});
-const TABS = ['LD', 'FBD', 'ST'] as const;
+};
+const st = sfc ? '' : ladderToSt(program, tags, texts);
+const il = sfc ? '' : ladderToIl(program, tags, texts);
+const TABS = sfc ? (['SFC'] as const) : (['LD', 'FBD', 'ST', 'IL'] as const);
 ---
 
 <div data-lang-tabs>
@@ -69,6 +77,9 @@ const TABS = ['LD', 'FBD', 'ST'] as const;
           <Code code={st} lang={stGrammar as never} theme={plcampusTheme} />
         </div>
       )}
+      {tab ===
+        'IL' && <pre class="overflow-x-auto rounded-md border border-border bg-bg p-4 font-mono text-sm text-text">{il}</pre>}
+      {tab === 'SFC' && sfc && <StaticSfc program={sfc} strings={dict.simulator.sfc} />}
     </div>
   ))}
 </div>

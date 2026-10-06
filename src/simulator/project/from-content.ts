@@ -4,6 +4,9 @@
  * Content programs use direct addresses (I0.0, Q0.0…); the content's I/O list becomes the
  * variable table in the chosen language, so the editor shows MARCHA or START. The project goes
  * through the regular file parser, so content gets the same validation and fresh ids as files.
+ *
+ * SFC content (Phase 14): step names and conditions per language; action variables are addresses
+ * and become the tag name of that language; transitions point at steps by index.
  */
 import * as z from 'zod/mini';
 import type { Locale } from '@/config/site';
@@ -34,10 +37,26 @@ export const contentRungSchema = z.object({
   coils: z.unknown(),
 });
 
+/** An SFC chart as stored in content. */
+export const contentSfcSchema = z.object({
+  steps: z.array(
+    z.object({
+      name: localizedSchema,
+      initial: z.optional(z.boolean()),
+      comment: localizedSchema,
+      actions: z.array(z.object({ qualifier: z.enum(['N', 'S', 'R', 'P']), variable: z.string() })),
+    }),
+  ),
+  transitions: z.array(z.object({ from: z.number(), to: z.number(), condition: localizedSchema })),
+});
+export type ContentSfc = z.infer<typeof contentSfcSchema>;
+
 export interface ContentProjectSource {
   name: string;
   io: readonly Signal[];
   rungs: readonly z.infer<typeof contentRungSchema>[];
+  /** When set, the project opens in SFC. */
+  sfc?: ContentSfc | undefined;
   plant: Project['plant'];
   challenge?: string;
 }
@@ -56,12 +75,30 @@ export function contentProject(source: ContentProjectSource, locale: Locale): Pr
     }
   }
 
+  const tagName = (address: string) =>
+    source.io.find((signal) => signal.address === address)?.name[locale] ?? address;
+  const sfc = source.sfc && {
+    steps: source.sfc.steps.map((step, i) => ({
+      id: `s${i}`,
+      name: step.name[locale],
+      initial: step.initial ?? false,
+      comment: step.comment[locale],
+      actions: step.actions.map((a) => ({ qualifier: a.qualifier, variable: tagName(a.variable) })),
+    })),
+    transitions: source.sfc.transitions.map((t) => ({
+      from: `s${t.from}`,
+      to: `s${t.to}`,
+      condition: t.condition[locale],
+    })),
+  };
+
   const file = {
     format: FILE_FORMAT,
     version: FILE_VERSION,
     project: {
       name: source.name,
-      language: 'LD',
+      language: sfc ? 'SFC' : 'LD',
+      ...(sfc ? { sfc } : {}),
       ladder: {
         rungs: source.rungs.map((r) => ({
           comment: r.comment[locale],

@@ -3,6 +3,7 @@
  * Phase 6 turns this into the downloadable .simplc.json format (with schema validation).
  */
 import type { LadderProgram } from '@/simulator/languages/ladder/model';
+import type { SfcProgram } from '@/simulator/languages/sfc/model';
 
 export type Language = 'LD' | 'ST' | 'FBD' | 'IL' | 'SFC';
 
@@ -39,6 +40,10 @@ export interface Project {
   plant: string | null;
   /** Structured Text source (Phase 11). Kept alongside the Ladder program. */
   st?: string;
+  /** Instruction List source (Phase 14). */
+  il?: string;
+  /** Sequential Function Chart (Phase 14). */
+  sfc?: SfcProgram;
   /** Challenge being solved (Phase 8): its id. Absent for free projects. */
   challenge?: string;
 }
