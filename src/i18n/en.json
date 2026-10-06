@@ -947,7 +947,8 @@
       "resumed": "You are back on the challenge “{name}”.",
       "paletteLimited": "Only the instructions allowed in this challenge are shown.",
       "plantNote": "This challenge uses the virtual plant: the test cases simulate it too.",
-      "howItWorks": "Checking runs your program in simulated time for each test case and compares the outputs at given moments. You do not need to put the PLC in RUN."
+      "howItWorks": "Checking runs your program in simulated time for each test case and compares the outputs at given moments. You do not need to put the PLC in RUN.",
+      "expectedAnalog": "At t = {time} s, {name} was expected between {min} and {max}, but it was {actual}."
     },
     "st": {
       "editorLabel": "Structured text editor",
@@ -1136,7 +1137,16 @@
           "STEP.T is how long a step has been active: use it for waits (MIX.T >= T#10s).",
           "An arrow → STEP is a jump: that is how the cycle closes and returns to the start."
         ]
-      }
+      },
+      "chartLabel": "SFC chart"
+    },
+    "crash": {
+      "title": "Something went wrong in the simulator",
+      "body": "An unexpected error happened and the simulator stopped. Your project is still saved in this browser: try reloading the page. If it happens again, download a copy of the project and start from scratch.",
+      "reload": "Reload the page",
+      "download": "Download a copy of the project",
+      "reset": "Start from scratch",
+      "confirmReset": "Delete the project saved in this browser and start from scratch? Download a copy first if you want to keep it."
     }
   },
   "examples": {
@@ -1308,8 +1318,7 @@
         "body": [
           "There are no accounts or forms: we do not ask for or store personal data on a server.",
           "To work, the site stores in your browser's local storage your preferred language and theme, the simulator project, the address style and your challenge progress. That data never leaves your device and you can delete it from your browser settings.",
-          "We use privacy-friendly visit analytics (Vercel Web Analytics) that provides aggregated, anonymous data and uses no cookies.",
-          "We do not show ads today. If they are ever added to content pages, this policy will be updated first and your consent will be requested where required."
+          "We use privacy-friendly visit analytics (Vercel Web Analytics) that provides aggregated, anonymous data and uses no cookies."
         ]
       },
       "links": {
@@ -1322,6 +1331,24 @@
         "title": "Contact",
         "body": ["For questions or reports, open an issue in the project's GitHub repository."]
       }
+    },
+    "adsOff": "We do not show ads today. If they are added to content pages in the future, this policy will be updated first and your consent will be requested where required.",
+    "adsOn": {
+      "title": "Advertising and cookies",
+      "body": [
+        "On some content pages (lessons, examples, glossary and FAQ) we show at most one Google AdSense ad, in a reserved space so it does not move the text. There are never ads in the simulator or in the challenges.",
+        "Google and its partners may use cookies to show ads and measure their performance. Personalized ads are only used if you accept them in the cookie notice; otherwise non-personalized ads are shown, which are not chosen using your history.",
+        "You can change your choice at any time with \"Cookie preferences\" at the bottom of every page. How Google uses data from partner sites: https://policies.google.com/technologies/partner-sites"
+      ]
     }
+  },
+  "ads": {
+    "label": "Advertisement",
+    "notice": "This site shows Google ads on some content pages. If you accept, Google may use cookies to show you personalized ads; otherwise you will see non-personalized ads.",
+    "accept": "Accept personalized ads",
+    "reject": "Non-personalized only",
+    "more": "Learn more",
+    "preferences": "Cookie preferences",
+    "noticeLabel": "Cookie notice"
   }
 }

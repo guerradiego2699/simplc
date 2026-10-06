@@ -1,6 +1,6 @@
 ---
 import type { GetStaticPaths } from 'astro';
-import { SITE, type Locale } from '@/config/site';
+import { adsEnabled, SITE, type Locale } from '@/config/site';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { format, getDictionary, locales } from '@/i18n';
 
@@ -18,6 +18,7 @@ const date = new Date(`${LEGAL_UPDATED}T12:00:00Z`).toLocaleDateString(
   { year: 'numeric', month: 'long', day: 'numeric' },
 );
 const sections = Object.entries(l.sections);
+const ads = adsEnabled();
 ---
 
 <BaseLayout locale={locale} title={l.title} description={site(l.description)} path="/legal">
@@ -31,6 +32,7 @@ const sections = Object.entries(l.sections);
           {section.body.map((p) => (
             <p>{site(p)}</p>
           ))}
+          {id === 'privacy' && !ads && <p>{l.adsOff}</p>}
         </div>
         {id === 'contact' && (
           <a href={`${SITE.repoUrl}/issues`} rel="noopener" class="mt-2 inline-block text-primary">
@@ -39,5 +41,20 @@ const sections = Object.entries(l.sections);
         )}
       </section>
     ))}
+    {ads && (
+      <section class="mt-10" id="ads">
+        <h2 class="text-xl font-semibold text-text">{l.adsOn.title}</h2>
+        <div class="mt-3 flex flex-col gap-3 text-text-muted">
+          {l.adsOn.body.map((p) => (
+            <p>{p}</p>
+          ))}
+          <p>
+            <button type="button" data-cookie-preferences class="text-primary hover:underline">
+              {getDictionary(locale).ads.preferences}
+            </button>
+          </p>
+        </div>
+      </section>
+    )}
   </article>
 </BaseLayout>

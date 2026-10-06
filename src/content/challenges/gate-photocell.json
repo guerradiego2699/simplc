@@ -1,0 +1,286 @@
+{
+  "id": "gate-photocell",
+  "order": 20,
+  "level": 4,
+  "plant": "gate",
+  "title": {
+    "es": "Portón con fotocelda de seguridad",
+    "en": "Gate with a safety photocell"
+  },
+  "statement": {
+    "es": [
+      "ABRIR (I0.0) abre el portón (Q0.0) hasta el final de carrera FC_ABIERTO (I0.2); CERRAR (I0.1) lo cierra (Q0.1) hasta FC_CERRADO (I0.3). Los dos movimientos se mantienen solos (autorretención) y nunca a la vez.",
+      "Seguridad: si la FOTOCELDA (I0.4, 1 = paso libre) detecta algo mientras se cierra, el portón se detiene y vuelve a abrirse. La BALIZA (Q0.2) se enciende mientras el portón se mueve."
+    ],
+    "en": [
+      "OPEN (I0.0) opens the gate (Q0.0) up to the LS_OPEN limit switch (I0.2); CLOSE (I0.1) closes it (Q0.1) down to LS_CLOSED (I0.3). Both movements hold by themselves (seal-in) and never at the same time.",
+      "Safety: if the PHOTOCELL (I0.4, 1 = clear) detects something while closing, the gate stops and opens again. The BEACON (Q0.2) is on while the gate moves."
+    ]
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": {
+        "es": "ABRIR",
+        "en": "OPEN"
+      },
+      "description": {
+        "es": "Pulsador abrir (NA)",
+        "en": "Open push button (NO)"
+      },
+      "mode": "button-no"
+    },
+    {
+      "address": "I0.1",
+      "name": {
+        "es": "CERRAR",
+        "en": "CLOSE"
+      },
+      "description": {
+        "es": "Pulsador cerrar (NA)",
+        "en": "Close push button (NO)"
+      },
+      "mode": "button-no"
+    },
+    {
+      "address": "I0.2",
+      "name": {
+        "es": "FC_ABIERTO",
+        "en": "LS_OPEN"
+      },
+      "description": {
+        "es": "Final de carrera abierto (planta)",
+        "en": "Open limit switch (plant)"
+      }
+    },
+    {
+      "address": "I0.3",
+      "name": {
+        "es": "FC_CERRADO",
+        "en": "LS_CLOSED"
+      },
+      "description": {
+        "es": "Final de carrera cerrado (planta)",
+        "en": "Closed limit switch (plant)"
+      }
+    },
+    {
+      "address": "I0.4",
+      "name": {
+        "es": "FOTOCELDA",
+        "en": "PHOTOCELL"
+      },
+      "description": {
+        "es": "Fotocelda: 1 = paso libre (planta)",
+        "en": "Photocell: 1 = clear (plant)"
+      }
+    },
+    {
+      "address": "Q0.0",
+      "name": {
+        "es": "MOTOR_ABRIR",
+        "en": "MOTOR_OPEN"
+      },
+      "description": {
+        "es": "Motor en sentido abrir",
+        "en": "Motor opening"
+      }
+    },
+    {
+      "address": "Q0.1",
+      "name": {
+        "es": "MOTOR_CERRAR",
+        "en": "MOTOR_CLOSE"
+      },
+      "description": {
+        "es": "Motor en sentido cerrar",
+        "en": "Motor closing"
+      }
+    },
+    {
+      "address": "Q0.2",
+      "name": {
+        "es": "BALIZA",
+        "en": "BEACON"
+      },
+      "description": {
+        "es": "Baliza de advertencia",
+        "en": "Warning beacon"
+      }
+    }
+  ],
+  "allowed": ["NO", "NC", "coil", "set", "reset", "P", "N", "TON", "TOF", "TP"],
+  "hints": {
+    "es": [
+      "Son dos autorretenciones, como en la inversión de giro, cortadas por su final de carrera y enclavadas entre sí.",
+      "Pon FOTOCELDA (NA) en serie en el cierre: si algo corta el haz, el cierre se suelta. Para reabrir, agrega en paralelo con ABRIR una rama «fotocelda interrumpida y portón no cerrado» (NC FOTOCELDA, NC FC_CERRADO).",
+      "Abrir: (ABRIR O MOTOR_ABRIR O (NC FOTOCELDA Y NC FC_CERRADO)), NC FC_ABIERTO, NC MOTOR_CERRAR → MOTOR_ABRIR. Cerrar: (CERRAR O MOTOR_CERRAR), NC FC_CERRADO, FOTOCELDA, NC MOTOR_ABRIR → MOTOR_CERRAR. BALIZA: MOTOR_ABRIR O MOTOR_CERRAR."
+    ],
+    "en": [
+      "These are two seal-ins, as in the reversing motor, cut by their limit switch and interlocked with each other.",
+      "Put PHOTOCELL (NO) in series in the closing rung: if something breaks the beam, closing drops out. To reopen, add in parallel with OPEN a branch \"beam broken and gate not closed\" (NC PHOTOCELL, NC LS_CLOSED).",
+      "Open: (OPEN OR MOTOR_OPEN OR (NC PHOTOCELL AND NC LS_CLOSED)), NC LS_OPEN, NC MOTOR_CLOSE → MOTOR_OPEN. Close: (CLOSE OR MOTOR_CLOSE), NC LS_CLOSED, PHOTOCELL, NC MOTOR_OPEN → MOTOR_CLOSE. BEACON: MOTOR_OPEN OR MOTOR_CLOSE."
+    ]
+  },
+  "tests": [
+    {
+      "name": {
+        "es": "Abre hasta el final de carrera con la baliza encendida",
+        "en": "Opens up to the limit switch with the beacon on"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 300,
+          "inputs": {
+            "I0.0": false
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 1000,
+          "outputs": {
+            "Q0.0": true,
+            "Q0.1": false,
+            "Q0.2": true
+          }
+        },
+        {
+          "at": 7500,
+          "outputs": {
+            "Q0.0": true
+          }
+        },
+        {
+          "at": 9000,
+          "outputs": {
+            "Q0.0": false,
+            "Q0.1": false,
+            "Q0.2": false
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "es": "Cierra hasta el final de carrera",
+        "en": "Closes down to the limit switch"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 300,
+          "inputs": {
+            "I0.0": false
+          }
+        },
+        {
+          "at": 9500,
+          "inputs": {
+            "I0.1": true
+          }
+        },
+        {
+          "at": 9700,
+          "inputs": {
+            "I0.1": false
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 10000,
+          "outputs": {
+            "Q0.0": false,
+            "Q0.1": true,
+            "Q0.2": true
+          }
+        },
+        {
+          "at": 17000,
+          "outputs": {
+            "Q0.1": true
+          }
+        },
+        {
+          "at": 18800,
+          "outputs": {
+            "Q0.0": false,
+            "Q0.1": false,
+            "Q0.2": false
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "es": "Un obstáculo durante el cierre lo hace reabrir",
+        "en": "An obstacle while closing makes it reopen"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 300,
+          "inputs": {
+            "I0.0": false
+          }
+        },
+        {
+          "at": 9500,
+          "inputs": {
+            "I0.1": true
+          }
+        },
+        {
+          "at": 9700,
+          "inputs": {
+            "I0.1": false
+          }
+        },
+        {
+          "at": 11000,
+          "plant": "toggleObstacle"
+        }
+      ],
+      "expect": [
+        {
+          "at": 10800,
+          "outputs": {
+            "Q0.1": true
+          }
+        },
+        {
+          "at": 11300,
+          "outputs": {
+            "Q0.0": true,
+            "Q0.1": false,
+            "Q0.2": true
+          }
+        },
+        {
+          "at": 14000,
+          "outputs": {
+            "Q0.0": false,
+            "Q0.1": false
+          }
+        }
+      ]
+    }
+  ]
+}

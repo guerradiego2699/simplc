@@ -21,6 +21,7 @@ const dict = getDictionary(locale);
 const example = getExample(Astro.params.id)!;
 const project = exampleProject(example, locale);
 const simulatorHref = `${localizePath(locale, '/simulator')}?example=${example.id}`;
+import AdSlot from '@/components/ads/AdSlot.astro';
 ---
 
 <BaseLayout
@@ -145,4 +146,5 @@ const simulatorHref = `${localizePath(locale, '/simulator')}?example=${example.i
       </a>
     </section>
   </article>
+  <AdSlot locale={locale} placement="content" />
 </BaseLayout>

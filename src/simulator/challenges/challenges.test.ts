@@ -64,6 +64,200 @@ const SOLUTIONS: Record<string, () => LadderProgram> = {
       ),
     ],
   }),
+  'stair-light': () => ({
+    rungs: [
+      rung([contact('NO', 'I0.0'), contact('TOF', 'T0', { pt: 'T#10s' })], [coil('coil', 'Q0.0')]),
+    ],
+  }),
+  'toggle-light': () => ({
+    rungs: [
+      rung([contact('P', 'I0.0')], [coil('coil', 'M0.0')]),
+      rung(
+        [
+          parallel(
+            series([contact('NO', 'M0.0'), contact('NC', 'Q0.0')]),
+            series([contact('NC', 'M0.0'), contact('NO', 'Q0.0')]),
+          ),
+        ],
+        [coil('coil', 'Q0.0')],
+      ),
+    ],
+  }),
+  blinker: () => ({
+    rungs: [
+      rung(
+        [contact('NO', 'I0.0'), contact('NC', 'T1'), contact('TON', 'T0', { pt: 'T#500ms' })],
+        [],
+      ),
+      rung([contact('NO', 'T0'), contact('TON', 'T1', { pt: 'T#500ms' })], []),
+      rung([contact('NO', 'I0.0'), contact('NC', 'T0')], [coil('coil', 'Q0.0')]),
+    ],
+  }),
+  'people-counter': () => ({
+    rungs: [
+      rung(
+        [contact('NO', 'I0.0'), contact('CTUD', 'C0', { pv: '3', cd: 'I0.1' })],
+        [coil('coil', 'Q0.0')],
+      ),
+      rung([contact('EQ', 'C0.CV', { in2: '0' })], [coil('coil', 'Q0.1')]),
+    ],
+  }),
+  'analog-alarm': () => ({
+    rungs: [
+      rung([contact('GT', 'IW0', { in2: '22118' })], [coil('coil', 'Q0.0')]),
+      rung([contact('LT', 'IW0', { in2: '5530' })], [coil('coil', 'Q0.1')]),
+    ],
+  }),
+  'reversing-interlock': () => ({
+    rungs: [
+      rung(
+        [
+          parallel(series([contact('NO', 'I0.0')]), series([contact('NO', 'Q0.0')])),
+          contact('NO', 'I0.2'),
+          contact('NO', 'I0.3'),
+          contact('NC', 'Q0.1'),
+        ],
+        [coil('coil', 'Q0.0')],
+      ),
+      rung(
+        [
+          parallel(series([contact('NO', 'I0.1')]), series([contact('NO', 'Q0.1')])),
+          contact('NO', 'I0.2'),
+          contact('NO', 'I0.3'),
+          contact('NC', 'Q0.0'),
+        ],
+        [coil('coil', 'Q0.1')],
+      ),
+    ],
+  }),
+  'tank-hysteresis': () => ({
+    rungs: [
+      rung(
+        [
+          contact('NO', 'I0.0'),
+          parallel(series([contact('NC', 'I0.2')]), series([contact('NO', 'Q0.0')])),
+          contact('NC', 'I0.3'),
+        ],
+        [coil('coil', 'Q0.0')],
+      ),
+    ],
+  }),
+  'motor-cascade': () => ({
+    rungs: [
+      rung(
+        [
+          parallel(series([contact('NO', 'I0.0')]), series([contact('NO', 'Q0.0')])),
+          contact('NO', 'I0.1'),
+        ],
+        [coil('coil', 'Q0.0')],
+      ),
+      rung([contact('NO', 'Q0.0'), contact('TON', 'T0', { pt: 'T#2s' })], [coil('coil', 'Q0.1')]),
+      rung([contact('NO', 'Q0.1'), contact('TON', 'T1', { pt: 'T#2s' })], [coil('coil', 'Q0.2')]),
+    ],
+  }),
+  'traffic-cycle': () => ({
+    rungs: [
+      rung([contact('NO', 'I0.0'), contact('NC', 'T0'), contact('TON', 'T0', { pt: 'T#8s' })], []),
+      rung(
+        [contact('NO', 'I0.0'), contact('LT', 'T0.ET', { in2: 'T#4s' })],
+        [coil('coil', 'Q0.2')],
+      ),
+      rung(
+        [
+          contact('NO', 'I0.0'),
+          contact('GE', 'T0.ET', { in2: 'T#4s' }),
+          contact('LT', 'T0.ET', { in2: 'T#5s' }),
+        ],
+        [coil('coil', 'Q0.1')],
+      ),
+      rung(
+        [contact('NO', 'I0.0'), contact('GE', 'T0.ET', { in2: 'T#5s' })],
+        [coil('coil', 'Q0.0')],
+      ),
+    ],
+  }),
+  'conveyor-batch': () => ({
+    rungs: [
+      rung(
+        [contact('NO', 'I0.2'), contact('CTU', 'C0', { pv: '3', r: 'I0.1' })],
+        [coil('coil', 'Q0.1')],
+      ),
+      rung(
+        [
+          parallel(series([contact('NO', 'I0.0')]), series([contact('NO', 'Q0.0')])),
+          contact('NC', 'C0'),
+        ],
+        [coil('coil', 'Q0.0')],
+      ),
+    ],
+  }),
+  'analog-inverse-valve': () => ({
+    rungs: [
+      rung([contact('NO', 'I0.0')], [coil('SUB', 'QW0', { in1: '27648', in2: 'IW0' })]),
+      rung([contact('NC', 'I0.0')], [coil('MOVE', 'QW0', { in: '0' })]),
+    ],
+  }),
+  'gate-photocell': () => ({
+    rungs: [
+      rung(
+        [
+          parallel(
+            series([contact('NO', 'I0.0')]),
+            series([contact('NO', 'Q0.0')]),
+            series([contact('NC', 'I0.4'), contact('NC', 'I0.3')]),
+          ),
+          contact('NC', 'I0.2'),
+          contact('NC', 'Q0.1'),
+        ],
+        [coil('coil', 'Q0.0')],
+      ),
+      rung(
+        [
+          parallel(series([contact('NO', 'I0.1')]), series([contact('NO', 'Q0.1')])),
+          contact('NC', 'I0.3'),
+          contact('NO', 'I0.4'),
+          contact('NC', 'Q0.0'),
+        ],
+        [coil('coil', 'Q0.1')],
+      ),
+      rung(
+        [parallel(series([contact('NO', 'Q0.0')]), series([contact('NO', 'Q0.1')]))],
+        [coil('coil', 'Q0.2')],
+      ),
+    ],
+  }),
+  'oven-thermostat': () => ({
+    rungs: [
+      rung([contact('NO', 'I0.0'), contact('LT', 'IW0', { in2: '8755' })], [coil('set', 'Q0.0')]),
+      rung(
+        [
+          parallel(
+            series([contact('GT', 'IW0', { in2: '9677' })]),
+            series([contact('NC', 'I0.0')]),
+          ),
+        ],
+        [coil('reset', 'Q0.0')],
+      ),
+    ],
+  }),
+  'pump-backup': () => ({
+    rungs: [
+      rung(
+        [
+          contact('NO', 'I0.0'),
+          parallel(series([contact('NC', 'I0.2')]), series([contact('NO', 'M0.0')])),
+          contact('NC', 'I0.3'),
+        ],
+        [coil('coil', 'M0.0')],
+      ),
+      rung([contact('NO', 'M0.0'), contact('NO', 'I0.4')], [coil('coil', 'Q0.0')]),
+      rung(
+        [contact('NO', 'M0.0'), contact('NC', 'I0.4'), contact('NO', 'I0.5')],
+        [coil('coil', 'Q0.1')],
+      ),
+      rung([contact('NC', 'I0.4')], [coil('coil', 'Q0.2')]),
+    ],
+  }),
 };
 
 function grade(id: string, ladder: LadderProgram): Validation {
@@ -74,9 +268,9 @@ function grade(id: string, ladder: LadderProgram): Validation {
 }
 
 describe('challenge content', () => {
-  it('has the first 8 challenges in order, each with a reference solution', () => {
-    expect(CHALLENGES).toHaveLength(8);
-    expect(CHALLENGES.map((c) => c.order)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+  it('has 22 challenges in order, each with a reference solution', () => {
+    expect(CHALLENGES).toHaveLength(22);
+    expect(CHALLENGES.map((c) => c.order)).toEqual(Array.from({ length: 22 }, (_, i) => i + 1));
     for (const c of CHALLENGES) expect(SOLUTIONS[c.id], c.id).toBeDefined();
   });
 
@@ -110,9 +304,81 @@ describe('challenge content', () => {
     }
   });
 
+  it('typical mistakes are caught by the test cases', () => {
+    const failed = (id: string, ladder: LadderProgram) => grade(id, ladder).status === 'failed';
+    // TP instead of TOF: the light does not wait for the release.
+    expect(
+      failed('stair-light', {
+        rungs: [
+          rung(
+            [contact('NO', 'I0.0'), contact('TP', 'T0', { pt: 'T#10s' })],
+            [coil('coil', 'Q0.0')],
+          ),
+        ],
+      }),
+    ).toBe(true);
+    // Toggle without an edge: a long press flickers.
+    expect(
+      failed('toggle-light', {
+        rungs: [
+          rung(
+            [
+              parallel(
+                series([contact('NO', 'I0.0'), contact('NC', 'Q0.0')]),
+                series([contact('NC', 'I0.0'), contact('NO', 'Q0.0')]),
+              ),
+            ],
+            [coil('coil', 'Q0.0')],
+          ),
+        ],
+      }),
+    ).toBe(true);
+    // No interlock: REVERSE closes the second contactor while running forward.
+    expect(
+      failed('reversing-interlock', {
+        rungs: [
+          rung(
+            [
+              parallel(series([contact('NO', 'I0.0')]), series([contact('NO', 'Q0.0')])),
+              contact('NO', 'I0.2'),
+              contact('NO', 'I0.3'),
+            ],
+            [coil('coil', 'Q0.0')],
+          ),
+          rung(
+            [
+              parallel(series([contact('NO', 'I0.1')]), series([contact('NO', 'Q0.1')])),
+              contact('NO', 'I0.2'),
+              contact('NO', 'I0.3'),
+            ],
+            [coil('coil', 'Q0.1')],
+          ),
+        ],
+      }),
+    ).toBe(true);
+    // No hysteresis: the pump restarts as soon as the level drops below the high switch.
+    expect(
+      failed('tank-hysteresis', {
+        rungs: [rung([contact('NO', 'I0.0'), contact('NC', 'I0.3')], [coil('coil', 'Q0.0')])],
+      }),
+    ).toBe(true);
+    // A single 100 °C threshold instead of the 95–105 °C band.
+    expect(
+      failed('oven-thermostat', {
+        rungs: [
+          rung(
+            [contact('NO', 'I0.0'), contact('LT', 'IW0', { in2: '9216' })],
+            [coil('coil', 'Q0.0')],
+          ),
+        ],
+      }),
+    ).toBe(true);
+  });
+
   it('nextChallenge follows the order', () => {
     expect(nextChallenge('first-output')?.id).toBe('run-and-stop-lights');
-    expect(nextChallenge('box-counter')).toBeUndefined();
+    expect(nextChallenge('box-counter')?.id).toBe('stair-light');
+    expect(nextChallenge('pump-backup')).toBeUndefined();
   });
 });
 

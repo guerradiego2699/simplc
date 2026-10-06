@@ -1,0 +1,192 @@
+{
+  "id": "toggle-light",
+  "order": 10,
+  "level": 3,
+  "plant": null,
+  "title": {
+    "es": "Un pulsador que enciende y apaga (telerruptor)",
+    "en": "One button for on and off (toggle)"
+  },
+  "statement": {
+    "es": [
+      "Con un solo PULSADOR (I0.0) se controla la LUZ (Q0.0): cada pulsación cambia su estado. Si está apagada, se enciende; si está encendida, se apaga.",
+      "Ojo: el programa se ejecuta cientos de veces mientras el dedo está sobre el pulsador. Una pulsación larga debe contar como una sola."
+    ],
+    "en": [
+      "A single PUSH_BUTTON (I0.0) controls the LIGHT (Q0.0): each press changes its state. If it is off, it turns on; if it is on, it turns off.",
+      "Careful: the program runs hundreds of times while the finger is on the button. A long press must count as a single one."
+    ]
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": {
+        "es": "PULSADOR",
+        "en": "PUSH_BUTTON"
+      },
+      "description": {
+        "es": "Pulsador (NA)",
+        "en": "Push button (NO)"
+      },
+      "mode": "button-no"
+    },
+    {
+      "address": "Q0.0",
+      "name": {
+        "es": "LUZ",
+        "en": "LIGHT"
+      },
+      "description": {
+        "es": "Luz",
+        "en": "Light"
+      }
+    }
+  ],
+  "allowed": ["NO", "NC", "coil", "set", "reset", "P", "N"],
+  "hints": {
+    "es": [
+      "Necesitas reaccionar solo en el instante en que se presiona el pulsador, no mientras está presionado.",
+      "El contacto de flanco positivo (P) conduce durante un solo ciclo de scan cuando su entrada pasa de 0 a 1. Guarda ese pulso en una marca, por ejemplo M0.0.",
+      "Peldaño 1: P PULSADOR → bobina M0.0. Peldaño 2: (M0.0 Y NO LUZ) O (NO M0.0 Y LUZ) → bobina LUZ."
+    ],
+    "en": [
+      "You need to react only at the moment the button is pressed, not while it is held.",
+      "The positive edge contact (P) conducts for a single scan when its input goes from 0 to 1. Store that pulse in a marker, for example M0.0.",
+      "Rung 1: P PUSH_BUTTON → M0.0 coil. Rung 2: (M0.0 AND NOT LIGHT) OR (NOT M0.0 AND LIGHT) → LIGHT coil."
+    ]
+  },
+  "tests": [
+    {
+      "name": {
+        "es": "La primera pulsación enciende",
+        "en": "The first press turns it on"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 300,
+          "inputs": {
+            "I0.0": false
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 500,
+          "outputs": {
+            "Q0.0": true
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "es": "Una pulsación larga cuenta como una sola",
+        "en": "A long press counts as one"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 1500,
+          "inputs": {
+            "I0.0": false
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 400,
+          "outputs": {
+            "Q0.0": true
+          }
+        },
+        {
+          "at": 1200,
+          "outputs": {
+            "Q0.0": true
+          }
+        },
+        {
+          "at": 2000,
+          "outputs": {
+            "Q0.0": true
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "es": "La segunda pulsación apaga y la tercera vuelve a encender",
+        "en": "The second press turns it off and the third turns it on again"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 300,
+          "inputs": {
+            "I0.0": false
+          }
+        },
+        {
+          "at": 800,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 1000,
+          "inputs": {
+            "I0.0": false
+          }
+        },
+        {
+          "at": 1500,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 1700,
+          "inputs": {
+            "I0.0": false
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 600,
+          "outputs": {
+            "Q0.0": true
+          }
+        },
+        {
+          "at": 1300,
+          "outputs": {
+            "Q0.0": false
+          }
+        },
+        {
+          "at": 2000,
+          "outputs": {
+            "Q0.0": true
+          }
+        }
+      ]
+    }
+  ]
+}

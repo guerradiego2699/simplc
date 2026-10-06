@@ -1,0 +1,209 @@
+{
+  "id": "motor-cascade",
+  "order": 16,
+  "level": 4,
+  "plant": null,
+  "title": {
+    "es": "Arranque en cascada de tres motores",
+    "en": "Cascade start of three motors"
+  },
+  "statement": {
+    "es": [
+      "Una línea tiene tres motores. Al pulsar MARCHA (I0.0) arranca MOTOR_1 (Q0.0); 2 segundos después arranca MOTOR_2 (Q0.1) y 2 segundos después de ese, MOTOR_3 (Q0.2). Así se evita el pico de corriente de arrancar todos juntos.",
+      "PARO (I0.1, pulsador NC) detiene los tres motores al instante."
+    ],
+    "en": [
+      "A line has three motors. Pressing START (I0.0) starts MOTOR_1 (Q0.0); 2 seconds later MOTOR_2 (Q0.1) starts, and 2 seconds after that, MOTOR_3 (Q0.2). This avoids the current peak of starting them all at once.",
+      "STOP (I0.1, NC push button) stops all three motors immediately."
+    ]
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": {
+        "es": "MARCHA",
+        "en": "START"
+      },
+      "description": {
+        "es": "Pulsador de marcha (NA)",
+        "en": "Start push button (NO)"
+      },
+      "mode": "button-no"
+    },
+    {
+      "address": "I0.1",
+      "name": {
+        "es": "PARO",
+        "en": "STOP"
+      },
+      "description": {
+        "es": "Pulsador de paro (NC: 1 en reposo)",
+        "en": "Stop push button (NC: 1 at rest)"
+      },
+      "mode": "button-nc"
+    },
+    {
+      "address": "Q0.0",
+      "name": {
+        "es": "MOTOR_1",
+        "en": "MOTOR_1"
+      },
+      "description": {
+        "es": "Contactor del motor 1",
+        "en": "Motor 1 contactor"
+      }
+    },
+    {
+      "address": "Q0.1",
+      "name": {
+        "es": "MOTOR_2",
+        "en": "MOTOR_2"
+      },
+      "description": {
+        "es": "Contactor del motor 2",
+        "en": "Motor 2 contactor"
+      }
+    },
+    {
+      "address": "Q0.2",
+      "name": {
+        "es": "MOTOR_3",
+        "en": "MOTOR_3"
+      },
+      "description": {
+        "es": "Contactor del motor 3",
+        "en": "Motor 3 contactor"
+      }
+    }
+  ],
+  "allowed": ["NO", "NC", "coil", "set", "reset", "TON", "TOF", "TP"],
+  "hints": {
+    "es": [
+      "Empieza por la autorretención de MOTOR_1 con MARCHA y PARO.",
+      "Un TON con la entrada en MOTOR_1 retrasa el arranque del segundo motor. Otro TON con la entrada en MOTOR_2 retrasa el tercero.",
+      "Peldaño 1: (MARCHA O MOTOR_1), PARO → MOTOR_1. Peldaño 2: MOTOR_1 → TON T0 (T#2s) → MOTOR_2. Peldaño 3: MOTOR_2 → TON T1 (T#2s) → MOTOR_3."
+    ],
+    "en": [
+      "Start with the seal-in of MOTOR_1 with START and STOP.",
+      "A TON with its input on MOTOR_1 delays the start of the second motor. Another TON with its input on MOTOR_2 delays the third.",
+      "Rung 1: (START OR MOTOR_1), STOP → MOTOR_1. Rung 2: MOTOR_1 → TON T0 (T#2s) → MOTOR_2. Rung 3: MOTOR_2 → TON T1 (T#2s) → MOTOR_3."
+    ]
+  },
+  "tests": [
+    {
+      "name": {
+        "es": "Arrancan uno tras otro cada 2 segundos",
+        "en": "They start one after another every 2 seconds"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 300,
+          "inputs": {
+            "I0.0": false
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 1000,
+          "outputs": {
+            "Q0.0": true,
+            "Q0.1": false,
+            "Q0.2": false
+          }
+        },
+        {
+          "at": 1900,
+          "outputs": {
+            "Q0.1": false
+          }
+        },
+        {
+          "at": 2400,
+          "outputs": {
+            "Q0.0": true,
+            "Q0.1": true,
+            "Q0.2": false
+          }
+        },
+        {
+          "at": 3900,
+          "outputs": {
+            "Q0.2": false
+          }
+        },
+        {
+          "at": 4400,
+          "outputs": {
+            "Q0.0": true,
+            "Q0.1": true,
+            "Q0.2": true
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "es": "PARO detiene todo, también a mitad del arranque",
+        "en": "STOP stops everything, also halfway through the start"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 300,
+          "inputs": {
+            "I0.0": false
+          }
+        },
+        {
+          "at": 3000,
+          "inputs": {
+            "I0.1": false
+          }
+        },
+        {
+          "at": 3200,
+          "inputs": {
+            "I0.1": true
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 2600,
+          "outputs": {
+            "Q0.0": true,
+            "Q0.1": true
+          }
+        },
+        {
+          "at": 3300,
+          "outputs": {
+            "Q0.0": false,
+            "Q0.1": false,
+            "Q0.2": false
+          }
+        },
+        {
+          "at": 6000,
+          "outputs": {
+            "Q0.0": false,
+            "Q0.1": false,
+            "Q0.2": false
+          }
+        }
+      ]
+    }
+  ]
+}

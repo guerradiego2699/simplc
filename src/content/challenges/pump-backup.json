@@ -1,0 +1,224 @@
+{
+  "id": "pump-backup",
+  "order": 22,
+  "level": 5,
+  "plant": "pumps",
+  "title": {
+    "es": "Bomba de respaldo",
+    "en": "Backup pump"
+  },
+  "statement": {
+    "es": [
+      "Con SISTEMA (I0.0) encendido, el estanque se llena entre NIVEL_BAJO (I0.2) y NIVEL_ALTO (I0.3), como en el desafío del estanque. Normalmente trabaja la BOMBA_1 (Q0.0).",
+      "Si la BOMBA_1 falla (BOMBA1_OK, I0.4, pasa a 0), trabaja la BOMBA_2 (Q0.1) en su lugar y se enciende la ALARMA (Q0.2). Cuando la bomba 1 se repara, vuelve a trabajar ella y la alarma se apaga."
+    ],
+    "en": [
+      "With SYSTEM (I0.0) on, the tank is filled between LEVEL_LOW (I0.2) and LEVEL_HIGH (I0.3), as in the tank challenge. Normally PUMP_1 (Q0.0) does the work.",
+      "If PUMP_1 fails (PUMP1_OK, I0.4, goes to 0), PUMP_2 (Q0.1) works instead and the ALARM (Q0.2) turns on. When pump 1 is repaired, it works again and the alarm turns off."
+    ]
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": {
+        "es": "SISTEMA",
+        "en": "SYSTEM"
+      },
+      "description": {
+        "es": "Interruptor del sistema",
+        "en": "System switch"
+      },
+      "mode": "switch"
+    },
+    {
+      "address": "I0.2",
+      "name": {
+        "es": "NIVEL_BAJO",
+        "en": "LEVEL_LOW"
+      },
+      "description": {
+        "es": "Sensor de nivel bajo (planta)",
+        "en": "Low level switch (plant)"
+      }
+    },
+    {
+      "address": "I0.3",
+      "name": {
+        "es": "NIVEL_ALTO",
+        "en": "LEVEL_HIGH"
+      },
+      "description": {
+        "es": "Sensor de nivel alto (planta)",
+        "en": "High level switch (plant)"
+      }
+    },
+    {
+      "address": "I0.4",
+      "name": {
+        "es": "BOMBA1_OK",
+        "en": "PUMP1_OK"
+      },
+      "description": {
+        "es": "Bomba 1 sin falla (NC, planta)",
+        "en": "Pump 1 healthy (NC, plant)"
+      }
+    },
+    {
+      "address": "I0.5",
+      "name": {
+        "es": "BOMBA2_OK",
+        "en": "PUMP2_OK"
+      },
+      "description": {
+        "es": "Bomba 2 sin falla (NC, planta)",
+        "en": "Pump 2 healthy (NC, plant)"
+      }
+    },
+    {
+      "address": "Q0.0",
+      "name": {
+        "es": "BOMBA_1",
+        "en": "PUMP_1"
+      },
+      "description": {
+        "es": "Contactor de la bomba 1",
+        "en": "Pump 1 contactor"
+      }
+    },
+    {
+      "address": "Q0.1",
+      "name": {
+        "es": "BOMBA_2",
+        "en": "PUMP_2"
+      },
+      "description": {
+        "es": "Contactor de la bomba 2",
+        "en": "Pump 2 contactor"
+      }
+    },
+    {
+      "address": "Q0.2",
+      "name": {
+        "es": "ALARMA",
+        "en": "ALARM"
+      },
+      "description": {
+        "es": "Luz de alarma",
+        "en": "Alarm light"
+      }
+    }
+  ],
+  "allowed": null,
+  "hints": {
+    "es": [
+      "Separa el problema en dos: cuándo hace falta agua (la demanda, con histéresis) y qué bomba la entrega.",
+      "Guarda la demanda en una marca M0.0 con autorretención entre los sensores. Luego cada bomba usa esa marca y el estado de la bomba 1.",
+      "M0.0: SISTEMA, (NC NIVEL_BAJO O M0.0), NC NIVEL_ALTO. BOMBA_1: M0.0, BOMBA1_OK. BOMBA_2: M0.0, NC BOMBA1_OK, BOMBA2_OK. ALARMA: NC BOMBA1_OK."
+    ],
+    "en": [
+      "Split the problem in two: when water is needed (the demand, with hysteresis) and which pump delivers it.",
+      "Keep the demand in a marker M0.0 with a seal-in between the switches. Then each pump uses that marker and the state of pump 1.",
+      "M0.0: SYSTEM, (NC LEVEL_LOW OR M0.0), NC LEVEL_HIGH. PUMP_1: M0.0, PUMP1_OK. PUMP_2: M0.0, NC PUMP1_OK, PUMP2_OK. ALARM: NC PUMP1_OK."
+    ]
+  },
+  "tests": [
+    {
+      "name": {
+        "es": "Normalmente trabaja la bomba 1",
+        "en": "Normally pump 1 works"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.0": true
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 1000,
+          "outputs": {
+            "Q0.0": true,
+            "Q0.1": false,
+            "Q0.2": false
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "es": "Si la bomba 1 falla, la reemplaza la bomba 2 y suena la alarma",
+        "en": "If pump 1 fails, pump 2 replaces it and the alarm sounds"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 2000,
+          "plant": "toggleFault1"
+        }
+      ],
+      "expect": [
+        {
+          "at": 1500,
+          "outputs": {
+            "Q0.0": true,
+            "Q0.1": false
+          }
+        },
+        {
+          "at": 2500,
+          "outputs": {
+            "Q0.0": false,
+            "Q0.1": true,
+            "Q0.2": true
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "es": "Reparada la bomba 1, vuelve a trabajar ella",
+        "en": "Once pump 1 is repaired, it works again"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 2000,
+          "plant": "toggleFault1"
+        },
+        {
+          "at": 4000,
+          "plant": "toggleFault1"
+        }
+      ],
+      "expect": [
+        {
+          "at": 3000,
+          "outputs": {
+            "Q0.1": true,
+            "Q0.2": true
+          }
+        },
+        {
+          "at": 4500,
+          "outputs": {
+            "Q0.0": true,
+            "Q0.1": false,
+            "Q0.2": false
+          }
+        }
+      ]
+    }
+  ]
+}

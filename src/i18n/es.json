@@ -947,7 +947,8 @@
       "resumed": "Continúas con el desafío «{name}».",
       "paletteLimited": "Solo se muestran las instrucciones permitidas en este desafío.",
       "plantNote": "Este desafío usa la planta virtual: los casos de prueba también la simulan.",
-      "howItWorks": "La verificación ejecuta tu programa en tiempo simulado con cada caso de prueba y compara las salidas en momentos concretos. No necesitas poner el PLC en RUN."
+      "howItWorks": "La verificación ejecuta tu programa en tiempo simulado con cada caso de prueba y compara las salidas en momentos concretos. No necesitas poner el PLC en RUN.",
+      "expectedAnalog": "En t = {time} s se esperaba {name} entre {min} y {max}, pero valía {actual}."
     },
     "st": {
       "editorLabel": "Editor de texto estructurado",
@@ -1136,7 +1137,16 @@
           "ETAPA.T es el tiempo que lleva activa una etapa: úsalo para esperas (MEZCLAR.T >= T#10s).",
           "Una flecha → ETAPA es un salto: así se cierra el ciclo y se vuelve al inicio."
         ]
-      }
+      },
+      "chartLabel": "Diagrama SFC"
+    },
+    "crash": {
+      "title": "Algo salió mal en el simulador",
+      "body": "Ocurrió un error inesperado y el simulador se detuvo. Tu proyecto sigue guardado en este navegador: prueba recargar la página. Si el problema se repite, descarga una copia del proyecto y empieza de cero.",
+      "reload": "Recargar la página",
+      "download": "Descargar copia del proyecto",
+      "reset": "Empezar de cero",
+      "confirmReset": "¿Borrar el proyecto guardado en este navegador y empezar de cero? Descarga antes una copia si la quieres conservar."
     }
   },
   "examples": {
@@ -1308,8 +1318,7 @@
         "body": [
           "No hay cuentas ni formularios: no pedimos ni guardamos datos personales en un servidor.",
           "Para funcionar, el sitio guarda en el almacenamiento local de tu navegador tu idioma y tema preferidos, el proyecto del simulador, el estilo de direcciones y tu progreso en los desafíos. Esos datos no salen de tu equipo y puedes borrarlos desde la configuración del navegador.",
-          "Usamos una analítica de visitas respetuosa (Vercel Web Analytics) que entrega datos agregados y anónimos y no usa cookies.",
-          "Hoy no mostramos anuncios. Si en el futuro se agregan en las páginas de contenido, esta política se actualizará antes y se pedirá tu consentimiento cuando corresponda."
+          "Usamos una analítica de visitas respetuosa (Vercel Web Analytics) que entrega datos agregados y anónimos y no usa cookies."
         ]
       },
       "links": {
@@ -1324,6 +1333,24 @@
           "Para consultas o reportes, abre un reporte (issue) en el repositorio de GitHub del proyecto."
         ]
       }
+    },
+    "adsOff": "Hoy no mostramos anuncios. Si en el futuro se agregan en las páginas de contenido, esta política se actualizará antes y se pedirá tu consentimiento cuando corresponda.",
+    "adsOn": {
+      "title": "Publicidad y cookies",
+      "body": [
+        "En algunas páginas de contenido (lecciones, ejemplos, glosario y preguntas frecuentes) mostramos como máximo un anuncio de Google AdSense, en un espacio reservado para que no mueva el texto. Nunca hay anuncios en el simulador ni en los desafíos.",
+        "Google y sus socios pueden usar cookies para mostrar anuncios y medir su rendimiento. Los anuncios personalizados solo se usan si los aceptas en el aviso de cookies; si no, se muestran anuncios no personalizados, que no usan tu historial para elegirse.",
+        "Puedes cambiar tu elección cuando quieras con «Preferencias de cookies», al pie de cada página. Cómo usa Google los datos de los sitios asociados: https://policies.google.com/technologies/partner-sites"
+      ]
     }
+  },
+  "ads": {
+    "label": "Publicidad",
+    "notice": "Este sitio muestra anuncios de Google en algunas páginas de contenido. Si aceptas, Google puede usar cookies para mostrarte anuncios personalizados; si no, verás anuncios no personalizados.",
+    "accept": "Aceptar anuncios personalizados",
+    "reject": "Solo no personalizados",
+    "more": "Más información",
+    "preferences": "Preferencias de cookies",
+    "noticeLabel": "Aviso de cookies"
   }
 }

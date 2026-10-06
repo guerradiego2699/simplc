@@ -1,0 +1,156 @@
+{
+  "id": "oven-thermostat",
+  "order": 21,
+  "level": 4,
+  "plant": "oven",
+  "title": {
+    "es": "Termostato de un horno",
+    "en": "Oven thermostat"
+  },
+  "statement": {
+    "es": [
+      "Con ENCENDIDO (I0.0) activo, mantén el horno entre 95 °C y 105 °C. El transmisor TEMPERATURA (IW0) entrega 0–27648 para 0–300 °C (92,16 unidades por grado): 95 °C ≈ 8755 y 105 °C ≈ 9677.",
+      "La RESISTENCIA (Q0.0) se enciende bajo 95 °C y se apaga sobre 105 °C; entre ambos valores mantiene lo que venía haciendo. Con el horno apagado, la resistencia no calienta."
+    ],
+    "en": [
+      "With ON (I0.0) active, keep the oven between 95 °C and 105 °C. The TEMPERATURE transmitter (IW0) gives 0–27648 for 0–300 °C (92.16 units per degree): 95 °C ≈ 8755 and 105 °C ≈ 9677.",
+      "The HEATER (Q0.0) turns on below 95 °C and off above 105 °C; between the two values it keeps doing what it was doing. With the oven off, the heater does not heat."
+    ]
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": {
+        "es": "ENCENDIDO",
+        "en": "ON"
+      },
+      "description": {
+        "es": "Interruptor del horno",
+        "en": "Oven switch"
+      },
+      "mode": "switch"
+    },
+    {
+      "address": "IW0",
+      "name": {
+        "es": "TEMPERATURA",
+        "en": "TEMPERATURE"
+      },
+      "description": {
+        "es": "Transmisor de temperatura (0–27648 = 0–300 °C, planta)",
+        "en": "Temperature transmitter (0–27648 = 0–300 °C, plant)"
+      }
+    },
+    {
+      "address": "Q0.0",
+      "name": {
+        "es": "RESISTENCIA",
+        "en": "HEATER"
+      },
+      "description": {
+        "es": "Resistencia calefactora",
+        "en": "Heating element"
+      }
+    }
+  ],
+  "allowed": [
+    "NO",
+    "NC",
+    "coil",
+    "set",
+    "reset",
+    "EQ",
+    "NE",
+    "LT",
+    "GT",
+    "LE",
+    "GE",
+    "MOVE",
+    "ADD",
+    "SUB",
+    "MUL",
+    "DIV",
+    "SCALE"
+  ],
+  "hints": {
+    "es": [
+      "Es una histéresis, como la del estanque, pero con una señal analógica: compara IW0 con los dos límites.",
+      "Usa bobinas S y R: un comparador «menor que 8755» enciende (S) la resistencia y uno «mayor que 9677» la apaga (R). Con ENCENDIDO apagado, también R.",
+      "Peldaño 1: ENCENDIDO, TEMPERATURA < 8755 → S RESISTENCIA. Peldaño 2: (TEMPERATURA > 9677 O NC ENCENDIDO) → R RESISTENCIA."
+    ],
+    "en": [
+      "It is a hysteresis, like the tank one, but with an analog signal: compare IW0 with the two limits.",
+      "Use S and R coils: a \"less than 8755\" comparison sets (S) the heater and a \"greater than 9677\" one resets it (R). With ON off, R too.",
+      "Rung 1: ON, TEMPERATURE < 8755 → S HEATER. Rung 2: (TEMPERATURE > 9677 OR NC ON) → R HEATER."
+    ]
+  },
+  "tests": [
+    {
+      "name": {
+        "es": "Calienta hasta 105 °C y no vuelve a calentar hasta bajar de 95 °C",
+        "en": "Heats up to 105 °C and does not heat again until below 95 °C"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.0": true
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 1000,
+          "outputs": {
+            "Q0.0": true
+          }
+        },
+        {
+          "at": 14000,
+          "outputs": {
+            "Q0.0": true
+          }
+        },
+        {
+          "at": 19000,
+          "outputs": {
+            "Q0.0": false
+          }
+        },
+        {
+          "at": 22000,
+          "outputs": {
+            "Q0.0": false
+          }
+        },
+        {
+          "at": 25200,
+          "outputs": {
+            "Q0.0": true
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "es": "Con el horno apagado la resistencia no calienta",
+        "en": "With the oven off the heater does not heat"
+      },
+      "steps": [],
+      "expect": [
+        {
+          "at": 500,
+          "outputs": {
+            "Q0.0": false
+          }
+        },
+        {
+          "at": 3000,
+          "outputs": {
+            "Q0.0": false
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,188 @@
+{
+  "id": "traffic-cycle",
+  "order": 17,
+  "level": 4,
+  "plant": null,
+  "title": {
+    "es": "Ciclo de un semáforo",
+    "en": "Traffic light cycle"
+  },
+  "statement": {
+    "es": [
+      "Con el interruptor MARCHA (I0.0) encendido, un semáforo repite este ciclo: VERDE (Q0.2) 4 segundos, AMARILLO (Q0.1) 1 segundo y ROJO (Q0.0) 3 segundos. El ciclo empieza en verde.",
+      "Siempre hay exactamente una luz encendida mientras funciona. Al apagar MARCHA se apagan todas."
+    ],
+    "en": [
+      "With the RUN switch (I0.0) on, a traffic light repeats this cycle: GREEN (Q0.2) for 4 seconds, YELLOW (Q0.1) for 1 second and RED (Q0.0) for 3 seconds. The cycle starts on green.",
+      "Exactly one light is always on while it runs. Switching RUN off turns all of them off."
+    ]
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": {
+        "es": "MARCHA",
+        "en": "RUN"
+      },
+      "description": {
+        "es": "Interruptor de funcionamiento",
+        "en": "Run switch"
+      },
+      "mode": "switch"
+    },
+    {
+      "address": "Q0.0",
+      "name": {
+        "es": "ROJO",
+        "en": "RED"
+      },
+      "description": {
+        "es": "Luz roja",
+        "en": "Red light"
+      }
+    },
+    {
+      "address": "Q0.1",
+      "name": {
+        "es": "AMARILLO",
+        "en": "YELLOW"
+      },
+      "description": {
+        "es": "Luz amarilla",
+        "en": "Yellow light"
+      }
+    },
+    {
+      "address": "Q0.2",
+      "name": {
+        "es": "VERDE",
+        "en": "GREEN"
+      },
+      "description": {
+        "es": "Luz verde",
+        "en": "Green light"
+      }
+    }
+  ],
+  "allowed": [
+    "NO",
+    "NC",
+    "coil",
+    "set",
+    "reset",
+    "TON",
+    "TOF",
+    "TP",
+    "EQ",
+    "NE",
+    "LT",
+    "GT",
+    "LE",
+    "GE"
+  ],
+  "hints": {
+    "es": [
+      "Un solo temporizador de 8 segundos (el ciclo completo) que se reinicia al terminar marca el paso del tiempo; las luces dependen de cuánto lleva.",
+      "TON T0 con PT = T#8s y entrada MARCHA Y NO T0: cuando termina, se reinicia en el ciclo siguiente. Su tiempo transcurrido T0.ET va de 0 a 8 s.",
+      "VERDE: MARCHA y T0.ET < T#4s. AMARILLO: T0.ET >= T#4s y T0.ET < T#5s. ROJO: T0.ET >= T#5s (con MARCHA en serie en las tres)."
+    ],
+    "en": [
+      "A single 8-second timer (the whole cycle) that restarts when it finishes keeps track of time; the lights depend on how far it has run.",
+      "TON T0 with PT = T#8s and input RUN AND NOT T0: when it finishes, it restarts on the next scan. Its elapsed time T0.ET goes from 0 to 8 s.",
+      "GREEN: RUN and T0.ET < T#4s. YELLOW: T0.ET >= T#4s and T0.ET < T#5s. RED: T0.ET >= T#5s (with RUN in series in all three)."
+    ]
+  },
+  "tests": [
+    {
+      "name": {
+        "es": "Verde 4 s, amarillo 1 s, rojo 3 s y vuelve a verde",
+        "en": "Green 4 s, yellow 1 s, red 3 s and back to green"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.0": true
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 500,
+          "outputs": {
+            "Q0.0": false,
+            "Q0.1": false,
+            "Q0.2": true
+          }
+        },
+        {
+          "at": 3800,
+          "outputs": {
+            "Q0.2": true,
+            "Q0.1": false
+          }
+        },
+        {
+          "at": 4600,
+          "outputs": {
+            "Q0.0": false,
+            "Q0.1": true,
+            "Q0.2": false
+          }
+        },
+        {
+          "at": 5600,
+          "outputs": {
+            "Q0.0": true,
+            "Q0.1": false,
+            "Q0.2": false
+          }
+        },
+        {
+          "at": 7800,
+          "outputs": {
+            "Q0.0": true
+          }
+        },
+        {
+          "at": 8600,
+          "outputs": {
+            "Q0.0": false,
+            "Q0.1": false,
+            "Q0.2": true
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "es": "Al apagar MARCHA se apagan todas las luces",
+        "en": "Switching RUN off turns all lights off"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 5500,
+          "inputs": {
+            "I0.0": false
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 6000,
+          "outputs": {
+            "Q0.0": false,
+            "Q0.1": false,
+            "Q0.2": false
+          }
+        }
+      ]
+    }
+  ]
+}

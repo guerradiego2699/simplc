@@ -1,0 +1,146 @@
+{
+  "id": "blinker",
+  "order": 11,
+  "level": 3,
+  "plant": null,
+  "title": {
+    "es": "Luz intermitente",
+    "en": "Flashing light"
+  },
+  "statement": {
+    "es": [
+      "Mientras el interruptor ACTIVAR (I0.0) está encendido, la BALIZA (Q0.0) parpadea: medio segundo encendida y medio segundo apagada, empezando encendida.",
+      "Al apagar ACTIVAR, la baliza se apaga. No uses el reloj del sistema: arma el parpadeo con temporizadores."
+    ],
+    "en": [
+      "While the ENABLE switch (I0.0) is on, the BEACON (Q0.0) flashes: half a second on and half a second off, starting on.",
+      "When ENABLE is switched off, the beacon turns off. Do not use the system clock: build the flashing with timers."
+    ]
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": {
+        "es": "ACTIVAR",
+        "en": "ENABLE"
+      },
+      "description": {
+        "es": "Interruptor de la baliza",
+        "en": "Beacon switch"
+      },
+      "mode": "switch"
+    },
+    {
+      "address": "Q0.0",
+      "name": {
+        "es": "BALIZA",
+        "en": "BEACON"
+      },
+      "description": {
+        "es": "Baliza intermitente",
+        "en": "Flashing beacon"
+      }
+    }
+  ],
+  "allowed": ["NO", "NC", "coil", "TON", "TOF", "TP"],
+  "hints": {
+    "es": [
+      "Dos temporizadores TON de 0,5 s que se reinician uno al otro forman un oscilador.",
+      "T0 cuenta mientras ACTIVAR está encendido y T1 no ha terminado. T1 cuenta cuando T0 terminó. Cuando T1 termina, T0 se reinicia y el ciclo empieza otra vez.",
+      "Peldaño 1: ACTIVAR, NC T1 → TON T0 (T#500ms). Peldaño 2: T0 → TON T1 (T#500ms). Peldaño 3: ACTIVAR, NC T0 → BALIZA."
+    ],
+    "en": [
+      "Two 0.5 s TON timers that reset each other make an oscillator.",
+      "T0 runs while ENABLE is on and T1 has not finished. T1 runs when T0 has finished. When T1 finishes, T0 resets and the cycle starts again.",
+      "Rung 1: ENABLE, NC T1 → TON T0 (T#500ms). Rung 2: T0 → TON T1 (T#500ms). Rung 3: ENABLE, NC T0 → BEACON."
+    ]
+  },
+  "tests": [
+    {
+      "name": {
+        "es": "Parpadea medio segundo encendida y medio apagada",
+        "en": "Flashes half a second on and half off"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.0": true
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 300,
+          "outputs": {
+            "Q0.0": true
+          }
+        },
+        {
+          "at": 850,
+          "outputs": {
+            "Q0.0": false
+          }
+        },
+        {
+          "at": 1350,
+          "outputs": {
+            "Q0.0": true
+          }
+        },
+        {
+          "at": 1850,
+          "outputs": {
+            "Q0.0": false
+          }
+        },
+        {
+          "at": 2350,
+          "outputs": {
+            "Q0.0": true
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "es": "Se apaga al desactivar",
+        "en": "Turns off when disabled"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 1200,
+          "inputs": {
+            "I0.0": false
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 1400,
+          "outputs": {
+            "Q0.0": false
+          }
+        },
+        {
+          "at": 2000,
+          "outputs": {
+            "Q0.0": false
+          }
+        },
+        {
+          "at": 2500,
+          "outputs": {
+            "Q0.0": false
+          }
+        }
+      ]
+    }
+  ]
+}

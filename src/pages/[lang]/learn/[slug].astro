@@ -34,6 +34,7 @@ const { Content, headings } = await render(page.entry);
 
 const link = (p: LearnPage | undefined) =>
   p && { href: localizePath(locale, `/learn/${p.slug}`), title: p.entry.data.title };
+import AdSlot from '@/components/ads/AdSlot.astro';
 ---
 
 <DocsLayout
@@ -52,4 +53,5 @@ const link = (p: LearnPage | undefined) =>
   next={link(next)}
 >
   <Content components={mdxComponents} />
+  <AdSlot locale={locale} placement="content" />
 </DocsLayout>

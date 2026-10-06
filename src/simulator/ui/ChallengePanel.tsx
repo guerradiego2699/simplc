@@ -86,12 +86,20 @@ function ChallengeView({ challenge }: { challenge: Challenge }) {
   const explain = (r: Exclude<CaseResult, { passed: true }>) =>
     r.reason === 'fault'
       ? fmt(c.fault, { time: seconds(r.at) })
-      : fmt(c.expected, {
-          time: seconds(r.at),
-          name: nameOf(r.address),
-          expected: r.expected ? 1 : 0,
-          actual: r.actual ? 1 : 0,
-        });
+      : r.reason === 'analog'
+        ? fmt(c.expectedAnalog, {
+            time: seconds(r.at),
+            name: nameOf(r.address),
+            min: r.min,
+            max: r.max,
+            actual: r.actual,
+          })
+        : fmt(c.expected, {
+            time: seconds(r.at),
+            name: nameOf(r.address),
+            expected: r.expected ? 1 : 0,
+            actual: r.actual ? 1 : 0,
+          });
 
   const heading = 'mb-1.5 text-[11px] font-semibold tracking-wider text-text-muted uppercase';
 

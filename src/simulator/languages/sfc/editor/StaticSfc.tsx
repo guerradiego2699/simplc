@@ -7,7 +7,13 @@ import { SfcDiagram } from './SfcDiagram';
 interface Props {
   program: SfcProgram;
   /** Templates from the dictionary: "Etapa {name}", "Etapa inicial {name}"… */
-  strings: { stepLabel: string; initialStepLabel: string; transitionLabel: string; jump: string };
+  strings: {
+    chartLabel: string;
+    stepLabel: string;
+    initialStepLabel: string;
+    transitionLabel: string;
+    jump: string;
+  };
 }
 
 const fill = (template: string, values: Record<string, string>) =>
@@ -15,7 +21,14 @@ const fill = (template: string, values: Record<string, string>) =>
 
 export function StaticSfc({ program, strings }: Props) {
   return (
-    <div className="overflow-x-auto rounded-md border border-border bg-bg p-2" data-static-sfc>
+    <div
+      className="overflow-x-auto rounded-md border border-border bg-bg p-2"
+      data-static-sfc
+      // Scrollable on narrow screens: keyboard users must be able to reach it.
+      tabIndex={0}
+      role="region"
+      aria-label={strings.chartLabel}
+    >
       <SfcDiagram
         program={program}
         labels={{

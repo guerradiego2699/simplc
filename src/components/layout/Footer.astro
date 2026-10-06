@@ -1,7 +1,7 @@
 ---
 import Heart from '@lucide/astro/icons/heart';
 import { FOOTER_NAV, MAIN_NAV } from '@/config/navigation';
-import { SITE, type Locale } from '@/config/site';
+import { adsEnabled, SITE, type Locale } from '@/config/site';
 import { getTranslator, localizePath } from '@/i18n';
 import Logo from './Logo.astro';
 
@@ -61,6 +61,13 @@ const linkClass = 'text-sm text-text-muted no-underline hover:text-text hover:un
               {t('footer.sourceCode')}
             </a>
           </li>
+          {adsEnabled() && (
+            <li>
+              <button type="button" data-cookie-preferences class={`${linkClass} cursor-pointer`}>
+                {t('ads.preferences')}
+              </button>
+            </li>
+          )}
         </ul>
       </div>
     </nav>

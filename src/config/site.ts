@@ -15,6 +15,19 @@ export const SITE = {
     buyMeACoffee: '',
     mercadoPago: '',
   },
+  /**
+   * Google AdSense (spec section 10), prepared but OFF. To turn it on: set `features.ads` to true,
+   * fill `client` ("ca-pub-…") and the slot ids from the AdSense account. Ads only appear on
+   * content pages (max one per page, with reserved height), never in the simulator or challenges,
+   * and only after the cookie notice has been answered.
+   */
+  ads: {
+    client: '',
+    slots: {
+      /** Responsive slot shown after the main content of lessons, examples, glossary and FAQ. */
+      content: '',
+    },
+  },
   /** Feature flags for future monetization. Keep disabled for now. */
   features: {
     ads: false,
@@ -29,4 +42,9 @@ export type Locale = (typeof SITE.locales)[number];
 export const STORAGE_KEYS = {
   locale: 'plcampus:locale',
   theme: 'plcampus:theme',
+  /** Answer to the cookie notice ('personalized' | 'non-personalized'); only used with ads on. */
+  consent: 'plcampus:consent',
 } as const;
+
+/** True when ads are switched on AND configured (a client id is set). */
+export const adsEnabled = (): boolean => SITE.features.ads && SITE.ads.client.trim() !== '';

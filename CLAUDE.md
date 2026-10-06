@@ -286,6 +286,28 @@ dtMs, output)`, `read`, optional `command`), `models.ts` (lamp, motor, traffic, 
 - UI scripts: don't pipe JS/TS with backslashes through bash heredocs (python `\b` became a
   backspace); write a .cjs script with the Write tool and run it with node.
 
+## More challenges, a11y, ads ready (Phase 15)
+
+- 22 challenges (orders 1–22). Test steps may set `analog: { IW0: raw }` and expectations may
+  check `analog: { QW0: [min, max] }` (validator reason `analog`). Plant challenges use reversing,
+  tank, conveyor, gate, oven and pumps. Every challenge needs a reference solution in
+  `challenges.test.ts`; a test also checks that typical mistakes fail. Derive timings from the
+  plant constants and leave margins.
+- Accessibility: `tests/e2e/phase15.spec.ts` runs axe (WCAG 2.1 A/AA) on all content pages in
+  light/dark (desktop + mobile) and on the simulator (SFC, IL, challenge) — keep it green.
+  Scrollable regions need `tabindex="0"` + label; never `outline-none` on focusable SVG; text on
+  surfaces must reach 4.5:1 (--warning is for icons/borders, not text). Dark --primary is #5b93ee.
+- Ads (prepared, OFF): `SITE.ads` (client, slots) + `SITE.features.ads`; `adsEnabled()` needs
+  both. `components/ads/AdSlot.astro` (prop `placement` — `slot` is reserved by Astro; marker
+  `data-ad-space` — Google uses `data-ad-slot`), one per page on learn topics, example pages,
+  glossary and FAQ; never simulator/challenges. `CookieNotice.astro` (bottom bar, consent in
+  `plcampus:consent`, loads adsbygoogle.js only after an answer, non-personalized otherwise;
+  footer "Cookie preferences"), legal `#ads` section, `/ads.txt` endpoint. Google requires a
+  certified CMP for EEA/UK visitors: review before enabling.
+- Simulator `CrashBoundary` (reload / download project / start from scratch); dev-only `?crash`.
+- Lighthouse (local preview): 100 in all four categories on content pages and the simulator.
+  Monaco (~860 KB gzip) loads only for ST/IL.
+
 ## Environment notes
 
 - Windows. Project lives in `C:\dev\simplc` (kept out of OneDrive on purpose: node_modules sync

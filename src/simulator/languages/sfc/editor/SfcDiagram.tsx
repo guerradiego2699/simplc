@@ -110,7 +110,7 @@ export function SfcDiagram({
                     'aria-pressed': isSelected,
                     onClick: () => onSelect?.(sel),
                     onKeyDown: keyHandler(sel),
-                    className: 'cursor-pointer outline-none focus-visible:[&>rect]:stroke-primary',
+                    className: 'cursor-pointer',
                   }
                 : {})}
               aria-label={labels.step(step.name, step.initial)}
@@ -286,7 +286,7 @@ export function SfcDiagram({
                     'aria-pressed': isSelected,
                     onClick: () => onSelect?.(sel),
                     onKeyDown: keyHandler(sel),
-                    className: 'cursor-pointer outline-none',
+                    className: 'cursor-pointer',
                   }
                 : {})}
               aria-label={labels.transition(from, to, t.condition)}

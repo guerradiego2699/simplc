@@ -1,0 +1,267 @@
+{
+  "id": "people-counter",
+  "order": 12,
+  "level": 3,
+  "plant": null,
+  "title": {
+    "es": "Aforo de una sala",
+    "en": "Room occupancy"
+  },
+  "statement": {
+    "es": [
+      "Una sala tiene un sensor en la ENTRADA (I0.0) y otro en la SALIDA (I0.1); cada uno da un pulso por persona. El aforo máximo es 3 personas.",
+      "Con 3 o más personas adentro se enciende AFORO_COMPLETO (Q0.0). Con la sala vacía se enciende SALA_VACIA (Q0.1). Al empezar, la sala está vacía."
+    ],
+    "en": [
+      "A room has a sensor at the ENTRANCE (I0.0) and another at the EXIT (I0.1); each gives one pulse per person. The maximum occupancy is 3 people.",
+      "With 3 or more people inside, ROOM_FULL (Q0.0) turns on. With the room empty, ROOM_EMPTY (Q0.1) turns on. At start-up the room is empty."
+    ]
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": {
+        "es": "ENTRADA",
+        "en": "ENTRANCE"
+      },
+      "description": {
+        "es": "Sensor de entrada (1 pulso por persona)",
+        "en": "Entrance sensor (1 pulse per person)"
+      },
+      "mode": "button-no"
+    },
+    {
+      "address": "I0.1",
+      "name": {
+        "es": "SALIDA",
+        "en": "EXIT"
+      },
+      "description": {
+        "es": "Sensor de salida (1 pulso por persona)",
+        "en": "Exit sensor (1 pulse per person)"
+      },
+      "mode": "button-no"
+    },
+    {
+      "address": "Q0.0",
+      "name": {
+        "es": "AFORO_COMPLETO",
+        "en": "ROOM_FULL"
+      },
+      "description": {
+        "es": "Letrero de aforo completo",
+        "en": "Room full sign"
+      }
+    },
+    {
+      "address": "Q0.1",
+      "name": {
+        "es": "SALA_VACIA",
+        "en": "ROOM_EMPTY"
+      },
+      "description": {
+        "es": "Luz de sala vacía",
+        "en": "Room empty light"
+      }
+    }
+  ],
+  "allowed": ["NO", "NC", "coil", "CTU", "CTD", "CTUD", "EQ", "NE", "LT", "GT", "LE", "GE"],
+  "hints": {
+    "es": [
+      "Necesitas contar hacia arriba con un sensor y hacia abajo con el otro.",
+      "El contador CTUD tiene dos entradas: CU suma y CD resta. Su salida Q (QU) se activa cuando la cuenta CV llega a PV, y QD cuando CV es 0 o menos.",
+      "Peldaño 1: ENTRADA → CTUD C0 (CD = SALIDA, PV = 3) → AFORO_COMPLETO. Peldaño 2: comparador C0.CV = 0 (o contacto C0.QD) → SALA_VACIA."
+    ],
+    "en": [
+      "You need to count up with one sensor and down with the other.",
+      "The CTUD counter has two inputs: CU adds and CD subtracts. Its output Q (QU) turns on when the count CV reaches PV, and QD when CV is 0 or less.",
+      "Rung 1: ENTRANCE → CTUD C0 (CD = EXIT, PV = 3) → ROOM_FULL. Rung 2: comparison C0.CV = 0 (or contact C0.QD) → ROOM_EMPTY."
+    ]
+  },
+  "tests": [
+    {
+      "name": {
+        "es": "Al empezar la sala está vacía",
+        "en": "At start-up the room is empty"
+      },
+      "steps": [],
+      "expect": [
+        {
+          "at": 300,
+          "outputs": {
+            "Q0.0": false,
+            "Q0.1": true
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "es": "Con 3 personas el aforo está completo",
+        "en": "With 3 people the room is full"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 200,
+          "inputs": {
+            "I0.0": false
+          }
+        },
+        {
+          "at": 400,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 500,
+          "inputs": {
+            "I0.0": false
+          }
+        },
+        {
+          "at": 700,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 800,
+          "inputs": {
+            "I0.0": false
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 600,
+          "outputs": {
+            "Q0.0": false,
+            "Q0.1": false
+          }
+        },
+        {
+          "at": 1000,
+          "outputs": {
+            "Q0.0": true,
+            "Q0.1": false
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "es": "Las salidas descuentan hasta vaciar la sala",
+        "en": "Exits count down until the room is empty"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 200,
+          "inputs": {
+            "I0.0": false
+          }
+        },
+        {
+          "at": 400,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 500,
+          "inputs": {
+            "I0.0": false
+          }
+        },
+        {
+          "at": 700,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 800,
+          "inputs": {
+            "I0.0": false
+          }
+        },
+        {
+          "at": 1100,
+          "inputs": {
+            "I0.1": true
+          }
+        },
+        {
+          "at": 1200,
+          "inputs": {
+            "I0.1": false
+          }
+        },
+        {
+          "at": 1500,
+          "inputs": {
+            "I0.1": true
+          }
+        },
+        {
+          "at": 1600,
+          "inputs": {
+            "I0.1": false
+          }
+        },
+        {
+          "at": 1900,
+          "inputs": {
+            "I0.1": true
+          }
+        },
+        {
+          "at": 2000,
+          "inputs": {
+            "I0.1": false
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 1000,
+          "outputs": {
+            "Q0.0": true
+          }
+        },
+        {
+          "at": 1400,
+          "outputs": {
+            "Q0.0": false,
+            "Q0.1": false
+          }
+        },
+        {
+          "at": 1800,
+          "outputs": {
+            "Q0.1": false
+          }
+        },
+        {
+          "at": 2300,
+          "outputs": {
+            "Q0.0": false,
+            "Q0.1": true
+          }
+        }
+      ]
+    }
+  ]
+}

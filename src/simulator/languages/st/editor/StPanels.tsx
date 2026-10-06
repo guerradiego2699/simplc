@@ -170,7 +170,13 @@ export function StHelp({ language = 'ST' }: { language?: TextLanguage }) {
   const t = useStrings();
   const h = language === 'IL' ? t.il.help : t.st.help;
   return (
-    <div className="h-full overflow-y-auto p-3 text-sm" data-testid="st-help">
+    <div
+      className="h-full overflow-y-auto p-3 text-sm"
+      data-testid="st-help"
+      tabIndex={0}
+      role="region"
+      aria-label={h.title}
+    >
       <h2 className="font-semibold text-text">{h.title}</h2>
       <p className="mt-2 text-xs text-text-muted">{h.intro}</p>
       <ul className="mt-3 flex flex-col gap-2">

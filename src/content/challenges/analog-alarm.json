@@ -1,0 +1,175 @@
+{
+  "id": "analog-alarm",
+  "order": 13,
+  "level": 3,
+  "plant": null,
+  "title": {
+    "es": "Alarmas de nivel con una señal analógica",
+    "en": "Level alarms from an analog signal"
+  },
+  "statement": {
+    "es": [
+      "Un transmisor de nivel entrega su medición en NIVEL (IW0): 0 = estanque vacío y 27648 = lleno (100 %). Puedes moverlo con el potenciómetro IW0 del tablero.",
+      "Enciende ALARMA_ALTA (Q0.0) cuando el nivel supera el 80 % (más de 22118) y ALARMA_BAJA (Q0.1) cuando baja del 20 % (menos de 5530)."
+    ],
+    "en": [
+      "A level transmitter gives its measurement in LEVEL (IW0): 0 = empty tank and 27648 = full (100 %). You can move it with the IW0 potentiometer on the panel.",
+      "Turn HIGH_ALARM (Q0.0) on when the level is above 80 % (more than 22118) and LOW_ALARM (Q0.1) on when it is below 20 % (less than 5530)."
+    ]
+  },
+  "io": [
+    {
+      "address": "IW0",
+      "name": {
+        "es": "NIVEL",
+        "en": "LEVEL"
+      },
+      "description": {
+        "es": "Transmisor de nivel (0–27648 = 0–100 %)",
+        "en": "Level transmitter (0–27648 = 0–100 %)"
+      }
+    },
+    {
+      "address": "Q0.0",
+      "name": {
+        "es": "ALARMA_ALTA",
+        "en": "HIGH_ALARM"
+      },
+      "description": {
+        "es": "Alarma de nivel alto",
+        "en": "High level alarm"
+      }
+    },
+    {
+      "address": "Q0.1",
+      "name": {
+        "es": "ALARMA_BAJA",
+        "en": "LOW_ALARM"
+      },
+      "description": {
+        "es": "Alarma de nivel bajo",
+        "en": "Low level alarm"
+      }
+    }
+  ],
+  "allowed": ["NO", "NC", "coil", "EQ", "NE", "LT", "GT", "LE", "GE"],
+  "hints": {
+    "es": [
+      "Una señal analógica es un número, no un bit: para decidir algo hay que compararla.",
+      "Los contactos de comparación (>, <, =…) conducen cuando la comparación es verdadera. Pueden comparar IW0 con un número fijo.",
+      "Peldaño 1: comparador IW0 > 22118 → ALARMA_ALTA. Peldaño 2: comparador IW0 < 5530 → ALARMA_BAJA."
+    ],
+    "en": [
+      "An analog signal is a number, not a bit: to decide something you have to compare it.",
+      "Comparison contacts (>, <, =…) conduct when the comparison is true. They can compare IW0 with a fixed number.",
+      "Rung 1: comparison IW0 > 22118 → HIGH_ALARM. Rung 2: comparison IW0 < 5530 → LOW_ALARM."
+    ]
+  },
+  "tests": [
+    {
+      "name": {
+        "es": "Al 50 % no hay alarmas",
+        "en": "At 50 % there are no alarms"
+      },
+      "steps": [
+        {
+          "at": 0,
+          "analog": {
+            "IW0": 13824
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 500,
+          "outputs": {
+            "Q0.0": false,
+            "Q0.1": false
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "es": "Sobre el 80 % suena la alarma alta",
+        "en": "Above 80 % the high alarm sounds"
+      },
+      "steps": [
+        {
+          "at": 0,
+          "analog": {
+            "IW0": 13824
+          }
+        },
+        {
+          "at": 1000,
+          "analog": {
+            "IW0": 22000
+          }
+        },
+        {
+          "at": 2000,
+          "analog": {
+            "IW0": 25000
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 1500,
+          "outputs": {
+            "Q0.0": false
+          }
+        },
+        {
+          "at": 2500,
+          "outputs": {
+            "Q0.0": true,
+            "Q0.1": false
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "es": "Bajo el 20 % suena la alarma baja",
+        "en": "Below 20 % the low alarm sounds"
+      },
+      "steps": [
+        {
+          "at": 0,
+          "analog": {
+            "IW0": 13824
+          }
+        },
+        {
+          "at": 1000,
+          "analog": {
+            "IW0": 5600
+          }
+        },
+        {
+          "at": 2000,
+          "analog": {
+            "IW0": 2000
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 1500,
+          "outputs": {
+            "Q0.1": false
+          }
+        },
+        {
+          "at": 2500,
+          "outputs": {
+            "Q0.0": false,
+            "Q0.1": true
+          }
+        }
+      ]
+    }
+  ]
+}

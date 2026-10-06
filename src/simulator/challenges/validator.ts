@@ -8,6 +8,9 @@
  *   (plant physics) → check the expectations with at ≤ t.
  * So a step and an expectation at the same time see one scan of reaction; authors leave some
  * margin around timer edges (e.g. expect OFF at 2.9 s and ON at 3.1 s for a 3 s TON).
+ *
+ * Analog channels: steps can set analog inputs (raw INT, IW0 = 0…27648) and expectations can
+ * check an analog output inside a range ([min, max], raw value).
  */
 import { PlcRuntime } from '@/simulator/engine';
 import type { IrProgram } from '@/simulator/ir/types';
@@ -21,12 +24,16 @@ export interface TestStep {
   inputs?: Record<string, boolean> | undefined;
   /** Operator action on the plant (e.g. "overload"). */
   plant?: string | undefined;
+  /** Raw values of analog inputs from this moment on (IW0…). */
+  analog?: Record<string, number> | undefined;
 }
 
 export interface TestExpectation {
   at: number;
   /** Expected physical outputs at that moment. */
   outputs: Record<string, boolean>;
+  /** Expected analog outputs (QW0…): raw value within [min, max]. */
+  analog?: Record<string, readonly [number, number]> | undefined;
 }
 
 export interface TestCase {
@@ -52,6 +59,15 @@ export type CaseResult =
       address: string;
       expected: boolean;
       actual: boolean;
+    }
+  | {
+      passed: false;
+      reason: 'analog';
+      at: number;
+      address: string;
+      min: number;
+      max: number;
+      actual: number;
     }
   | { passed: false; reason: 'fault'; at: number };
 
@@ -105,6 +121,7 @@ function runCase(ir: IrProgram, test: TestCase, rules: ChallengeRules): CaseResu
   let state = plant?.initial();
 
   const inputs: Record<string, boolean> = {};
+  const analog: Record<string, number> = {};
   for (const address of rules.restInputs ?? []) inputs[address] = true;
   const steps = [...test.steps].sort((a, b) => a.at - b.at);
   const expectations = [...test.expect].sort((a, b) => a.at - b.at);
@@ -117,9 +134,11 @@ function runCase(ir: IrProgram, test: TestCase, rules: ChallengeRules): CaseResu
     for (; s < steps.length && steps[s]!.at <= now; s++) {
       const step = steps[s]!;
       Object.assign(inputs, step.inputs);
+      Object.assign(analog, step.analog);
       if (plant?.command && step.plant) state = plant.command(state, step.plant);
     }
     for (const [address, value] of Object.entries(inputs)) rt.setInput(address, value);
+    for (const [address, value] of Object.entries(analog)) rt.setAnalogInput(address, value);
     if (plant) applySensors(rt, plant, state);
     rt.scan();
     if (rt.mode !== 'RUN') return { passed: false, reason: 'fault', at: now };
@@ -135,6 +154,20 @@ function runCase(ir: IrProgram, test: TestCase, rules: ChallengeRules): CaseResu
             at: expectations[e]!.at,
             address,
             expected,
+            actual,
+          };
+        }
+      }
+      for (const [address, [min, max]] of Object.entries(expectations[e]!.analog ?? {})) {
+        const actual = rt.getAnalogOutput(address);
+        if (actual < min || actual > max) {
+          return {
+            passed: false,
+            reason: 'analog',
+            at: expectations[e]!.at,
+            address,
+            min,
+            max,
             actual,
           };
         }

@@ -40,6 +40,7 @@ import { loadAutosave } from '@/simulator/file/autosave';
 import { exampleProject, getExample } from '@/simulator/examples';
 import { challengeProject, getChallenge } from '@/simulator/challenges';
 import { ChallengePanel } from './ChallengePanel';
+import { CrashBoundary } from './CrashBoundary';
 
 interface Props {
   strings: SimStrings;
@@ -62,11 +63,20 @@ export default function SimulatorApp({ strings, locale }: Props) {
       <Shortcuts />
       <Autosave />
       <FileDropZone>
-        <Workspace />
+        <CrashBoundary t={value.t} store={value.store} controller={value.controller}>
+          <Workspace />
+          {import.meta.env.DEV && <DevCrash />}
+        </CrashBoundary>
       </FileDropZone>
       <DragGhost />
     </SimProvider>
   );
+}
+
+/** Development only: `?crash` throws while rendering, to try the crash screen. */
+function DevCrash() {
+  if (new URL(window.location.href).searchParams.has('crash')) throw new Error('Test crash');
+  return null;
 }
 
 /**

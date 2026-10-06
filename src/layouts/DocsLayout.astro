@@ -81,7 +81,7 @@ const reviewedText = format(t('learn.reviewed'), {
                 aria-current={p.slug === currentSlug ? 'page' : undefined}
                 class="-ml-px flex gap-2 border-l-2 border-transparent py-1.5 pl-3 text-sm text-text-muted no-underline hover:text-text aria-[current=page]:border-primary aria-[current=page]:font-medium aria-[current=page]:text-primary"
               >
-                <span class="font-mono text-xs leading-5 opacity-70">{i + 1}.</span>
+                <span class="font-mono text-xs leading-5">{i + 1}.</span>
                 {p.entry.data.title}
               </a>
             </li>

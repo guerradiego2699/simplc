@@ -1,0 +1,221 @@
+{
+  "id": "conveyor-batch",
+  "order": 18,
+  "level": 4,
+  "plant": "conveyor",
+  "title": {
+    "es": "Cinta que se detiene cada 3 cajas",
+    "en": "Belt that stops every 3 boxes"
+  },
+  "statement": {
+    "es": [
+      "MARCHA (I0.0) pone en movimiento la CINTA (Q0.0). El SENSOR (I0.2, lo maneja la planta) detecta cada caja que pasa. Cuando pasan 3 cajas, la cinta se detiene sola y se enciende LOTE_LISTO (Q0.1).",
+      "REINICIAR (I0.1) pone la cuenta en cero y apaga LOTE_LISTO; después, MARCHA empieza el siguiente lote."
+    ],
+    "en": [
+      "START (I0.0) sets the BELT (Q0.0) moving. The SENSOR (I0.2, driven by the plant) detects every box that passes. When 3 boxes have passed, the belt stops by itself and BATCH_READY (Q0.1) turns on.",
+      "RESET (I0.1) sets the count back to zero and turns BATCH_READY off; then START begins the next batch."
+    ]
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": {
+        "es": "MARCHA",
+        "en": "START"
+      },
+      "description": {
+        "es": "Pulsador de marcha (NA)",
+        "en": "Start push button (NO)"
+      },
+      "mode": "button-no"
+    },
+    {
+      "address": "I0.1",
+      "name": {
+        "es": "REINICIAR",
+        "en": "RESET"
+      },
+      "description": {
+        "es": "Pulsador para reiniciar el lote (NA)",
+        "en": "Batch reset push button (NO)"
+      },
+      "mode": "button-no"
+    },
+    {
+      "address": "I0.2",
+      "name": {
+        "es": "SENSOR",
+        "en": "SENSOR"
+      },
+      "description": {
+        "es": "Sensor de cajas (planta)",
+        "en": "Box sensor (plant)"
+      }
+    },
+    {
+      "address": "Q0.0",
+      "name": {
+        "es": "CINTA",
+        "en": "BELT"
+      },
+      "description": {
+        "es": "Motor de la cinta",
+        "en": "Belt motor"
+      }
+    },
+    {
+      "address": "Q0.1",
+      "name": {
+        "es": "LOTE_LISTO",
+        "en": "BATCH_READY"
+      },
+      "description": {
+        "es": "Luz de lote listo",
+        "en": "Batch ready light"
+      }
+    }
+  ],
+  "allowed": [
+    "NO",
+    "NC",
+    "coil",
+    "set",
+    "reset",
+    "P",
+    "N",
+    "CTU",
+    "CTD",
+    "CTUD",
+    "EQ",
+    "NE",
+    "LT",
+    "GT",
+    "LE",
+    "GE"
+  ],
+  "hints": {
+    "es": [
+      "Un contador CTU cuenta las cajas: suma en cada flanco de subida del sensor.",
+      "La salida Q del contador (lote completo) enciende LOTE_LISTO y, con un contacto NC, corta la autorretención de la cinta. REINICIAR va a la entrada R del contador.",
+      "Peldaño 1: SENSOR → CTU C0 (PV 3, R = REINICIAR) → LOTE_LISTO. Peldaño 2: (MARCHA O CINTA), NC C0 → CINTA."
+    ],
+    "en": [
+      "A CTU counter counts the boxes: it adds on each rising edge of the sensor.",
+      "The counter output Q (batch complete) turns BATCH_READY on and, through an NC contact, breaks the belt seal-in. RESET goes to the counter R input.",
+      "Rung 1: SENSOR → CTU C0 (PV 3, R = RESET) → BATCH_READY. Rung 2: (START OR BELT), NC C0 → BELT."
+    ]
+  },
+  "tests": [
+    {
+      "name": {
+        "es": "La cinta se detiene sola con la tercera caja",
+        "en": "The belt stops by itself with the third box"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 300,
+          "inputs": {
+            "I0.0": false
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 1000,
+          "outputs": {
+            "Q0.0": true,
+            "Q0.1": false
+          }
+        },
+        {
+          "at": 5000,
+          "outputs": {
+            "Q0.0": true,
+            "Q0.1": false
+          }
+        },
+        {
+          "at": 7500,
+          "outputs": {
+            "Q0.0": false,
+            "Q0.1": true
+          }
+        },
+        {
+          "at": 9000,
+          "outputs": {
+            "Q0.0": false,
+            "Q0.1": true
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "es": "REINICIAR prepara el lote siguiente",
+        "en": "RESET prepares the next batch"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 300,
+          "inputs": {
+            "I0.0": false
+          }
+        },
+        {
+          "at": 8000,
+          "inputs": {
+            "I0.1": true
+          }
+        },
+        {
+          "at": 8200,
+          "inputs": {
+            "I0.1": false
+          }
+        },
+        {
+          "at": 8600,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 8800,
+          "inputs": {
+            "I0.0": false
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 8400,
+          "outputs": {
+            "Q0.0": false,
+            "Q0.1": false
+          }
+        },
+        {
+          "at": 9200,
+          "outputs": {
+            "Q0.0": true,
+            "Q0.1": false
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+---
+/**
+ * One ad space on a content page (spec section 10). Renders NOTHING unless ads are enabled and
+ * configured in site.ts. The height is reserved up front so the page never jumps when the ad
+ * loads. The AdSense script itself is loaded by CookieNotice, after the visitor's choice.
+ * Never use it in the simulator or the challenges.
+ */
+import { adsEnabled, SITE, type Locale } from '@/config/site';
+import { getTranslator } from '@/i18n';
+
+interface Props {
+  locale: Locale;
+  /** Which configured slot (not `slot`: that attribute is reserved by Astro). */
+  placement: keyof typeof SITE.ads.slots;
+}
+
+const { locale, placement } = Astro.props;
+const t = getTranslator(locale);
+const slotId = SITE.ads.slots[placement];
+const show = adsEnabled() && slotId.trim() !== '';
+---
+
+{show && (
+  <aside
+    class="not-prose mx-auto my-12 max-w-3xl px-4 sm:px-6"
+    aria-label={t('ads.label')}
+    data-ad-space
+  >
+    <p class="mb-1 text-[11px] tracking-wider text-text-muted uppercase">{t('ads.label')}</p>
+    <div class="min-h-[280px] overflow-hidden rounded-md border border-border bg-surface">
+      <ins
+        class="adsbygoogle block min-h-[250px] w-full"
+        data-ad-client={SITE.ads.client}
+        data-ad-slot={slotId}
+        data-ad-format="auto"
+        data-full-width-responsive="true"
+      />
+    </div>
+  </aside>
+)}

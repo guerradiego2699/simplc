@@ -1,0 +1,155 @@
+{
+  "id": "tank-hysteresis",
+  "order": 15,
+  "level": 3,
+  "plant": "tank",
+  "title": {
+    "es": "Estanque con histéresis",
+    "en": "Tank with hysteresis"
+  },
+  "statement": {
+    "es": [
+      "Con el interruptor SISTEMA (I0.0) encendido, la BOMBA (Q0.0) mantiene el estanque entre dos niveles: arranca cuando el agua baja del sensor NIVEL_BAJO (I0.2) y se detiene al llegar al sensor NIVEL_ALTO (I0.3).",
+      "Entre ambos sensores la bomba sigue como estaba: si venía llenando, sigue llenando; si venía detenida, sigue detenida. Eso es la histéresis."
+    ],
+    "en": [
+      "With the SYSTEM switch (I0.0) on, the PUMP (Q0.0) keeps the tank between two levels: it starts when the water drops below the LEVEL_LOW switch (I0.2) and stops when it reaches the LEVEL_HIGH switch (I0.3).",
+      "Between the two switches the pump keeps doing what it was doing: if it was filling, it keeps filling; if it was stopped, it stays stopped. That is hysteresis."
+    ]
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": {
+        "es": "SISTEMA",
+        "en": "SYSTEM"
+      },
+      "description": {
+        "es": "Interruptor del sistema",
+        "en": "System switch"
+      },
+      "mode": "switch"
+    },
+    {
+      "address": "I0.2",
+      "name": {
+        "es": "NIVEL_BAJO",
+        "en": "LEVEL_LOW"
+      },
+      "description": {
+        "es": "Sensor de nivel bajo: 1 si el agua lo cubre (planta)",
+        "en": "Low level switch: 1 when covered (plant)"
+      }
+    },
+    {
+      "address": "I0.3",
+      "name": {
+        "es": "NIVEL_ALTO",
+        "en": "LEVEL_HIGH"
+      },
+      "description": {
+        "es": "Sensor de nivel alto: 1 si el agua lo cubre (planta)",
+        "en": "High level switch: 1 when covered (plant)"
+      }
+    },
+    {
+      "address": "Q0.0",
+      "name": {
+        "es": "BOMBA",
+        "en": "PUMP"
+      },
+      "description": {
+        "es": "Bomba de llenado",
+        "en": "Filling pump"
+      }
+    }
+  ],
+  "allowed": ["NO", "NC", "coil", "set", "reset"],
+  "hints": {
+    "es": [
+      "Necesitas memoria: el mismo nivel intermedio puede significar «llenando» o «esperando».",
+      "Una autorretención sirve: la bomba arranca con el nivel bajo descubierto y se mantiene con su propio contacto hasta que el nivel alto la corta.",
+      "Peldaño: SISTEMA, (NC NIVEL_BAJO O BOMBA), NC NIVEL_ALTO → BOMBA."
+    ],
+    "en": [
+      "You need memory: the same middle level can mean \"filling\" or \"waiting\".",
+      "A seal-in does it: the pump starts when the low switch is uncovered and holds itself with its own contact until the high switch cuts it.",
+      "Rung: SYSTEM, (NC LEVEL_LOW OR PUMP), NC LEVEL_HIGH → PUMP."
+    ]
+  },
+  "tests": [
+    {
+      "name": {
+        "es": "Llena hasta el sensor alto y espera a que baje del sensor bajo",
+        "en": "Fills up to the high switch and waits until it drops below the low switch"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.0": true
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 1000,
+          "outputs": {
+            "Q0.0": true
+          }
+        },
+        {
+          "at": 10000,
+          "outputs": {
+            "Q0.0": true
+          }
+        },
+        {
+          "at": 13000,
+          "outputs": {
+            "Q0.0": false
+          }
+        },
+        {
+          "at": 20000,
+          "outputs": {
+            "Q0.0": false
+          }
+        },
+        {
+          "at": 25000,
+          "outputs": {
+            "Q0.0": false
+          }
+        },
+        {
+          "at": 28500,
+          "outputs": {
+            "Q0.0": true
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "es": "Con el sistema apagado la bomba no arranca",
+        "en": "With the system off the pump does not start"
+      },
+      "steps": [],
+      "expect": [
+        {
+          "at": 500,
+          "outputs": {
+            "Q0.0": false
+          }
+        },
+        {
+          "at": 3000,
+          "outputs": {
+            "Q0.0": false
+          }
+        }
+      ]
+    }
+  ]
+}

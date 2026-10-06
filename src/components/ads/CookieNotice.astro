@@ -1,0 +1,110 @@
+---
+/**
+ * Cookie notice + AdSense loader (only rendered when ads are enabled in site.ts).
+ *
+ * - A bar at the bottom of the page (not a modal: the page stays usable) asks once whether
+ *   personalized ads are accepted. The answer is kept in localStorage (try/catch: if storage is
+ *   blocked, the answer lasts for this page view).
+ * - The AdSense script loads only after an answer and only on pages with an ad slot. Without
+ *   consent, ads are requested as non-personalized.
+ * - "Cookie preferences" in the footer reopens the notice.
+ */
+import { localizePath, getTranslator } from '@/i18n';
+import { SITE, STORAGE_KEYS, type Locale } from '@/config/site';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = getTranslator(locale);
+const button =
+  'rounded-md px-3 py-1.5 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
+---
+
+<div
+  id="cookie-notice"
+  role="region"
+  aria-label={t('ads.noticeLabel')}
+  hidden
+  class="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 px-4 py-3 shadow-lg backdrop-blur sm:px-6"
+>
+  <div class="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center">
+    <p class="flex-1 text-sm text-text">
+      {t('ads.notice')}{' '}
+      <a href={`${localizePath(locale, '/legal')}#ads`} class="text-primary">
+        {t('ads.more')}
+      </a>
+    </p>
+    <div class="flex shrink-0 flex-wrap gap-2">
+      <button
+        type="button"
+        data-consent="non-personalized"
+        class={`${button} border border-border text-text hover:border-primary`}
+      >
+        {t('ads.reject')}
+      </button>
+      <button
+        type="button"
+        data-consent="personalized"
+        class={`${button} bg-primary text-on-primary hover:bg-primary-hover`}
+      >
+        {t('ads.accept')}
+      </button>
+    </div>
+  </div>
+</div>
+
+<script is:inline define:vars={{ key: STORAGE_KEYS.consent, client: SITE.ads.client }}>
+  (() => {
+    const notice = document.getElementById('cookie-notice');
+    let memory = null;
+    const read = () => {
+      try {
+        return localStorage.getItem(key) ?? memory;
+      } catch {
+        return memory;
+      }
+    };
+    const write = (value) => {
+      memory = value;
+      try {
+        localStorage.setItem(key, value);
+      } catch {
+        /* storage blocked: keep the answer for this page view */
+      }
+    };
+    let loaded = false;
+    const loadAds = (choice) => {
+      const slots = document.querySelectorAll('ins.adsbygoogle');
+      if (loaded || slots.length === 0) return;
+      loaded = true;
+      const queue = (window.adsbygoogle = window.adsbygoogle || []);
+      if (choice !== 'personalized') queue.requestNonPersonalizedAds = 1;
+      const script = document.createElement('script');
+      script.async = true;
+      script.crossOrigin = 'anonymous';
+      script.src =
+        'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' +
+        encodeURIComponent(client);
+      document.head.append(script);
+      slots.forEach(() => queue.push({}));
+    };
+    for (const b of notice.querySelectorAll('[data-consent]')) {
+      b.addEventListener('click', () => {
+        write(b.dataset.consent);
+        notice.hidden = true;
+        loadAds(b.dataset.consent);
+      });
+    }
+    document.addEventListener('click', (e) => {
+      if (e.target instanceof Element && e.target.closest('[data-cookie-preferences]')) {
+        notice.hidden = false;
+        notice.querySelector('[data-consent="personalized"]').focus();
+      }
+    });
+    const choice = read();
+    if (choice) loadAds(choice);
+    else notice.hidden = false;
+  })();
+</script>

@@ -17,6 +17,8 @@ import type { Project } from '@/simulator/project/types';
 import type { ChallengeRules } from './validator';
 
 const bitMap = z.record(z.string().check(z.regex(/^[IQ]\d+\.[0-7]$/)), z.boolean());
+const analogIn = z.record(z.string().check(z.regex(/^IW\d+$/)), z.number());
+const analogOut = z.record(z.string().check(z.regex(/^QW\d+$/)), z.tuple([z.number(), z.number()]));
 
 const testSchema = z.object({
   name: localizedSchema,
@@ -25,10 +27,17 @@ const testSchema = z.object({
       at: z.number().check(z.gte(0)),
       inputs: z.optional(bitMap),
       plant: z.optional(z.string()),
+      analog: z.optional(analogIn),
     }),
   ),
   expect: z
-    .array(z.object({ at: z.number().check(z.gte(0)), outputs: bitMap }))
+    .array(
+      z.object({
+        at: z.number().check(z.gte(0)),
+        outputs: bitMap,
+        analog: z.optional(analogOut),
+      }),
+    )
     .check(z.minLength(1)),
 });
 

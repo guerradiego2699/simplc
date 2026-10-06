@@ -1,0 +1,266 @@
+{
+  "id": "reversing-interlock",
+  "order": 14,
+  "level": 3,
+  "plant": "reversing",
+  "title": {
+    "es": "Inversión de giro con enclavamiento",
+    "en": "Reversing with interlock"
+  },
+  "statement": {
+    "es": [
+      "Un motor gira hacia ADELANTE (Q0.0) o hacia ATRÁS (Q0.1) con dos contactores. Los pulsadores ADELANTE (I0.0) y ATRAS (I0.1) arrancan cada sentido con autorretención; PARO (I0.2, NC) detiene el motor.",
+      "Nunca pueden estar los dos contactores cerrados: sería un cortocircuito. Para cambiar de sentido primero hay que parar. El relé térmico TERMICO (I0.3, NC, lo maneja la planta) también detiene el motor."
+    ],
+    "en": [
+      "A motor turns FORWARD (Q0.0) or in REVERSE (Q0.1) with two contactors. The FORWARD (I0.0) and REVERSE (I0.1) push buttons start each direction with a seal-in; STOP (I0.2, NC) stops the motor.",
+      "The two contactors must never be closed at the same time: it would be a short circuit. To change direction you must stop first. The OVERLOAD relay (I0.3, NC, driven by the plant) also stops the motor."
+    ]
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": {
+        "es": "ADELANTE",
+        "en": "FORWARD"
+      },
+      "description": {
+        "es": "Pulsador de giro adelante (NA)",
+        "en": "Forward push button (NO)"
+      },
+      "mode": "button-no"
+    },
+    {
+      "address": "I0.1",
+      "name": {
+        "es": "ATRAS",
+        "en": "REVERSE"
+      },
+      "description": {
+        "es": "Pulsador de giro atrás (NA)",
+        "en": "Reverse push button (NO)"
+      },
+      "mode": "button-no"
+    },
+    {
+      "address": "I0.2",
+      "name": {
+        "es": "PARO",
+        "en": "STOP"
+      },
+      "description": {
+        "es": "Pulsador de paro (NC: 1 en reposo)",
+        "en": "Stop push button (NC: 1 at rest)"
+      },
+      "mode": "button-nc"
+    },
+    {
+      "address": "I0.3",
+      "name": {
+        "es": "TERMICO",
+        "en": "OVERLOAD"
+      },
+      "description": {
+        "es": "Relé térmico (NC, planta)",
+        "en": "Overload relay (NC, plant)"
+      }
+    },
+    {
+      "address": "Q0.0",
+      "name": {
+        "es": "KM_ADELANTE",
+        "en": "KM_FORWARD"
+      },
+      "description": {
+        "es": "Contactor de giro adelante",
+        "en": "Forward contactor"
+      }
+    },
+    {
+      "address": "Q0.1",
+      "name": {
+        "es": "KM_ATRAS",
+        "en": "KM_REVERSE"
+      },
+      "description": {
+        "es": "Contactor de giro atrás",
+        "en": "Reverse contactor"
+      }
+    }
+  ],
+  "allowed": ["NO", "NC", "coil"],
+  "hints": {
+    "es": [
+      "Empieza con dos circuitos de marcha con autorretención, uno para cada sentido, ambos con PARO y TERMICO en serie.",
+      "El enclavamiento eléctrico es un contacto NC del contactor contrario en serie: si KM_ATRAS está cerrado, KM_ADELANTE no puede energizarse, y al revés.",
+      "Peldaño 1: (ADELANTE O KM_ADELANTE), PARO, TERMICO, NC KM_ATRAS → KM_ADELANTE. Peldaño 2: igual con ATRAS y NC KM_ADELANTE → KM_ATRAS."
+    ],
+    "en": [
+      "Start with two start circuits with seal-in, one per direction, both with STOP and OVERLOAD in series.",
+      "The electrical interlock is an NC contact of the opposite contactor in series: if KM_REVERSE is closed, KM_FORWARD cannot be energized, and vice versa.",
+      "Rung 1: (FORWARD OR KM_FORWARD), STOP, OVERLOAD, NC KM_REVERSE → KM_FORWARD. Rung 2: the same with REVERSE and NC KM_FORWARD → KM_REVERSE."
+    ]
+  },
+  "tests": [
+    {
+      "name": {
+        "es": "Gira adelante y no acepta ATRAS mientras gira",
+        "en": "Runs forward and ignores REVERSE while running"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 300,
+          "inputs": {
+            "I0.0": false
+          }
+        },
+        {
+          "at": 1500,
+          "inputs": {
+            "I0.1": true
+          }
+        },
+        {
+          "at": 1700,
+          "inputs": {
+            "I0.1": false
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 1000,
+          "outputs": {
+            "Q0.0": true,
+            "Q0.1": false
+          }
+        },
+        {
+          "at": 1600,
+          "outputs": {
+            "Q0.0": true,
+            "Q0.1": false
+          }
+        },
+        {
+          "at": 2000,
+          "outputs": {
+            "Q0.0": true,
+            "Q0.1": false
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "es": "Parando se puede cambiar de sentido",
+        "en": "After stopping, the direction can change"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 300,
+          "inputs": {
+            "I0.0": false
+          }
+        },
+        {
+          "at": 1000,
+          "inputs": {
+            "I0.2": false
+          }
+        },
+        {
+          "at": 1200,
+          "inputs": {
+            "I0.2": true
+          }
+        },
+        {
+          "at": 1500,
+          "inputs": {
+            "I0.1": true
+          }
+        },
+        {
+          "at": 1700,
+          "inputs": {
+            "I0.1": false
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 800,
+          "outputs": {
+            "Q0.0": true
+          }
+        },
+        {
+          "at": 1400,
+          "outputs": {
+            "Q0.0": false,
+            "Q0.1": false
+          }
+        },
+        {
+          "at": 2000,
+          "outputs": {
+            "Q0.0": false,
+            "Q0.1": true
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "es": "El relé térmico detiene el motor",
+        "en": "The overload relay stops the motor"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.1": true
+          }
+        },
+        {
+          "at": 300,
+          "inputs": {
+            "I0.1": false
+          }
+        },
+        {
+          "at": 1000,
+          "plant": "overload"
+        }
+      ],
+      "expect": [
+        {
+          "at": 800,
+          "outputs": {
+            "Q0.1": true
+          }
+        },
+        {
+          "at": 1300,
+          "outputs": {
+            "Q0.0": false,
+            "Q0.1": false
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,152 @@
+{
+  "id": "stair-light",
+  "order": 9,
+  "level": 2,
+  "plant": null,
+  "title": {
+    "es": "Luz de escalera temporizada",
+    "en": "Timed staircase light"
+  },
+  "statement": {
+    "es": [
+      "En una escalera, el PULSADOR (I0.0) enciende la LUZ (Q0.0). La luz debe seguir encendida 10 segundos después de soltar el pulsador y luego apagarse sola.",
+      "Si alguien vuelve a pulsar antes de que se apague, los 10 segundos empiezan de nuevo desde que suelta."
+    ],
+    "en": [
+      "On a staircase, the PUSH_BUTTON (I0.0) turns the LIGHT (Q0.0) on. The light must stay on for 10 seconds after the button is released and then turn off by itself.",
+      "If someone presses again before it turns off, the 10 seconds start again from the release."
+    ]
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": {
+        "es": "PULSADOR",
+        "en": "PUSH_BUTTON"
+      },
+      "description": {
+        "es": "Pulsador de la escalera (NA)",
+        "en": "Staircase push button (NO)"
+      },
+      "mode": "button-no"
+    },
+    {
+      "address": "Q0.0",
+      "name": {
+        "es": "LUZ",
+        "en": "LIGHT"
+      },
+      "description": {
+        "es": "Luz de la escalera",
+        "en": "Staircase light"
+      }
+    }
+  ],
+  "allowed": ["NO", "NC", "coil", "TON", "TOF", "TP"],
+  "hints": {
+    "es": [
+      "Hay un temporizador que mantiene su salida un tiempo después de que su entrada se apaga.",
+      "Es el TOF (retardo a la desconexión): Q se enciende con la entrada y se apaga PT segundos después de que la entrada pasa a 0.",
+      "Peldaño: contacto NA de PULSADOR → TOF T0 con PT = T#10s → bobina LUZ."
+    ],
+    "en": [
+      "There is a timer that keeps its output on for a while after its input turns off.",
+      "It is the TOF (off-delay): Q turns on with the input and turns off PT seconds after the input goes to 0.",
+      "Rung: NO contact of PUSH_BUTTON → TOF T0 with PT = T#10s → LIGHT coil."
+    ]
+  },
+  "tests": [
+    {
+      "name": {
+        "es": "Enciende al pulsar y se apaga 10 s después de soltar",
+        "en": "Turns on when pressed and off 10 s after release"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 400,
+          "inputs": {
+            "I0.0": false
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 1000,
+          "outputs": {
+            "Q0.0": true
+          }
+        },
+        {
+          "at": 10100,
+          "outputs": {
+            "Q0.0": true
+          }
+        },
+        {
+          "at": 10700,
+          "outputs": {
+            "Q0.0": false
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "es": "Pulsar de nuevo reinicia los 10 segundos",
+        "en": "Pressing again restarts the 10 seconds"
+      },
+      "steps": [
+        {
+          "at": 100,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 300,
+          "inputs": {
+            "I0.0": false
+          }
+        },
+        {
+          "at": 5000,
+          "inputs": {
+            "I0.0": true
+          }
+        },
+        {
+          "at": 5200,
+          "inputs": {
+            "I0.0": false
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 10600,
+          "outputs": {
+            "Q0.0": true
+          }
+        },
+        {
+          "at": 15000,
+          "outputs": {
+            "Q0.0": true
+          }
+        },
+        {
+          "at": 15600,
+          "outputs": {
+            "Q0.0": false
+          }
+        }
+      ]
+    }
+  ]
+}

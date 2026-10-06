@@ -11,8 +11,8 @@ test.describe('challenges page', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(
       'Desafíos de programación PLC',
     );
-    await expect(page.locator('[data-challenge]')).toHaveCount(8);
-    await expect(page.locator('#challenge-progress')).toHaveText('Completados: 0 de 8');
+    await expect(page.locator('[data-challenge]')).toHaveCount(22);
+    await expect(page.locator('#challenge-progress')).toHaveText('Completados: 0 de 22');
     await noHorizontalScroll(page);
 
     await page.evaluate(() =>
@@ -22,7 +22,7 @@ test.describe('challenges page', () => {
       ),
     );
     await page.reload();
-    await expect(page.locator('#challenge-progress')).toHaveText('Completados: 1 de 8');
+    await expect(page.locator('#challenge-progress')).toHaveText('Completados: 1 de 22');
     const card = page.locator('[data-challenge="door-bell"]');
     await expect(card.locator('[data-completed-badge]')).toBeVisible();
     await expect(
@@ -39,7 +39,7 @@ test.describe('challenges page', () => {
       });
     });
     await page.goto('/en/challenges');
-    await expect(page.locator('#challenge-progress')).toHaveText('Completed: 0 of 8');
+    await expect(page.locator('#challenge-progress')).toHaveText('Completed: 0 of 22');
     await expect(page.getByRole('heading', { name: 'Start and stop with seal-in' })).toBeVisible();
   });
 
@@ -133,7 +133,7 @@ test.describe('solving a challenge in the simulator', () => {
     await expect(page.locator('[data-palette]')).toHaveCount(3);
 
     await page.goto('/es/challenges');
-    await expect(page.locator('#challenge-progress')).toHaveText('Completados: 1 de 8');
+    await expect(page.locator('#challenge-progress')).toHaveText('Completados: 1 de 22');
   });
 
   test('instructions outside the allowed list are rejected', async ({ page }) => {

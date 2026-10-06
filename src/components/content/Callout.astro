@@ -21,20 +21,22 @@ interface Props {
 const { type = 'note', title } = Astro.props;
 const t = getTranslator(localeFromUrl(Astro.url));
 
+// --warning is too light for text on a light background: its title uses the text colour and
+// only the icon and the border are amber.
 const variants = {
-  industry: { Icon: Factory, tone: 'border-primary text-primary' },
-  tip: { Icon: Lightbulb, tone: 'border-primary text-primary' },
-  note: { Icon: Info, tone: 'border-text-muted text-text-muted' },
-  warning: { Icon: TriangleAlert, tone: 'border-warning text-warning' },
-  safety: { Icon: ShieldAlert, tone: 'border-danger text-danger' },
+  industry: { Icon: Factory, tone: 'border-primary text-primary', icon: '' },
+  tip: { Icon: Lightbulb, tone: 'border-primary text-primary', icon: '' },
+  note: { Icon: Info, tone: 'border-text-muted text-text-muted', icon: '' },
+  warning: { Icon: TriangleAlert, tone: 'border-warning text-text', icon: 'text-warning' },
+  safety: { Icon: ShieldAlert, tone: 'border-danger text-danger', icon: '' },
 } as const;
 
-const { Icon, tone } = variants[type];
+const { Icon, tone, icon } = variants[type];
 ---
 
 <aside class:list={['callout not-prose my-7 rounded-r-lg border-l-4 bg-surface px-5 py-4', tone]}>
   <p class="flex items-center gap-2 text-sm font-semibold">
-    <Icon size={16} aria-hidden="true" />
+    <Icon size={16} aria-hidden="true" class={icon} />
     {title ?? t(`learn.callout.${type}`)}
   </p>
   <div class="callout-body mt-2 text-[0.95rem] leading-relaxed text-text">

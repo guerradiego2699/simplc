@@ -23,6 +23,7 @@ const jsonLd = {
     acceptedAnswer: { '@type': 'Answer', text: entry.answer[locale].map(site).join(' ') },
   })),
 };
+import AdSlot from '@/components/ads/AdSlot.astro';
 ---
 
 <BaseLayout locale={locale} title={t('faq.title')} description={t('faq.description')} path="/faq">
@@ -64,4 +65,5 @@ const jsonLd = {
       </a>
     </p>
   </div>
+  <AdSlot locale={locale} placement="content" />
 </BaseLayout>

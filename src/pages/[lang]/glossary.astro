@@ -23,6 +23,7 @@ const entries = [...GLOSSARY].sort((a, b) =>
 );
 const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 const used = new Set(entries.map((e) => letterOf(e.term[locale])));
+import AdSlot from '@/components/ads/AdSlot.astro';
 ---
 
 <BaseLayout
@@ -121,6 +122,7 @@ const used = new Set(entries.map((e) => letterOf(e.term[locale])));
       {t('glossary.noResults')}
     </p>
   </div>
+  <AdSlot locale={locale} placement="content" />
 </BaseLayout>
 
 <script>

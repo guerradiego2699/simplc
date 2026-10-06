@@ -1,0 +1,162 @@
+{
+  "id": "analog-inverse-valve",
+  "order": 19,
+  "level": 4,
+  "plant": null,
+  "title": {
+    "es": "Válvula analógica inversa",
+    "en": "Inverse analog valve"
+  },
+  "statement": {
+    "es": [
+      "Con CONTROL (I0.0) encendido, la VALVULA (QW0) debe abrirse tanto como le falte al estanque para llenarse: si el NIVEL (IW0) vale 0 (vacío), la válvula va a 27648 (abierta al 100 %); con el estanque lleno (27648), la válvula va a 0.",
+      "Es decir, VALVULA = 27648 − NIVEL. Con CONTROL apagado, la válvula queda en 0 (cerrada)."
+    ],
+    "en": [
+      "With CONTROL (I0.0) on, the VALVE (QW0) must open as much as the tank still needs to fill: if the LEVEL (IW0) is 0 (empty), the valve goes to 27648 (100 % open); with the tank full (27648), the valve goes to 0.",
+      "That is, VALVE = 27648 − LEVEL. With CONTROL off, the valve stays at 0 (closed)."
+    ]
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": {
+        "es": "CONTROL",
+        "en": "CONTROL"
+      },
+      "description": {
+        "es": "Interruptor del control",
+        "en": "Control switch"
+      },
+      "mode": "switch"
+    },
+    {
+      "address": "IW0",
+      "name": {
+        "es": "NIVEL",
+        "en": "LEVEL"
+      },
+      "description": {
+        "es": "Transmisor de nivel (0–27648)",
+        "en": "Level transmitter (0–27648)"
+      }
+    },
+    {
+      "address": "QW0",
+      "name": {
+        "es": "VALVULA",
+        "en": "VALVE"
+      },
+      "description": {
+        "es": "Apertura de la válvula (0–27648)",
+        "en": "Valve opening (0–27648)"
+      }
+    }
+  ],
+  "allowed": ["NO", "NC", "coil", "MOVE", "ADD", "SUB", "MUL", "DIV"],
+  "hints": {
+    "es": [
+      "Los bloques de cálculo (SUB, MOVE…) solo se ejecutan cuando su peldaño tiene corriente.",
+      "Un SUB con IN1 = 27648 e IN2 = NIVEL escribe el resultado en VALVULA. Con CONTROL apagado necesitas otro peldaño que mueva 0 a la válvula.",
+      "Peldaño 1: CONTROL → SUB (27648 − NIVEL → VALVULA). Peldaño 2: NC CONTROL → MOVE (0 → VALVULA)."
+    ],
+    "en": [
+      "Math boxes (SUB, MOVE…) only run when their rung is powered.",
+      "A SUB with IN1 = 27648 and IN2 = LEVEL writes the result to VALVE. With CONTROL off you need another rung that moves 0 to the valve.",
+      "Rung 1: CONTROL → SUB (27648 − LEVEL → VALVE). Rung 2: NC CONTROL → MOVE (0 → VALVE)."
+    ]
+  },
+  "tests": [
+    {
+      "name": {
+        "es": "Vacío: válvula abierta; lleno: cerrada; a la mitad: a la mitad",
+        "en": "Empty: valve open; full: closed; half: half"
+      },
+      "steps": [
+        {
+          "at": 0,
+          "inputs": {
+            "I0.0": true
+          },
+          "analog": {
+            "IW0": 0
+          }
+        },
+        {
+          "at": 1000,
+          "analog": {
+            "IW0": 13824
+          }
+        },
+        {
+          "at": 2000,
+          "analog": {
+            "IW0": 27648
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 500,
+          "outputs": {},
+          "analog": {
+            "QW0": [27640, 27648]
+          }
+        },
+        {
+          "at": 1500,
+          "outputs": {},
+          "analog": {
+            "QW0": [13820, 13828]
+          }
+        },
+        {
+          "at": 2500,
+          "outputs": {},
+          "analog": {
+            "QW0": [0, 8]
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "es": "Con CONTROL apagado la válvula queda cerrada",
+        "en": "With CONTROL off the valve stays closed"
+      },
+      "steps": [
+        {
+          "at": 0,
+          "inputs": {
+            "I0.0": true
+          },
+          "analog": {
+            "IW0": 5000
+          }
+        },
+        {
+          "at": 1000,
+          "inputs": {
+            "I0.0": false
+          }
+        }
+      ],
+      "expect": [
+        {
+          "at": 500,
+          "outputs": {},
+          "analog": {
+            "QW0": [22640, 22656]
+          }
+        },
+        {
+          "at": 1500,
+          "outputs": {},
+          "analog": {
+            "QW0": [0, 0]
+          }
+        }
+      ]
+    }
+  ]
+}
