@@ -1,0 +1,160 @@
+{
+  "id": "size-sorter",
+  "order": 10,
+  "level": 4,
+  "plant": "sorter",
+  "title": {
+    "es": "Clasificación de piezas por tamaño",
+    "en": "Sorting parts by size"
+  },
+  "summary": {
+    "es": "Dos sensores a distinta altura distinguen las piezas grandes. Un temporizador espera a que la pieza llegue al pistón, que la empuja a un costado. Las piezas pequeñas siguen hasta el final de la cinta.",
+    "en": "Two sensors at different heights tell the large parts apart. A timer waits for the part to reach the piston, which pushes it aside. Small parts continue to the end of the belt."
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": { "es": "MARCHA", "en": "START" },
+      "description": { "es": "Pulsador de marcha (NA)", "en": "Start push button (NO)" },
+      "mode": "button-no"
+    },
+    {
+      "address": "I0.1",
+      "name": { "es": "PARO", "en": "STOP" },
+      "description": {
+        "es": "Pulsador de paro (NC: 1 en reposo)",
+        "en": "Stop push button (NC: 1 at rest)"
+      },
+      "mode": "button-nc"
+    },
+    {
+      "address": "I0.2",
+      "name": { "es": "SENSOR_BAJO", "en": "LOW_SENSOR" },
+      "description": {
+        "es": "Sensor bajo: detecta todas las piezas (planta)",
+        "en": "Low sensor: detects every part (plant)"
+      }
+    },
+    {
+      "address": "I0.3",
+      "name": { "es": "SENSOR_ALTO", "en": "HIGH_SENSOR" },
+      "description": {
+        "es": "Sensor alto: solo lo alcanzan las piezas grandes (planta)",
+        "en": "High sensor: only large parts reach it (plant)"
+      }
+    },
+    {
+      "address": "Q0.0",
+      "name": { "es": "CINTA", "en": "BELT" },
+      "description": { "es": "Motor de la cinta", "en": "Belt motor" }
+    },
+    {
+      "address": "Q0.1",
+      "name": { "es": "PISTON", "en": "PISTON" },
+      "description": {
+        "es": "Electroválvula del pistón de descarte",
+        "en": "Reject piston solenoid valve"
+      }
+    },
+    {
+      "address": "M0.0",
+      "name": { "es": "PIEZA_GRANDE", "en": "LARGE_PART" },
+      "description": {
+        "es": "Una pieza grande va camino al pistón",
+        "en": "A large part is on its way to the piston"
+      }
+    },
+    {
+      "address": "T0",
+      "name": { "es": "T_VIAJE", "en": "T_TRAVEL" },
+      "description": {
+        "es": "Tiempo que tarda la pieza del sensor al pistón",
+        "en": "Time the part takes from the sensor to the piston"
+      }
+    },
+    {
+      "address": "T1",
+      "name": { "es": "T_EMPUJE", "en": "T_PUSH" },
+      "description": { "es": "Duración del empuje del pistón", "en": "Piston push duration" }
+    }
+  ],
+  "steps": {
+    "es": [
+      "Pulsa ▶ Ejecutar (F5) y presiona MARCHA. Las piezas pequeñas solo activan SENSOR_BAJO; las grandes activan los dos sensores a la vez.",
+      "Peldaño 2: en el flanco de subida de SENSOR_BAJO, si SENSOR_ALTO también está activo, se memoriza PIEZA_GRANDE con una bobina Set.",
+      "Peldaño 3: T_VIAJE mide 1,25 s, lo que tarda la pieza en llegar al pistón, y luego borra la memoria. Peldaño 4: el pulso de T_EMPUJE acciona el pistón durante medio segundo.",
+      "La planta cuenta las piezas bien y mal clasificadas. Si detienes la cinta con una pieza grande en camino, el tiempo sigue corriendo y el pistón falla: en la industria se usa un encoder o un sensor frente al pistón para no depender del tiempo."
+    ],
+    "en": [
+      "Press ▶ Run (F5) and press START. Small parts only trigger LOW_SENSOR; large ones trigger both sensors at once.",
+      "Rung 2: on the rising edge of LOW_SENSOR, if HIGH_SENSOR is also on, LARGE_PART is stored with a Set coil.",
+      "Rung 3: T_TRAVEL measures 1.25 s, the time the part takes to reach the piston, and then clears the memory. Rung 4: the T_PUSH pulse drives the piston for half a second.",
+      "The plant counts parts sorted right and wrong. If you stop the belt with a large part on its way, the time keeps running and the piston misses: in industry an encoder or a sensor in front of the piston is used so the sorting does not depend on time."
+    ]
+  },
+  "rungs": [
+    {
+      "comment": {
+        "es": "Cinta con autorretención.",
+        "en": "Belt with seal-in."
+      },
+      "logic": {
+        "items": [
+          {
+            "kind": "parallel",
+            "branches": [
+              { "items": [{ "kind": "contact", "type": "NO", "operand": "I0.0" }] },
+              { "items": [{ "kind": "contact", "type": "NO", "operand": "Q0.0" }] }
+            ]
+          },
+          { "kind": "contact", "type": "NO", "operand": "I0.1" }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.0" }]
+    },
+    {
+      "comment": {
+        "es": "Llega una pieza: si también la ve el sensor alto, es grande.",
+        "en": "A part arrives: if the high sensor also sees it, it is large."
+      },
+      "logic": {
+        "items": [
+          { "kind": "contact", "type": "P", "operand": "I0.2" },
+          { "kind": "contact", "type": "NO", "operand": "I0.3" }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "set", "operand": "M0.0" }]
+    },
+    {
+      "comment": {
+        "es": "Espera a que la pieza grande llegue al pistón y borra la memoria.",
+        "en": "Waits for the large part to reach the piston and clears the memory."
+      },
+      "logic": {
+        "items": [
+          { "kind": "contact", "type": "NO", "operand": "M0.0" },
+          {
+            "kind": "contact",
+            "type": "TON",
+            "operand": "T0",
+            "params": { "pt": "T#1s250ms" }
+          }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "reset", "operand": "M0.0" }]
+    },
+    {
+      "comment": {
+        "es": "Empuje del pistón: un pulso de medio segundo.",
+        "en": "Piston push: a half-second pulse."
+      },
+      "logic": {
+        "items": [
+          { "kind": "contact", "type": "NO", "operand": "T0" },
+          { "kind": "contact", "type": "TP", "operand": "T1", "params": { "pt": "T#500ms" } }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.1" }]
+    }
+  ]
+}

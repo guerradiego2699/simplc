@@ -1,0 +1,180 @@
+{
+  "id": "level-control",
+  "order": 14,
+  "level": 5,
+  "plant": "levelControl",
+  "title": {
+    "es": "Control de nivel analógico (introducción a PID)",
+    "en": "Analog level control (introduction to PID)"
+  },
+  "summary": {
+    "es": "Una válvula proporcional abre más o menos según cuánto falta para llegar al 60 % de nivel. Es la parte P de un PID, y deja ver su limitación: el error permanente.",
+    "en": "A proportional valve opens more or less depending on how far the level is from 60 %. It is the P part of a PID, and shows its limitation: the steady-state error."
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": { "es": "CONTROL", "en": "CONTROL" },
+      "description": {
+        "es": "Interruptor del control automático",
+        "en": "Automatic control switch"
+      },
+      "mode": "switch"
+    },
+    {
+      "address": "IW0",
+      "name": { "es": "TRANSMISOR_NIVEL", "en": "LEVEL_TRANSMITTER" },
+      "description": {
+        "es": "Transmisor de nivel: 0–27648 = 0–100 % (planta)",
+        "en": "Level transmitter: 0–27648 = 0–100 % (plant)"
+      }
+    },
+    {
+      "address": "QW0",
+      "name": { "es": "VALVULA", "en": "VALVE" },
+      "description": {
+        "es": "Apertura de la válvula de entrada: 0–27648 = 0–100 %",
+        "en": "Inlet valve opening: 0–27648 = 0–100 %"
+      }
+    },
+    {
+      "address": "MD0",
+      "name": { "es": "NIVEL", "en": "LEVEL" },
+      "description": { "es": "Nivel en % (REAL)", "en": "Level in % (REAL)" }
+    },
+    {
+      "address": "MD1",
+      "name": { "es": "ERROR", "en": "ERROR" },
+      "description": {
+        "es": "Consigna (60 %) menos nivel",
+        "en": "Setpoint (60 %) minus level"
+      }
+    },
+    {
+      "address": "MD2",
+      "name": { "es": "APERTURA", "en": "OPENING" },
+      "description": {
+        "es": "Apertura calculada de la válvula en % (REAL)",
+        "en": "Calculated valve opening in % (REAL)"
+      }
+    }
+  ],
+  "steps": {
+    "es": [
+      "Pulsa ▶ Ejecutar (F5) y activa CONTROL. Peldaño 1: el nivel se escala a porcentaje. Peldaño 2: ERROR = 60 % − NIVEL.",
+      "Peldaño 3: la apertura es proporcional al error (ganancia Kp = 8). Peldaños 4 y 5: se limita entre 0 y 100 %. Peldaño 6: se escala a la salida analógica QW0.",
+      "Mira el nivel: se estabiliza cerca de 55 %, no en 60 %. Con control solo proporcional, se necesita algo de error para que la válvula quede abierta: es el error permanente. La parte I (integral) de un PID existe para eliminarlo.",
+      "Prueba cambiar la ganancia a 20.0: el error permanente baja, pero la válvula reacciona con más fuerza. Corta el consumo en la planta y observa cómo cambia el punto de equilibrio."
+    ],
+    "en": [
+      "Press ▶ Run (F5) and turn on CONTROL. Rung 1: the level is scaled to percent. Rung 2: ERROR = 60 % − LEVEL.",
+      "Rung 3: the opening is proportional to the error (gain Kp = 8). Rungs 4 and 5: it is limited between 0 and 100 %. Rung 6: it is scaled to the analog output QW0.",
+      "Watch the level: it settles near 55 %, not at 60 %. With proportional-only control some error is needed to keep the valve open: that is the steady-state error. The I (integral) part of a PID exists to remove it.",
+      "Try changing the gain to 20.0: the steady-state error drops, but the valve reacts more strongly. Turn off the consumer in the plant and see how the balance point changes."
+    ]
+  },
+  "rungs": [
+    {
+      "comment": {
+        "es": "Escala el transmisor a porcentaje de nivel.",
+        "en": "Scales the transmitter to level percent."
+      },
+      "logic": { "items": [] },
+      "coils": [
+        {
+          "kind": "coil",
+          "type": "SCALE",
+          "operand": "MD0",
+          "params": {
+            "in": "IW0",
+            "inMin": "0",
+            "inMax": "27648",
+            "outMin": "0",
+            "outMax": "100"
+          }
+        }
+      ]
+    },
+    {
+      "comment": {
+        "es": "Error = consigna (60 %) − nivel.",
+        "en": "Error = setpoint (60 %) − level."
+      },
+      "logic": { "items": [] },
+      "coils": [
+        {
+          "kind": "coil",
+          "type": "SUB",
+          "operand": "MD1",
+          "params": { "in1": "60.0", "in2": "MD0" }
+        }
+      ]
+    },
+    {
+      "comment": {
+        "es": "Acción proporcional: apertura = Kp × error, con Kp = 8.",
+        "en": "Proportional action: opening = Kp × error, with Kp = 8."
+      },
+      "logic": { "items": [] },
+      "coils": [
+        {
+          "kind": "coil",
+          "type": "MUL",
+          "operand": "MD2",
+          "params": { "in1": "MD1", "in2": "8.0" }
+        }
+      ]
+    },
+    {
+      "comment": {
+        "es": "Límite superior: como máximo 100 %.",
+        "en": "Upper limit: at most 100 %."
+      },
+      "logic": {
+        "items": [
+          { "kind": "contact", "type": "GT", "operand": "MD2", "params": { "in2": "100.0" } }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "MOVE", "operand": "MD2", "params": { "in": "100.0" } }]
+    },
+    {
+      "comment": {
+        "es": "Límite inferior: como mínimo 0 %.",
+        "en": "Lower limit: at least 0 %."
+      },
+      "logic": {
+        "items": [{ "kind": "contact", "type": "LT", "operand": "MD2", "params": { "in2": "0.0" } }]
+      },
+      "coils": [{ "kind": "coil", "type": "MOVE", "operand": "MD2", "params": { "in": "0.0" } }]
+    },
+    {
+      "comment": {
+        "es": "Con el control activo, la apertura va a la válvula (0–100 % → 0–27648).",
+        "en": "With control on, the opening goes to the valve (0–100 % → 0–27648)."
+      },
+      "logic": { "items": [{ "kind": "contact", "type": "NO", "operand": "I0.0" }] },
+      "coils": [
+        {
+          "kind": "coil",
+          "type": "SCALE",
+          "operand": "QW0",
+          "params": {
+            "in": "MD2",
+            "inMin": "0",
+            "inMax": "100",
+            "outMin": "0",
+            "outMax": "27648"
+          }
+        }
+      ]
+    },
+    {
+      "comment": {
+        "es": "Con el control apagado, la válvula se cierra.",
+        "en": "With control off, the valve closes."
+      },
+      "logic": { "items": [{ "kind": "contact", "type": "NC", "operand": "I0.0" }] },
+      "coils": [{ "kind": "coil", "type": "MOVE", "operand": "QW0", "params": { "in": "0" } }]
+    }
+  ]
+}

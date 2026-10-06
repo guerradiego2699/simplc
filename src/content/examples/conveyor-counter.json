@@ -1,0 +1,117 @@
+{
+  "id": "conveyor-counter",
+  "order": 8,
+  "level": 3,
+  "plant": "conveyor",
+  "title": {
+    "es": "Cinta transportadora con contador de cajas",
+    "en": "Conveyor belt with box counter"
+  },
+  "summary": {
+    "es": "Un sensor cuenta las cajas que pasan. Al completar un lote de 6 cajas, la cinta se detiene y se enciende una luz hasta que el operador inicia un lote nuevo.",
+    "en": "A sensor counts the passing boxes. When a batch of 6 boxes is complete, the belt stops and a light turns on until the operator starts a new batch."
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": { "es": "MARCHA", "en": "START" },
+      "description": { "es": "Pulsador de marcha (NA)", "en": "Start push button (NO)" },
+      "mode": "button-no"
+    },
+    {
+      "address": "I0.1",
+      "name": { "es": "PARO", "en": "STOP" },
+      "description": {
+        "es": "Pulsador de paro (NC: 1 en reposo)",
+        "en": "Stop push button (NC: 1 at rest)"
+      },
+      "mode": "button-nc"
+    },
+    {
+      "address": "I0.2",
+      "name": { "es": "SENSOR_CAJA", "en": "BOX_SENSOR" },
+      "description": {
+        "es": "Fotocelda que detecta las cajas (planta)",
+        "en": "Photocell that detects the boxes (plant)"
+      }
+    },
+    {
+      "address": "I0.3",
+      "name": { "es": "NUEVO_LOTE", "en": "NEW_BATCH" },
+      "description": {
+        "es": "Pulsador para empezar un lote nuevo (NA)",
+        "en": "Push button to start a new batch (NO)"
+      },
+      "mode": "button-no"
+    },
+    {
+      "address": "Q0.0",
+      "name": { "es": "CINTA", "en": "BELT" },
+      "description": { "es": "Motor de la cinta", "en": "Belt motor" }
+    },
+    {
+      "address": "Q0.1",
+      "name": { "es": "LOTE_LISTO", "en": "BATCH_READY" },
+      "description": { "es": "Luz de lote completo", "en": "Batch complete light" }
+    },
+    {
+      "address": "C0",
+      "name": { "es": "CAJAS", "en": "BOXES" },
+      "description": { "es": "Contador de cajas del lote", "en": "Box counter of the batch" }
+    }
+  ],
+  "steps": {
+    "es": [
+      "Pulsa ▶ Ejecutar (F5) y presiona MARCHA: la cinta avanza y el contador CAJAS suma una por cada caja que pasa frente al sensor.",
+      "Observa el valor CV del contador en el peldaño 1. El contador cuenta flancos: una caja suma una sola vez, aunque tarde en pasar.",
+      "Al llegar a 6 cajas, la salida del contador enciende LOTE_LISTO y su contacto NC en el peldaño 2 detiene la cinta.",
+      "Presiona NUEVO_LOTE para poner la cuenta en cero y luego MARCHA para empezar otro lote."
+    ],
+    "en": [
+      "Press ▶ Run (F5) and press START: the belt moves and the BOXES counter adds one for each box that passes the sensor.",
+      "Watch the counter's CV value in rung 1. The counter counts edges: a box adds only once, even if it takes a while to pass.",
+      "At 6 boxes, the counter output turns on BATCH_READY and its NC contact in rung 2 stops the belt.",
+      "Press NEW_BATCH to set the count to zero and then START to begin another batch."
+    ]
+  },
+  "rungs": [
+    {
+      "comment": {
+        "es": "Cuenta las cajas; NUEVO_LOTE reinicia la cuenta. La salida indica lote completo.",
+        "en": "Counts the boxes; NEW_BATCH resets the count. The output means batch complete."
+      },
+      "logic": {
+        "items": [
+          { "kind": "contact", "type": "NO", "operand": "I0.2" },
+          {
+            "kind": "contact",
+            "type": "CTU",
+            "operand": "C0",
+            "params": { "pv": "6", "r": "I0.3" }
+          }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.1" }]
+    },
+    {
+      "comment": {
+        "es": "Cinta con autorretención; se detiene con el lote completo.",
+        "en": "Belt with seal-in; it stops when the batch is complete."
+      },
+      "logic": {
+        "items": [
+          {
+            "kind": "parallel",
+            "branches": [
+              { "items": [{ "kind": "contact", "type": "NO", "operand": "I0.0" }] },
+              { "items": [{ "kind": "contact", "type": "NO", "operand": "Q0.0" }] }
+            ]
+          },
+          { "kind": "contact", "type": "NO", "operand": "I0.1" },
+          { "kind": "contact", "type": "NC", "operand": "C0" }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.0" }]
+    }
+  ]
+}

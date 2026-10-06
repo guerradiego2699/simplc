@@ -459,7 +459,12 @@
         "switch": "Interruptor",
         "button-no": "Pulsador NA",
         "button-nc": "Pulsador NC"
-      }
+      },
+      "analog": "Analógicas",
+      "analogInputs": "Entradas analógicas",
+      "analogOutputs": "Salidas analógicas",
+      "potentiometer": "Potenciómetro {address}",
+      "percent": "{p} %"
     },
     "console": {
       "title": "Consola",
@@ -665,7 +670,16 @@
         "lamp": "Ampolleta",
         "motor": "Motor con contactor y relé térmico",
         "traffic": "Semáforo de un cruce",
-        "tank": "Estanque con bomba"
+        "tank": "Estanque con bomba",
+        "reversing": "Motor con inversión de giro",
+        "gate": "Portón automático",
+        "starDelta": "Motor con partida estrella-triángulo",
+        "conveyor": "Cinta transportadora con cajas",
+        "parking": "Estacionamiento",
+        "sorter": "Cinta clasificadora",
+        "pumps": "Estanque con dos bombas",
+        "oven": "Horno eléctrico",
+        "levelControl": "Estanque con válvula proporcional"
       },
       "empty": "No hay una planta conectada. Elige una para que tu programa controle una máquina simulada: las salidas mueven la planta y sus sensores llegan a las entradas.",
       "connections": "Conexiones",
@@ -693,6 +707,60 @@
           "Q0_0": "Bomba de llenado",
           "I0_2": "Sensor de nivel bajo (1 si el nivel ≥ 20 %)",
           "I0_3": "Sensor de nivel alto (1 si el nivel ≥ 80 %)"
+        },
+        "reversing": {
+          "Q0_0": "Contactor de giro adelante",
+          "Q0_1": "Contactor de giro atrás",
+          "I0_3": "Contacto NC del relé térmico (1 = normal)"
+        },
+        "gate": {
+          "Q0_0": "Motor: abrir",
+          "Q0_1": "Motor: cerrar",
+          "Q0_2": "Baliza de advertencia",
+          "I0_2": "Final de carrera: abierto",
+          "I0_3": "Final de carrera: cerrado",
+          "I0_4": "Fotocelda (1 = paso libre)"
+        },
+        "starDelta": {
+          "Q0_0": "Contactor de línea K1",
+          "Q0_1": "Contactor de estrella K2",
+          "Q0_2": "Contactor de triángulo K3",
+          "I0_2": "Contacto NC del relé térmico (1 = normal)"
+        },
+        "conveyor": {
+          "Q0_0": "Motor de la cinta",
+          "Q0_1": "Luz de lote listo",
+          "I0_2": "Sensor de cajas"
+        },
+        "parking": {
+          "Q0_0": "Letrero LLENO",
+          "Q0_1": "Barrera de entrada",
+          "I0_0": "Sensor de entrada",
+          "I0_1": "Sensor de salida",
+          "I0_2": "Auto esperando en la barrera"
+        },
+        "sorter": {
+          "Q0_0": "Motor de la cinta",
+          "Q0_1": "Pistón de descarte",
+          "I0_2": "Sensor bajo (todas las piezas)",
+          "I0_3": "Sensor alto (solo piezas grandes)"
+        },
+        "pumps": {
+          "Q0_0": "Bomba 1",
+          "Q0_1": "Bomba 2",
+          "Q0_2": "Luz de alarma",
+          "I0_2": "Sensor de nivel bajo (≥ 20 %)",
+          "I0_3": "Sensor de nivel alto (≥ 80 %)",
+          "I0_4": "Bomba 1 sin falla (contacto NC)",
+          "I0_5": "Bomba 2 sin falla (contacto NC)"
+        },
+        "oven": {
+          "Q0_0": "Resistencia calefactora",
+          "IW0": "Transmisor de temperatura (0–27648 = 0–300 °C)"
+        },
+        "levelControl": {
+          "QW0": "Válvula de entrada (0–27648 = 0–100 %)",
+          "IW0": "Transmisor de nivel (0–27648 = 0–100 %)"
         }
       },
       "lamp": {
@@ -733,7 +801,72 @@
         "open": "abierto",
         "closed": "cerrado"
       },
-      "controls": "Mandos"
+      "controls": "Mandos",
+      "reversing": {
+        "forward": "Adelante",
+        "reverse": "Atrás",
+        "stopped": "Detenido",
+        "direction": "Sentido",
+        "shortCircuit": "¡Cortocircuito! Se cerraron los dos contactores y saltó la protección. Pulsa «Rearmar».",
+        "reset": "Rearmar protecciones"
+      },
+      "gate": {
+        "position": "Apertura",
+        "addObstacle": "Poner obstáculo",
+        "removeObstacle": "Quitar obstáculo",
+        "needsOpen": "Para poner un obstáculo, primero abre el portón.",
+        "hit": "¡El portón golpeó el obstáculo!",
+        "jammed": "Se ordenó abrir y cerrar a la vez: el motor no se mueve.",
+        "photocell": "Fotocelda"
+      },
+      "starDelta": {
+        "star": "Estrella",
+        "delta": "Triángulo",
+        "off": "Sin conexión",
+        "connection": "Conexión",
+        "current": "Corriente",
+        "peak": "Pico de arranque",
+        "times": "{n} × nominal",
+        "shortCircuit": "¡Cortocircuito: estrella y triángulo cerrados a la vez! Pulsa «Rearmar»."
+      },
+      "conveyor": {
+        "delivered": "Cajas entregadas: {n}",
+        "sensor": "Sensor"
+      },
+      "parking": {
+        "waiting": "Esperando: {n}",
+        "parked": "Estacionados: {n} de {capacity}",
+        "arrives": "Llega un auto",
+        "leaves": "Sale un auto",
+        "full": "LLENO",
+        "free": "LIBRE",
+        "overflow": "¡Entraron más autos que cupos!"
+      },
+      "sorter": {
+        "ok": "Bien clasificadas: {n}",
+        "wrong": "Mal clasificadas: {n}",
+        "bin": "Grandes",
+        "end": "Pequeñas"
+      },
+      "pumps": {
+        "pump": "Bomba {n}",
+        "fault": "Simular falla",
+        "repair": "Reparar",
+        "faulted": "en falla",
+        "runTime": "{s} s de trabajo",
+        "alarm": "Alarma"
+      },
+      "oven": {
+        "temperature": "Temperatura",
+        "heater": "Resistencia",
+        "openDoor": "Abrir la puerta",
+        "closeDoor": "Cerrar la puerta",
+        "band": "Banda de control"
+      },
+      "levelControl": {
+        "valve": "Válvula",
+        "setpoint": "Consigna"
+      }
     },
     "challenge": {
       "tab": "Desafío",
@@ -878,16 +1011,7 @@
     "desktopNote": "El simulador está pensado para computadores (pantallas de 1024 px o más).",
     "rung": "Peldaño {n}",
     "upcoming": {
-      "3": "Motor con inversión de giro y enclavamiento eléctrico",
-      "5": "Portón automático",
-      "7": "Partida estrella-triángulo con temporizador",
-      "8": "Cinta transportadora con contador de cajas",
-      "9": "Estacionamiento con contador de cupos",
-      "10": "Clasificación de piezas por tamaño",
-      "11": "Mezcladora por lotes (batch)",
-      "12": "Dos bombas con alternancia y respaldo",
-      "13": "Control de temperatura con histéresis",
-      "14": "Control de nivel analógico (introducción a PID)"
+      "11": "Mezcladora por lotes (batch)"
     }
   },
   "challenges": {

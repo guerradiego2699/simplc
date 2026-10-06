@@ -1,0 +1,228 @@
+{
+  "id": "two-pumps",
+  "order": 12,
+  "level": 4,
+  "plant": "pumps",
+  "title": {
+    "es": "Dos bombas con alternancia y respaldo",
+    "en": "Two pumps with alternation and backup"
+  },
+  "summary": {
+    "es": "Dos bombas llenan un estanque. En cada ciclo de llenado trabaja una distinta para repartir el desgaste, y si una falla, la otra la reemplaza y se enciende una alarma.",
+    "en": "Two pumps fill a tank. Each filling cycle uses a different one to share the wear, and if one fails the other takes over and an alarm lights up."
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": { "es": "SISTEMA", "en": "SYSTEM" },
+      "description": { "es": "Interruptor del sistema", "en": "System switch" },
+      "mode": "switch"
+    },
+    {
+      "address": "I0.2",
+      "name": { "es": "NIVEL_BAJO", "en": "LEVEL_LOW" },
+      "description": {
+        "es": "Sensor de nivel bajo: 1 si el agua lo cubre (planta)",
+        "en": "Low level switch: 1 when covered (plant)"
+      }
+    },
+    {
+      "address": "I0.3",
+      "name": { "es": "NIVEL_ALTO", "en": "LEVEL_HIGH" },
+      "description": {
+        "es": "Sensor de nivel alto: 1 si el agua lo cubre (planta)",
+        "en": "High level switch: 1 when covered (plant)"
+      }
+    },
+    {
+      "address": "I0.4",
+      "name": { "es": "BOMBA1_OK", "en": "PUMP1_OK" },
+      "description": {
+        "es": "Contacto NC de falla de la bomba 1: 0 = falla (planta)",
+        "en": "Pump 1 NC fault contact: 0 = fault (plant)"
+      }
+    },
+    {
+      "address": "I0.5",
+      "name": { "es": "BOMBA2_OK", "en": "PUMP2_OK" },
+      "description": {
+        "es": "Contacto NC de falla de la bomba 2: 0 = falla (planta)",
+        "en": "Pump 2 NC fault contact: 0 = fault (plant)"
+      }
+    },
+    {
+      "address": "Q0.0",
+      "name": { "es": "BOMBA_1", "en": "PUMP_1" },
+      "description": { "es": "Contactor de la bomba 1", "en": "Pump 1 contactor" }
+    },
+    {
+      "address": "Q0.1",
+      "name": { "es": "BOMBA_2", "en": "PUMP_2" },
+      "description": { "es": "Contactor de la bomba 2", "en": "Pump 2 contactor" }
+    },
+    {
+      "address": "Q0.2",
+      "name": { "es": "ALARMA", "en": "ALARM" },
+      "description": { "es": "Luz de alarma de falla", "en": "Fault alarm light" }
+    },
+    {
+      "address": "M0.0",
+      "name": { "es": "DEMANDA", "en": "DEMAND" },
+      "description": {
+        "es": "El estanque necesita agua (entre los dos sensores)",
+        "en": "The tank needs water (between the two switches)"
+      }
+    },
+    {
+      "address": "M0.1",
+      "name": { "es": "TURNO_B2", "en": "TURN_P2" },
+      "description": {
+        "es": "En este ciclo le toca a la bomba 2",
+        "en": "Pump 2's turn in this cycle"
+      }
+    },
+    {
+      "address": "M0.2",
+      "name": { "es": "CAMBIO_A_B2", "en": "SWITCH_TO_P2" },
+      "description": {
+        "es": "Pulso: el turno pasa a la bomba 2",
+        "en": "Pulse: turn goes to pump 2"
+      }
+    },
+    {
+      "address": "M0.3",
+      "name": { "es": "CAMBIO_A_B1", "en": "SWITCH_TO_P1" },
+      "description": {
+        "es": "Pulso: el turno pasa a la bomba 1",
+        "en": "Pulse: turn goes to pump 1"
+      }
+    }
+  ],
+  "steps": {
+    "es": [
+      "Pulsa ▶ Ejecutar (F5) y activa SISTEMA. DEMANDA se activa con nivel bajo y se mantiene hasta el nivel alto, como en el ejemplo del estanque.",
+      "Peldaños 2 a 5: en cada flanco de subida de DEMANDA, TURNO_B2 cambia de valor. Así cada llenado lo hace una bomba distinta; mira los tiempos de trabajo de cada una en la planta.",
+      "Peldaños 6 y 7: cada bomba trabaja en su turno, o en el turno de la otra si la otra está en falla. En la planta, pulsa «Falla» en una bomba y observa cómo la otra la respalda.",
+      "Peldaño 8: cualquier falla enciende la ALARMA. Las fallas se leen con contactos NC del equipo: un cable cortado también se ve como falla."
+    ],
+    "en": [
+      "Press ▶ Run (F5) and turn on SYSTEM. DEMAND turns on at low level and stays on until high level, as in the tank example.",
+      "Rungs 2 to 5: on each rising edge of DEMAND, TURN_P2 changes value. That way each filling is done by a different pump; see each pump's running time in the plant.",
+      "Rungs 6 and 7: each pump runs in its turn, or in the other's turn if the other one has a fault. In the plant, press “Fault” on a pump and watch the other one back it up.",
+      "Rung 8: any fault turns on the ALARM. Faults are read with the equipment's NC contacts: a broken wire also shows up as a fault."
+    ]
+  },
+  "rungs": [
+    {
+      "comment": {
+        "es": "Demanda de agua con histéresis entre los sensores bajo y alto.",
+        "en": "Water demand with hysteresis between the low and high switches."
+      },
+      "logic": {
+        "items": [
+          { "kind": "contact", "type": "NO", "operand": "I0.0" },
+          {
+            "kind": "parallel",
+            "branches": [
+              { "items": [{ "kind": "contact", "type": "NC", "operand": "I0.2" }] },
+              { "items": [{ "kind": "contact", "type": "NO", "operand": "M0.0" }] }
+            ]
+          },
+          { "kind": "contact", "type": "NC", "operand": "I0.3" }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "M0.0" }]
+    },
+    {
+      "comment": {
+        "es": "Nuevo ciclo y era el turno de la bomba 1: pasa a la bomba 2.",
+        "en": "New cycle and it was pump 1's turn: it goes to pump 2."
+      },
+      "logic": {
+        "items": [
+          { "kind": "contact", "type": "P", "operand": "M0.0" },
+          { "kind": "contact", "type": "NC", "operand": "M0.1" }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "M0.2" }]
+    },
+    {
+      "comment": {
+        "es": "Nuevo ciclo y era el turno de la bomba 2: pasa a la bomba 1.",
+        "en": "New cycle and it was pump 2's turn: it goes to pump 1."
+      },
+      "logic": {
+        "items": [
+          { "kind": "contact", "type": "P", "operand": "M0.0" },
+          { "kind": "contact", "type": "NO", "operand": "M0.1" }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "M0.3" }]
+    },
+    {
+      "comment": { "es": "Cambio de turno a la bomba 2.", "en": "Turn switches to pump 2." },
+      "logic": { "items": [{ "kind": "contact", "type": "NO", "operand": "M0.2" }] },
+      "coils": [{ "kind": "coil", "type": "set", "operand": "M0.1" }]
+    },
+    {
+      "comment": { "es": "Cambio de turno a la bomba 1.", "en": "Turn switches to pump 1." },
+      "logic": { "items": [{ "kind": "contact", "type": "NO", "operand": "M0.3" }] },
+      "coils": [{ "kind": "coil", "type": "reset", "operand": "M0.1" }]
+    },
+    {
+      "comment": {
+        "es": "Bomba 1: en su turno, o como respaldo si la bomba 2 falla.",
+        "en": "Pump 1: in its turn, or as backup if pump 2 fails."
+      },
+      "logic": {
+        "items": [
+          { "kind": "contact", "type": "NO", "operand": "M0.0" },
+          { "kind": "contact", "type": "NO", "operand": "I0.4" },
+          {
+            "kind": "parallel",
+            "branches": [
+              { "items": [{ "kind": "contact", "type": "NC", "operand": "M0.1" }] },
+              { "items": [{ "kind": "contact", "type": "NC", "operand": "I0.5" }] }
+            ]
+          }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.0" }]
+    },
+    {
+      "comment": {
+        "es": "Bomba 2: en su turno, o como respaldo si la bomba 1 falla.",
+        "en": "Pump 2: in its turn, or as backup if pump 1 fails."
+      },
+      "logic": {
+        "items": [
+          { "kind": "contact", "type": "NO", "operand": "M0.0" },
+          { "kind": "contact", "type": "NO", "operand": "I0.5" },
+          {
+            "kind": "parallel",
+            "branches": [
+              { "items": [{ "kind": "contact", "type": "NO", "operand": "M0.1" }] },
+              { "items": [{ "kind": "contact", "type": "NC", "operand": "I0.4" }] }
+            ]
+          }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.1" }]
+    },
+    {
+      "comment": { "es": "Alarma ante cualquier falla.", "en": "Alarm on any fault." },
+      "logic": {
+        "items": [
+          {
+            "kind": "parallel",
+            "branches": [
+              { "items": [{ "kind": "contact", "type": "NC", "operand": "I0.4" }] },
+              { "items": [{ "kind": "contact", "type": "NC", "operand": "I0.5" }] }
+            ]
+          }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.2" }]
+    }
+  ]
+}

@@ -14,16 +14,21 @@ export function PlantPanel() {
   const t = useStrings();
   const store = useStoreApi();
   const controller = useController();
-  const { plantId, plantState, outputs, style } = useSim(
+  const { plantId, plantState, outputs, running, analogOutputs, style } = useSim(
     useShallow((s) => ({
       plantId: s.project.plant,
       plantState: s.plantState,
       outputs: s.snapshot?.physicalOutputs,
+      running: s.snapshot?.mode === 'RUN',
+      analogOutputs: s.snapshot?.words.QW,
       style: s.addressStyle,
     })),
   );
   const plant = isPlantId(plantId) ? plantId : null;
   const out = (address: string) => outputs?.[PANEL_OUTPUTS.indexOf(address)] ?? false;
+  // Physical analog outputs drop to 0 in STOP, like the plant sees them.
+  const word = (address: string) =>
+    running ? (analogOutputs?.[Number(address.slice(2))] ?? 0) : 0;
 
   return (
     <div className="flex h-full gap-4 overflow-auto px-3 py-2.5" data-testid="plant-panel">
@@ -33,6 +38,7 @@ export function PlantPanel() {
             plant={plant}
             state={plantState}
             out={out}
+            word={word}
             t={t.plant}
             onCommand={(name) => controller.plantCommand(name)}
           />

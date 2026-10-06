@@ -1,0 +1,113 @@
+{
+  "id": "reversing-motor",
+  "order": 3,
+  "level": 2,
+  "plant": "reversing",
+  "title": {
+    "es": "Motor con inversión de giro y enclavamiento eléctrico",
+    "en": "Reversing motor with electrical interlock"
+  },
+  "summary": {
+    "es": "Dos contactores hacen girar el motor en uno u otro sentido. Un enclavamiento impide que ambos se cierren a la vez, lo que provocaría un cortocircuito.",
+    "en": "Two contactors run the motor in one direction or the other. An interlock prevents both from closing at once, which would cause a short circuit."
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": { "es": "ADELANTE", "en": "FORWARD" },
+      "description": { "es": "Pulsador de giro adelante (NA)", "en": "Forward push button (NO)" },
+      "mode": "button-no"
+    },
+    {
+      "address": "I0.1",
+      "name": { "es": "ATRAS", "en": "REVERSE" },
+      "description": { "es": "Pulsador de giro atrás (NA)", "en": "Reverse push button (NO)" },
+      "mode": "button-no"
+    },
+    {
+      "address": "I0.2",
+      "name": { "es": "PARO", "en": "STOP" },
+      "description": {
+        "es": "Pulsador de paro (NC: 1 en reposo)",
+        "en": "Stop push button (NC: 1 at rest)"
+      },
+      "mode": "button-nc"
+    },
+    {
+      "address": "I0.3",
+      "name": { "es": "TERMICO", "en": "OVERLOAD" },
+      "description": {
+        "es": "Contacto NC del relé térmico (lo maneja la planta: 0 = sobrecarga)",
+        "en": "Overload relay NC contact (driven by the plant: 0 = tripped)"
+      }
+    },
+    {
+      "address": "Q0.0",
+      "name": { "es": "KM_ADELANTE", "en": "KM_FORWARD" },
+      "description": { "es": "Contactor de giro adelante", "en": "Forward contactor" }
+    },
+    {
+      "address": "Q0.1",
+      "name": { "es": "KM_ATRAS", "en": "KM_REVERSE" },
+      "description": { "es": "Contactor de giro atrás", "en": "Reverse contactor" }
+    }
+  ],
+  "steps": {
+    "es": [
+      "Pulsa ▶ Ejecutar (F5) y presiona ADELANTE: el contactor KM_ADELANTE se mantiene solo y el motor gira hacia adelante.",
+      "Con el motor en marcha, presiona ATRAS: no pasa nada. El contacto NC de KM_ADELANTE en el peldaño 2 bloquea el giro atrás. Ese es el enclavamiento eléctrico.",
+      "Presiona PARO, espera a que el motor se detenga y luego presiona ATRAS: ahora gira en sentido contrario.",
+      "Prueba quitar el contacto NC de KM_ATRAS del peldaño 1 y presiona ambos pulsadores: la planta muestra el cortocircuito que el enclavamiento evitaba. En un tablero real, el enclavamiento se hace además con contactos auxiliares de los contactores."
+    ],
+    "en": [
+      "Press ▶ Run (F5) and press FORWARD: contactor KM_FORWARD seals itself in and the motor runs forward.",
+      "While the motor runs, press REVERSE: nothing happens. The NC contact of KM_FORWARD in rung 2 blocks reverse. That is the electrical interlock.",
+      "Press STOP, wait for the motor to stop and then press REVERSE: it now runs the other way.",
+      "Try removing the NC contact of KM_REVERSE from rung 1 and press both buttons: the plant shows the short circuit the interlock prevented. In a real panel the interlock is also wired with the contactors' auxiliary contacts."
+    ]
+  },
+  "rungs": [
+    {
+      "comment": {
+        "es": "Giro adelante con autorretención, enclavado con el contactor de giro atrás.",
+        "en": "Forward with seal-in, interlocked with the reverse contactor."
+      },
+      "logic": {
+        "items": [
+          {
+            "kind": "parallel",
+            "branches": [
+              { "items": [{ "kind": "contact", "type": "NO", "operand": "I0.0" }] },
+              { "items": [{ "kind": "contact", "type": "NO", "operand": "Q0.0" }] }
+            ]
+          },
+          { "kind": "contact", "type": "NO", "operand": "I0.2" },
+          { "kind": "contact", "type": "NO", "operand": "I0.3" },
+          { "kind": "contact", "type": "NC", "operand": "Q0.1" }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.0" }]
+    },
+    {
+      "comment": {
+        "es": "Giro atrás con autorretención, enclavado con el contactor de giro adelante.",
+        "en": "Reverse with seal-in, interlocked with the forward contactor."
+      },
+      "logic": {
+        "items": [
+          {
+            "kind": "parallel",
+            "branches": [
+              { "items": [{ "kind": "contact", "type": "NO", "operand": "I0.1" }] },
+              { "items": [{ "kind": "contact", "type": "NO", "operand": "Q0.1" }] }
+            ]
+          },
+          { "kind": "contact", "type": "NO", "operand": "I0.2" },
+          { "kind": "contact", "type": "NO", "operand": "I0.3" },
+          { "kind": "contact", "type": "NC", "operand": "Q0.0" }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.1" }]
+    }
+  ]
+}

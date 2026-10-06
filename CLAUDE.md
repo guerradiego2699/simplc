@@ -243,6 +243,22 @@ dtMs, output)`, `read`, optional `command`), `models.ts` (lamp, motor, traffic, 
 - Example pages show the program in LD / FBD / ST tabs (`components/content/ProgramViews.astro`);
   LanguageTabs draws FBD with `StaticFbd`. Code fonts (incl. SVG text) have ligatures off.
 
+## Plants and examples II, analog I/O (Phase 13)
+
+- Plant API: `step(state, dtMs, io: PlantIo)` with `io.bit('Q0.0')` / `io.word('QW0')`; `read()`
+  returns `boolean | number` per sensor (numbers go to `IW` as raw INT). Analog full scale is
+  `ANALOG_FULL_SCALE` = 27648 (= 100 %, Siemens-style). Nine new plants live in
+  `plants/models-ii.ts` (pure): reversing, gate, starDelta, conveyor, parking, sorter, pumps,
+  oven (IW0 = 0–300 °C), levelControl (QW0 valve, IW0 level). Views in
+  `plants/views/PlantViewsII.tsx`; shared helpers in `views/shared.tsx` (no circular imports).
+  Faults/short circuits are latched in plant state and cleared by a plant command.
+- Examples 3, 5, 7, 8, 9, 10, 12, 13, 14 are in `src/content/examples/`; only 11 (batch mixer,
+  needs SFC) remains in `examples.upcoming`. Behaviour tests: `plants/plants-ii.test.ts`.
+- I/O board has an "Analog" row: IW0/IW1 potentiometers (store `analogInputs`, applied before plant
+  sensors; plant-driven channels show the factory icon and are disabled) and QW0/QW1 meters.
+  `PlantPanel` passes `word()` = QW image while RUN, 0 otherwise (physical outputs drop in STOP).
+- E2E: `tests/e2e/phase13.spec.ts` (sets speed ×4 via the "Velocidad" select).
+
 ## Environment notes
 
 - Windows. Project lives in `C:\dev\simplc` (kept out of OneDrive on purpose: node_modules sync

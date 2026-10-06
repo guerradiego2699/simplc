@@ -10,10 +10,16 @@ import { Factory, Pencil } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { formatAddressStyled, type AddressStyle } from '@/simulator/addressing/styles';
 import { PLANTS } from '@/simulator/plants/models';
-import { isPlantId } from '@/simulator/plants/types';
-import { PANEL_INPUTS, PANEL_OUTPUTS, physicalInput } from '@/simulator/store/controller';
+import { ANALOG_FULL_SCALE, isPlantId } from '@/simulator/plants/types';
+import {
+  PANEL_ANALOG_INPUTS,
+  PANEL_ANALOG_OUTPUTS,
+  PANEL_INPUTS,
+  PANEL_OUTPUTS,
+  physicalInput,
+} from '@/simulator/store/controller';
 import type { InputMode, IoPanelSetup, Project } from '@/simulator/project/types';
-import { useSim, useStoreApi, useStrings } from '@/simulator/ui/context';
+import { fmt, useSim, useStoreApi, useStrings } from '@/simulator/ui/context';
 
 const MODES: InputMode[] = ['switch', 'button-no', 'button-nc'];
 
@@ -142,8 +148,90 @@ export function IoBoard() {
             })}
           </div>
         </section>
+        <AnalogPanel plantSensors={plantSensors} />
       </div>
     </div>
+  );
+}
+
+/** Analog channels: potentiometers for IW0/IW1 and bar indicators for QW0/QW1 (spec 6.6). */
+function AnalogPanel({ plantSensors }: { plantSensors: readonly string[] }) {
+  const t = useStrings();
+  const store = useStoreApi();
+  const { values, iw, qw, style } = useSim(
+    useShallow((s) => ({
+      values: s.analogInputs,
+      iw: s.snapshot?.words.IW,
+      qw: s.snapshot?.words.QW,
+      style: s.addressStyle,
+    })),
+  );
+  const pct = (raw: number) =>
+    Math.round((Math.max(0, Math.min(raw, ANALOG_FULL_SCALE)) / ANALOG_FULL_SCALE) * 100);
+  const row = 'flex items-center gap-2 rounded-md border border-border bg-bg px-2 py-1.5';
+  return (
+    <section aria-label={t.io.analog} className="xl:col-span-2" data-analog-panel>
+      <h3 className="mb-2 text-[11px] font-semibold tracking-wider text-text-muted uppercase">
+        {t.io.analog}
+      </h3>
+      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+        {PANEL_ANALOG_INPUTS.map((address, i) => {
+          const fromPlant = plantSensors.includes(address);
+          const raw = fromPlant ? (iw?.[i] ?? 0) : (values[address] ?? 0);
+          return (
+            <div key={address} className={row} data-analog-input={address}>
+              <AddressText address={address} style={style} />
+              {fromPlant ? (
+                <span
+                  role="img"
+                  aria-label={`${address}: ${t.plant.fromPlant}`}
+                  title={t.plant.fromPlant}
+                  data-from-plant
+                  className="inline-flex text-text-muted"
+                >
+                  <Factory size={15} aria-hidden="true" />
+                </span>
+              ) : null}
+              <input
+                type="range"
+                min={0}
+                max={ANALOG_FULL_SCALE}
+                step={1}
+                value={raw}
+                disabled={fromPlant}
+                aria-label={fmt(t.io.potentiometer, { address })}
+                onChange={(e) => store.getState().setAnalogInput(address, Number(e.target.value))}
+                className="min-w-0 flex-1 accent-primary disabled:opacity-60"
+              />
+              <span className="w-24 text-right font-mono text-[11px] text-text">
+                {raw} · {fmt(t.io.percent, { p: pct(raw) })}
+              </span>
+            </div>
+          );
+        })}
+        {PANEL_ANALOG_OUTPUTS.map((address, i) => {
+          const raw = qw?.[i] ?? 0;
+          return (
+            <div key={address} className={row} data-analog-output={address}>
+              <AddressText address={address} style={style} />
+              <div
+                className="h-2.5 min-w-0 flex-1 overflow-hidden rounded-full bg-surface-2"
+                role="meter"
+                aria-label={address}
+                aria-valuemin={0}
+                aria-valuemax={ANALOG_FULL_SCALE}
+                aria-valuenow={raw}
+              >
+                <div className="h-full rounded-full bg-primary" style={{ width: `${pct(raw)}%` }} />
+              </div>
+              <span className="w-24 text-right font-mono text-[11px] text-text">
+                {raw} · {fmt(t.io.percent, { p: pct(raw) })}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 

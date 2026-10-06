@@ -1,6 +1,17 @@
 /**
  * The plant models. Addresses are fixed per plant and documented in each example.
  */
+import {
+  conveyorPlant,
+  gatePlant,
+  levelControlPlant,
+  ovenPlant,
+  parkingPlant,
+  pumpsPlant,
+  reversingPlant,
+  sorterPlant,
+  starDeltaPlant,
+} from './models-ii';
 import type { PlantId, PlantModel } from './types';
 
 // ---------------------------------------------------------------------------------------------
@@ -37,9 +48,9 @@ export const motorPlant: PlantModel<MotorState> = {
   sensors: ['I0.2'],
   actuators: ['Q0.0'],
   initial: () => ({ speed: 0, tripped: false }),
-  step(s, dtMs, output) {
+  step(s, dtMs, io) {
     // The overload relay's main contacts also cut the motor power when it trips.
-    const powered = output('Q0.0') && !s.tripped;
+    const powered = io.bit('Q0.0') && !s.tripped;
     const dt = dtMs / 1000;
     const speed = powered
       ? Math.min(1, s.speed + MOTOR_ACCEL_PER_S * dt)
@@ -87,9 +98,9 @@ export const tankPlant: PlantModel<TankState> = {
   sensors: ['I0.2', 'I0.3'],
   actuators: ['Q0.0'],
   initial: () => ({ level: 10, consumption: true }),
-  step(s, dtMs, output) {
+  step(s, dtMs, io) {
     const dt = dtMs / 1000;
-    const delta = (output('Q0.0') ? TANK.inflowPerS : 0) - (s.consumption ? TANK.outflowPerS : 0);
+    const delta = (io.bit('Q0.0') ? TANK.inflowPerS : 0) - (s.consumption ? TANK.outflowPerS : 0);
     const level = Math.min(100, Math.max(0, s.level + delta * dt));
     return level === s.level ? s : { ...s, level };
   },
@@ -102,6 +113,15 @@ export const tankPlant: PlantModel<TankState> = {
 export const PLANTS: Record<PlantId, PlantModel> = {
   lamp: lampPlant,
   motor: motorPlant as PlantModel,
+  reversing: reversingPlant as PlantModel,
   traffic: trafficPlant,
+  gate: gatePlant as PlantModel,
   tank: tankPlant as PlantModel,
+  starDelta: starDeltaPlant as PlantModel,
+  conveyor: conveyorPlant as PlantModel,
+  parking: parkingPlant as PlantModel,
+  sorter: sorterPlant as PlantModel,
+  pumps: pumpsPlant as PlantModel,
+  oven: ovenPlant as PlantModel,
+  levelControl: levelControlPlant as PlantModel,
 };

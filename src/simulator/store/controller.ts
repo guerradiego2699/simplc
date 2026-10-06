@@ -18,6 +18,9 @@ import type { SimulatorStoreApi } from './simulator-store';
 /** Inputs of the training panel: 2 bytes × 8 bits (spec 6.6). */
 export const PANEL_INPUTS = Array.from({ length: 16 }, (_, i) => `I${Math.floor(i / 8)}.${i % 8}`);
 export const PANEL_OUTPUTS = Array.from({ length: 16 }, (_, i) => `Q${Math.floor(i / 8)}.${i % 8}`);
+/** Analog channels of the panel (spec 6.6): two potentiometers and two bar indicators. */
+export const PANEL_ANALOG_INPUTS = ['IW0', 'IW1'] as const;
+export const PANEL_ANALOG_OUTPUTS = ['QW0', 'QW1'] as const;
 
 const PUBLISH_EVERY_MS = 50;
 const MAX_FRAME_MS = 250;
@@ -267,7 +270,7 @@ export class SimulationController {
   }
 
   private applyInputs(): void {
-    const { project, ioControls } = this.store.getState();
+    const { project, ioControls, analogInputs } = this.store.getState();
     let controls = ioControls;
     for (const [address, since] of this.held) {
       // Released only after a scan that started after the press has completed.
@@ -276,6 +279,9 @@ export class SimulationController {
     }
     for (const address of PANEL_INPUTS) {
       this.runtime.setInput(address, physicalInput(address, project.io, controls));
+    }
+    for (const address of PANEL_ANALOG_INPUTS) {
+      this.runtime.setAnalogInput(address, analogInputs[address] ?? 0);
     }
     const plant = this.plant;
     if (plant) applySensors(this.runtime, plant, this.plantState);

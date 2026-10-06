@@ -4,7 +4,9 @@ import { EXAMPLES, exampleProject, getExample } from '@/simulator/examples';
 import { compileLadder } from '@/simulator/languages/ladder/compile';
 import { scanWithPlant } from './coupling';
 import { motorPlant, PLANTS, tankPlant, TANK } from './models';
-import type { PlantModel } from './types';
+import type { PlantIo, PlantModel } from './types';
+
+const ON: PlantIo = { bit: () => true, word: () => 0 };
 
 /** Loads an example, starts the PLC and returns a helper to run it coupled to its plant. */
 function runExample(id: string) {
@@ -34,13 +36,8 @@ function runExample(id: string) {
 }
 
 describe('examples', () => {
-  it('there are the four Phase 7 examples, in spec order', () => {
-    expect(EXAMPLES.map((e) => e.id)).toEqual([
-      'lamp-switch',
-      'motor-start-stop',
-      'traffic-light',
-      'tank-filling',
-    ]);
+  it('the examples follow the spec order (11, the batch mixer, comes with SFC)', () => {
+    expect(EXAMPLES.map((e) => e.order)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14]);
   });
 
   it('every example builds a clean project in both languages', () => {
@@ -106,10 +103,10 @@ describe('motor example and plant', () => {
 
   it('motor physics: accelerates only while powered and not tripped', () => {
     let s = motorPlant.initial();
-    s = motorPlant.step(s, 500, () => true);
+    s = motorPlant.step(s, 500, ON);
     expect(s.speed).toBeCloseTo(0.75);
     s = motorPlant.command!(s, 'overload');
-    s = motorPlant.step(s, 500, () => true);
+    s = motorPlant.step(s, 500, ON);
     expect(s.speed).toBeCloseTo(0.35);
   });
 });
@@ -163,10 +160,10 @@ describe('tank example and plant', () => {
 
   it('tank physics: fills with the pump, drains with consumption, clamps to 0–100 %', () => {
     let s = tankPlant.initial();
-    s = tankPlant.step(s, 1000, () => true);
+    s = tankPlant.step(s, 1000, ON);
     expect(s.level).toBeCloseTo(10 + TANK.inflowPerS - TANK.outflowPerS);
     s = tankPlant.command!(s, 'toggleConsumption');
-    s = tankPlant.step(s, 20_000, () => true);
+    s = tankPlant.step(s, 20_000, ON);
     expect(s.level).toBe(100);
     expect(tankPlant.read(s)).toEqual({ 'I0.2': true, 'I0.3': true });
   });

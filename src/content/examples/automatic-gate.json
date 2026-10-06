@@ -1,0 +1,149 @@
+{
+  "id": "automatic-gate",
+  "order": 5,
+  "level": 2,
+  "plant": "gate",
+  "title": { "es": "Portón automático", "en": "Automatic gate" },
+  "summary": {
+    "es": "Un portón que abre y cierra con finales de carrera, se detiene y vuelve a abrir si una fotocelda detecta un obstáculo, y avisa con una baliza intermitente mientras se mueve.",
+    "en": "A gate that opens and closes with limit switches, stops and reopens if a photocell detects an obstacle, and warns with a flashing beacon while it moves."
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": { "es": "ABRIR", "en": "OPEN" },
+      "description": { "es": "Pulsador de apertura (NA)", "en": "Open push button (NO)" },
+      "mode": "button-no"
+    },
+    {
+      "address": "I0.1",
+      "name": { "es": "CERRAR", "en": "CLOSE" },
+      "description": { "es": "Pulsador de cierre (NA)", "en": "Close push button (NO)" },
+      "mode": "button-no"
+    },
+    {
+      "address": "I0.2",
+      "name": { "es": "FC_ABIERTO", "en": "LS_OPEN" },
+      "description": {
+        "es": "Final de carrera de portón abierto (planta)",
+        "en": "Gate open limit switch (plant)"
+      }
+    },
+    {
+      "address": "I0.3",
+      "name": { "es": "FC_CERRADO", "en": "LS_CLOSED" },
+      "description": {
+        "es": "Final de carrera de portón cerrado (planta)",
+        "en": "Gate closed limit switch (plant)"
+      }
+    },
+    {
+      "address": "I0.4",
+      "name": { "es": "FOTOCELDA", "en": "PHOTOCELL" },
+      "description": {
+        "es": "Fotocelda: 1 con el paso libre, 0 si hay un obstáculo (planta)",
+        "en": "Photocell: 1 when clear, 0 with an obstacle (plant)"
+      }
+    },
+    {
+      "address": "Q0.0",
+      "name": { "es": "MOTOR_ABRIR", "en": "MOTOR_OPEN" },
+      "description": { "es": "Motor en sentido de apertura", "en": "Motor, opening direction" }
+    },
+    {
+      "address": "Q0.1",
+      "name": { "es": "MOTOR_CERRAR", "en": "MOTOR_CLOSE" },
+      "description": { "es": "Motor en sentido de cierre", "en": "Motor, closing direction" }
+    },
+    {
+      "address": "Q0.2",
+      "name": { "es": "BALIZA", "en": "BEACON" },
+      "description": { "es": "Baliza de advertencia", "en": "Warning beacon" }
+    },
+    {
+      "address": "S0.2",
+      "name": { "es": "RELOJ_1HZ", "en": "CLOCK_1HZ" },
+      "description": {
+        "es": "Bit de sistema que oscila una vez por segundo",
+        "en": "System bit that toggles once per second"
+      }
+    }
+  ],
+  "steps": {
+    "es": [
+      "Pulsa ▶ Ejecutar (F5) y presiona ABRIR: el portón se abre hasta que el final de carrera FC_ABIERTO lo detiene. La baliza parpadea mientras se mueve.",
+      "Presiona CERRAR: el portón baja hasta FC_CERRADO.",
+      "Ábrelo de nuevo, ciérralo y, mientras baja, pulsa «Poner obstáculo» en la planta: la fotocelda corta el cierre y el portón vuelve a abrirse.",
+      "Fíjate en los contactos NC de MOTOR_ABRIR y MOTOR_CERRAR: impiden mandar los dos sentidos a la vez. La baliza usa el bit de sistema RELOJ_1HZ para parpadear."
+    ],
+    "en": [
+      "Press ▶ Run (F5) and press OPEN: the gate opens until the LS_OPEN limit switch stops it. The beacon flashes while it moves.",
+      "Press CLOSE: the gate goes down to LS_CLOSED.",
+      "Open it again, close it and, while it goes down, press “Place obstacle” in the plant: the photocell stops the closing and the gate opens again.",
+      "Look at the NC contacts of MOTOR_OPEN and MOTOR_CLOSE: they prevent ordering both directions at once. The beacon uses system bit CLOCK_1HZ to flash."
+    ]
+  },
+  "rungs": [
+    {
+      "comment": {
+        "es": "Apertura: por el pulsador, o automática si hay un obstáculo. Se detiene en el final de carrera.",
+        "en": "Opening: by the push button, or automatically with an obstacle. It stops at the limit switch."
+      },
+      "logic": {
+        "items": [
+          {
+            "kind": "parallel",
+            "branches": [
+              { "items": [{ "kind": "contact", "type": "NO", "operand": "I0.0" }] },
+              { "items": [{ "kind": "contact", "type": "NO", "operand": "Q0.0" }] },
+              { "items": [{ "kind": "contact", "type": "NC", "operand": "I0.4" }] }
+            ]
+          },
+          { "kind": "contact", "type": "NC", "operand": "I0.2" },
+          { "kind": "contact", "type": "NC", "operand": "Q0.1" }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.0" }]
+    },
+    {
+      "comment": {
+        "es": "Cierre: solo con el paso libre. Se detiene en el final de carrera.",
+        "en": "Closing: only with a clear path. It stops at the limit switch."
+      },
+      "logic": {
+        "items": [
+          {
+            "kind": "parallel",
+            "branches": [
+              { "items": [{ "kind": "contact", "type": "NO", "operand": "I0.1" }] },
+              { "items": [{ "kind": "contact", "type": "NO", "operand": "Q0.1" }] }
+            ]
+          },
+          { "kind": "contact", "type": "NC", "operand": "I0.3" },
+          { "kind": "contact", "type": "NO", "operand": "I0.4" },
+          { "kind": "contact", "type": "NC", "operand": "Q0.0" }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.1" }]
+    },
+    {
+      "comment": {
+        "es": "La baliza parpadea mientras el portón se mueve.",
+        "en": "The beacon flashes while the gate moves."
+      },
+      "logic": {
+        "items": [
+          {
+            "kind": "parallel",
+            "branches": [
+              { "items": [{ "kind": "contact", "type": "NO", "operand": "Q0.0" }] },
+              { "items": [{ "kind": "contact", "type": "NO", "operand": "Q0.1" }] }
+            ]
+          },
+          { "kind": "contact", "type": "NO", "operand": "S0.2" }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.2" }]
+    }
+  ]
+}

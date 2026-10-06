@@ -1,0 +1,105 @@
+{
+  "id": "car-park",
+  "order": 9,
+  "level": 3,
+  "plant": "parking",
+  "title": {
+    "es": "Estacionamiento con contador de cupos",
+    "en": "Car park with space counter"
+  },
+  "summary": {
+    "es": "Un contador ascendente/descendente lleva la cuenta de autos dentro. Con los 10 cupos ocupados se enciende el letrero LLENO y la barrera de entrada ya no se abre.",
+    "en": "An up/down counter keeps track of the cars inside. With all 10 spaces taken the FULL sign lights up and the entry barrier no longer opens."
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": { "es": "SENSOR_ENTRADA", "en": "ENTRY_SENSOR" },
+      "description": {
+        "es": "Detecta un auto que entra (planta)",
+        "en": "Detects a car going in (plant)"
+      }
+    },
+    {
+      "address": "I0.1",
+      "name": { "es": "SENSOR_SALIDA", "en": "EXIT_SENSOR" },
+      "description": {
+        "es": "Detecta un auto que sale (planta)",
+        "en": "Detects a car going out (plant)"
+      }
+    },
+    {
+      "address": "I0.2",
+      "name": { "es": "AUTO_EN_BARRERA", "en": "CAR_AT_BARRIER" },
+      "description": {
+        "es": "Hay un auto esperando en la barrera de entrada (planta)",
+        "en": "A car is waiting at the entry barrier (plant)"
+      }
+    },
+    {
+      "address": "Q0.0",
+      "name": { "es": "LETRERO_LLENO", "en": "FULL_SIGN" },
+      "description": { "es": "Letrero «LLENO»", "en": "“FULL” sign" }
+    },
+    {
+      "address": "Q0.1",
+      "name": { "es": "BARRERA", "en": "BARRIER" },
+      "description": { "es": "Barrera de entrada", "en": "Entry barrier" }
+    },
+    {
+      "address": "C0",
+      "name": { "es": "AUTOS", "en": "CARS" },
+      "description": {
+        "es": "Autos dentro del estacionamiento (máximo 10)",
+        "en": "Cars inside the car park (maximum 10)"
+      }
+    }
+  ],
+  "steps": {
+    "es": [
+      "Pulsa ▶ Ejecutar (F5) y, en la planta, pulsa «Llega un auto» varias veces: la barrera se abre para cada uno y el contador AUTOS suma al pasar por el sensor de entrada.",
+      "El contador CTUD suma con la entrada (CU) y resta con la salida (CD). Su salida QU se activa cuando la cuenta llega a 10 (PV).",
+      "Con 10 autos dentro se enciende LLENO y el contacto NC de LETRERO_LLENO mantiene cerrada la barrera: los que llegan quedan esperando.",
+      "Pulsa «Sale un auto»: la cuenta baja a 9, se apaga LLENO y entra el siguiente auto de la fila."
+    ],
+    "en": [
+      "Press ▶ Run (F5) and, in the plant, press “A car arrives” several times: the barrier opens for each one and the CARS counter adds when it passes the entry sensor.",
+      "The CTUD counter counts up with the entry (CU) and down with the exit (CD). Its QU output turns on when the count reaches 10 (PV).",
+      "With 10 cars inside, FULL lights up and the NC contact of FULL_SIGN keeps the barrier closed: new cars wait in line.",
+      "Press “A car leaves”: the count drops to 9, FULL turns off and the next car in line goes in."
+    ]
+  },
+  "rungs": [
+    {
+      "comment": {
+        "es": "Cuenta los autos que entran y salen. Con 10 dentro se enciende LLENO.",
+        "en": "Counts the cars going in and out. With 10 inside, FULL lights up."
+      },
+      "logic": {
+        "items": [
+          { "kind": "contact", "type": "NO", "operand": "I0.0" },
+          {
+            "kind": "contact",
+            "type": "CTUD",
+            "operand": "C0",
+            "params": { "pv": "10", "cd": "I0.1" }
+          }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.0" }]
+    },
+    {
+      "comment": {
+        "es": "La barrera se abre para el auto que espera, si hay cupo.",
+        "en": "The barrier opens for the waiting car if there is space."
+      },
+      "logic": {
+        "items": [
+          { "kind": "contact", "type": "NO", "operand": "I0.2" },
+          { "kind": "contact", "type": "NC", "operand": "Q0.0" }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.1" }]
+    }
+  ]
+}

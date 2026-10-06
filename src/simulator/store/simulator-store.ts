@@ -113,6 +113,8 @@ export interface SimulatorState {
   notLoaded: boolean;
   /** Physical state of each panel control (switch on / button pressed), by input address. */
   ioControls: Record<string, boolean>;
+  /** Potentiometers of the panel's analog inputs (raw value 0–27648), by address (IW0…). */
+  analogInputs: Record<string, number>;
 
   zoom: number;
   rightWidth: number;
@@ -134,6 +136,7 @@ interface Actions {
   addRungAfterSelection(): void;
   setDrag(drag: DragState | null): void;
   setIoControl(address: string, value: boolean): void;
+  setAnalogInput(address: string, value: number): void;
   setZoom(zoom: number): void;
   setAddressStyle(style: AddressStyle): void;
   /** Replaces the whole project (new, example, opened file). Undoable. */
@@ -265,6 +268,7 @@ export function createSimulatorStore(initial: Project) {
       probes: {},
       notLoaded: false,
       ioControls: {},
+      analogInputs: {},
       scanView: { active: false, auto: true, event: null },
       plantState: null,
       challengeSession: null,
@@ -380,6 +384,10 @@ export function createSimulatorStore(initial: Project) {
 
       setIoControl(address, value) {
         set({ ioControls: { ...get().ioControls, [address]: value } });
+      },
+
+      setAnalogInput(address, value) {
+        set({ analogInputs: { ...get().analogInputs, [address]: value } });
       },
 
       setZoom(zoom) {

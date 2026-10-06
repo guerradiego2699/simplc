@@ -6,10 +6,21 @@
  * Colours come from tokens. Green (--led-on) is used only for signals that are logically
  * active (an energized output, a sensor that is on).
  */
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { label, Status, svgClass, usePrefersReducedMotion, useRotorAngle } from './shared';
 import type { Dictionary } from '@/i18n';
 import type { PlantId } from '@/simulator/plants/types';
 import { TANK, type MotorState, type TankState } from '@/simulator/plants/models';
+import {
+  ConveyorView,
+  GateView,
+  LevelControlView,
+  OvenView,
+  ParkingView,
+  PumpsView,
+  ReversingView,
+  SorterView,
+  StarDeltaView,
+} from './PlantViewsII';
 
 export type PlantStrings = Dictionary['simulator']['plant'];
 
@@ -19,6 +30,8 @@ export interface PlantViewProps {
   state: unknown;
   /** Physical output of the PLC. */
   out: (address: string) => boolean;
+  /** Analog output of the PLC (QW0…), raw value. */
+  word?: (address: string) => number;
   t: PlantStrings;
   /** Operator actions; omitted on static previews. */
   onCommand?: (name: string) => void;
@@ -34,18 +47,25 @@ export function PlantView(props: PlantViewProps) {
       return <TrafficView {...props} />;
     case 'tank':
       return <TankView {...props} />;
+    case 'reversing':
+      return <ReversingView {...props} />;
+    case 'gate':
+      return <GateView {...props} />;
+    case 'starDelta':
+      return <StarDeltaView {...props} />;
+    case 'conveyor':
+      return <ConveyorView {...props} />;
+    case 'parking':
+      return <ParkingView {...props} />;
+    case 'sorter':
+      return <SorterView {...props} />;
+    case 'pumps':
+      return <PumpsView {...props} />;
+    case 'oven':
+      return <OvenView {...props} />;
+    case 'levelControl':
+      return <LevelControlView {...props} />;
   }
-}
-
-const svgClass = 'h-full max-h-56 w-full';
-const label = 'fill-text-muted text-[11px] font-medium';
-
-function Status({ items }: { items: string[] }) {
-  return (
-    <p className="sr-only" aria-live="polite">
-      {items.join('. ')}
-    </p>
-  );
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -84,45 +104,6 @@ function LampView({ out, t }: PlantViewProps) {
 }
 
 // ---------------------------------------------------------------------------------------------
-
-const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
-
-function subscribeReducedMotion(onChange: () => void) {
-  const query = window.matchMedia(REDUCED_MOTION);
-  query.addEventListener('change', onChange);
-  return () => query.removeEventListener('change', onChange);
-}
-
-/** On the server we assume reduced motion so the first render matches. */
-const usePrefersReducedMotion = () =>
-  useSyncExternalStore(
-    subscribeReducedMotion,
-    () => window.matchMedia(REDUCED_MOTION).matches,
-    () => true,
-  );
-
-/** Rotor angle that turns proportionally to `speed` (0–1), frame by frame. */
-function useRotorAngle(speed: number, enabled: boolean): number {
-  const [angle, setAngle] = useState(0);
-  const speedRef = useRef(speed);
-  useEffect(() => {
-    speedRef.current = speed;
-  }, [speed]);
-  useEffect(() => {
-    if (!enabled) return;
-    let frame = 0;
-    let last = performance.now();
-    const tick = (now: number) => {
-      const dt = Math.min(now - last, 100) / 1000;
-      last = now;
-      if (speedRef.current > 0) setAngle((a) => (a + speedRef.current * 540 * dt) % 360);
-      frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [enabled]);
-  return angle;
-}
 
 function MotorView({ state, out, t, onCommand }: PlantViewProps) {
   const s = (state as MotorState | null) ?? { speed: 0, tripped: false };

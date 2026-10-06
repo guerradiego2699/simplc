@@ -1,0 +1,153 @@
+{
+  "id": "star-delta",
+  "order": 7,
+  "level": 3,
+  "plant": "starDelta",
+  "title": {
+    "es": "Partida estrella-triángulo con temporizador",
+    "en": "Star-delta starter with timer"
+  },
+  "summary": {
+    "es": "El motor arranca en estrella, con menos corriente, y después de unos segundos pasa a triángulo. Un temporizador marca el cambio y una pequeña pausa evita el cortocircuito entre contactores.",
+    "en": "The motor starts in star, with less current, and after a few seconds switches to delta. A timer marks the change and a short pause prevents a short circuit between contactors."
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": { "es": "MARCHA", "en": "START" },
+      "description": { "es": "Pulsador de marcha (NA)", "en": "Start push button (NO)" },
+      "mode": "button-no"
+    },
+    {
+      "address": "I0.1",
+      "name": { "es": "PARO", "en": "STOP" },
+      "description": {
+        "es": "Pulsador de paro (NC: 1 en reposo)",
+        "en": "Stop push button (NC: 1 at rest)"
+      },
+      "mode": "button-nc"
+    },
+    {
+      "address": "I0.2",
+      "name": { "es": "TERMICO", "en": "OVERLOAD" },
+      "description": {
+        "es": "Contacto NC del relé térmico (lo maneja la planta: 0 = sobrecarga)",
+        "en": "Overload relay NC contact (driven by the plant: 0 = tripped)"
+      }
+    },
+    {
+      "address": "Q0.0",
+      "name": { "es": "K1_LINEA", "en": "K1_MAIN" },
+      "description": { "es": "Contactor de línea", "en": "Main contactor" }
+    },
+    {
+      "address": "Q0.1",
+      "name": { "es": "K2_ESTRELLA", "en": "K2_STAR" },
+      "description": { "es": "Contactor de estrella", "en": "Star contactor" }
+    },
+    {
+      "address": "Q0.2",
+      "name": { "es": "K3_TRIANGULO", "en": "K3_DELTA" },
+      "description": { "es": "Contactor de triángulo", "en": "Delta contactor" }
+    },
+    {
+      "address": "T0",
+      "name": { "es": "T_ESTRELLA", "en": "T_STAR" },
+      "description": { "es": "Tiempo en estrella (5 s)", "en": "Time in star (5 s)" }
+    },
+    {
+      "address": "T1",
+      "name": { "es": "T_PAUSA", "en": "T_GAP" },
+      "description": {
+        "es": "Pausa entre estrella y triángulo (100 ms)",
+        "en": "Pause between star and delta (100 ms)"
+      }
+    },
+    {
+      "address": "M0.0",
+      "name": { "es": "PASAR_A_TRIANGULO", "en": "GO_DELTA" },
+      "description": {
+        "es": "Terminó la estrella y la pausa: conectar triángulo",
+        "en": "Star and pause are over: connect delta"
+      }
+    }
+  ],
+  "steps": {
+    "es": [
+      "Pulsa ▶ Ejecutar (F5) y presiona MARCHA: se cierran K1_LINEA y K2_ESTRELLA. Observa en la planta la corriente de arranque, bastante menor que con un arranque directo.",
+      "A los 5 s el temporizador T_ESTRELLA abre K2_ESTRELLA. Tras una pausa de 100 ms (T_PAUSA) se cierra K3_TRIANGULO y el motor llega a su velocidad nominal.",
+      "Los contactos NC de K2 y K3 entre sí son un enclavamiento: si los dos se cerraran juntos habría un cortocircuito. La pausa da tiempo a que el contacto de estrella se abra de verdad antes de cerrar el de triángulo.",
+      "Prueba cambiar el tiempo de estrella a T#1s: el motor pasa a triángulo con poca velocidad y el pico de corriente sube."
+    ],
+    "en": [
+      "Press ▶ Run (F5) and press START: K1_MAIN and K2_STAR close. See the starting current in the plant, much lower than with a direct start.",
+      "After 5 s the T_STAR timer opens K2_STAR. After a 100 ms pause (T_GAP) K3_DELTA closes and the motor reaches its rated speed.",
+      "The NC contacts of K2 and K3 on each other are an interlock: if both closed together there would be a short circuit. The pause lets the star contact really open before the delta contact closes.",
+      "Try changing the star time to T#1s: the motor switches to delta at low speed and the current peak goes up."
+    ]
+  },
+  "rungs": [
+    {
+      "comment": {
+        "es": "Contactor de línea con autorretención.",
+        "en": "Main contactor with seal-in."
+      },
+      "logic": {
+        "items": [
+          {
+            "kind": "parallel",
+            "branches": [
+              { "items": [{ "kind": "contact", "type": "NO", "operand": "I0.0" }] },
+              { "items": [{ "kind": "contact", "type": "NO", "operand": "Q0.0" }] }
+            ]
+          },
+          { "kind": "contact", "type": "NO", "operand": "I0.1" },
+          { "kind": "contact", "type": "NO", "operand": "I0.2" }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.0" }]
+    },
+    {
+      "comment": {
+        "es": "5 s en estrella y una pausa de 100 ms antes del triángulo.",
+        "en": "5 s in star and a 100 ms pause before delta."
+      },
+      "logic": {
+        "items": [
+          { "kind": "contact", "type": "NO", "operand": "Q0.0" },
+          { "kind": "contact", "type": "TON", "operand": "T0", "params": { "pt": "T#5s" } },
+          { "kind": "contact", "type": "TON", "operand": "T1", "params": { "pt": "T#100ms" } }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "M0.0" }]
+    },
+    {
+      "comment": {
+        "es": "Estrella: mientras no termine el tiempo, enclavada con el triángulo.",
+        "en": "Star: until the time is over, interlocked with delta."
+      },
+      "logic": {
+        "items": [
+          { "kind": "contact", "type": "NO", "operand": "Q0.0" },
+          { "kind": "contact", "type": "NC", "operand": "T0" },
+          { "kind": "contact", "type": "NC", "operand": "Q0.2" }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.1" }]
+    },
+    {
+      "comment": {
+        "es": "Triángulo: después de la pausa, enclavado con la estrella.",
+        "en": "Delta: after the pause, interlocked with star."
+      },
+      "logic": {
+        "items": [
+          { "kind": "contact", "type": "NO", "operand": "Q0.0" },
+          { "kind": "contact", "type": "NO", "operand": "M0.0" },
+          { "kind": "contact", "type": "NC", "operand": "Q0.1" }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "coil", "operand": "Q0.2" }]
+    }
+  ]
+}

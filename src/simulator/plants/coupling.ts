@@ -9,13 +9,17 @@ import type { PlantModel } from './types';
 /** Writes the plant's sensor values into the PLC's physical inputs. */
 export function applySensors<S>(runtime: PlcRuntime, plant: PlantModel<S>, state: S): void {
   for (const [address, value] of Object.entries(plant.read(state))) {
-    runtime.setInput(address, value);
+    if (typeof value === 'number') runtime.setAnalogInput(address, Math.round(value));
+    else runtime.setInput(address, value);
   }
 }
 
 /** Advances the plant by one scan cycle of simulated time, reading the physical outputs. */
 export function stepPlant<S>(runtime: PlcRuntime, plant: PlantModel<S>, state: S): S {
-  return plant.step(state, runtime.cycleTimeMs, (address) => runtime.getOutput(address));
+  return plant.step(state, runtime.cycleTimeMs, {
+    bit: (address) => runtime.getOutput(address),
+    word: (address) => runtime.getAnalogOutput(address),
+  });
 }
 
 /** One complete coupled cycle: sensors → scan → physics. Returns the new plant state. */

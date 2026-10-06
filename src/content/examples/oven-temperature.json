@@ -1,0 +1,117 @@
+{
+  "id": "oven-temperature",
+  "order": 13,
+  "level": 4,
+  "plant": "oven",
+  "title": {
+    "es": "Control de temperatura on/off de un horno",
+    "en": "On/off temperature control of an oven"
+  },
+  "summary": {
+    "es": "Un transmisor de temperatura entrega una señal analógica. El programa la escala a grados Celsius y enciende o apaga la resistencia con una histéresis de ±5 °C alrededor de 180 °C.",
+    "en": "A temperature transmitter gives an analog signal. The program scales it to degrees Celsius and switches the heater on and off with a ±5 °C hysteresis around 180 °C."
+  },
+  "io": [
+    {
+      "address": "I0.0",
+      "name": { "es": "ENCENDIDO", "en": "ON" },
+      "description": { "es": "Interruptor del horno", "en": "Oven switch" },
+      "mode": "switch"
+    },
+    {
+      "address": "IW0",
+      "name": { "es": "TRANSMISOR_TEMP", "en": "TEMP_TRANSMITTER" },
+      "description": {
+        "es": "Entrada analógica del transmisor: 0–27648 = 0–300 °C (planta)",
+        "en": "Transmitter analog input: 0–27648 = 0–300 °C (plant)"
+      }
+    },
+    {
+      "address": "MD0",
+      "name": { "es": "TEMPERATURA", "en": "TEMPERATURE" },
+      "description": { "es": "Temperatura en °C (REAL)", "en": "Temperature in °C (REAL)" }
+    },
+    {
+      "address": "Q0.0",
+      "name": { "es": "RESISTENCIA", "en": "HEATER" },
+      "description": { "es": "Contactor de la resistencia", "en": "Heater contactor" }
+    }
+  ],
+  "steps": {
+    "es": [
+      "Pulsa ▶ Ejecutar (F5) y activa ENCENDIDO. Peldaño 1: SCALE convierte el número del transmisor (0 a 27648) en grados (0 a 300 °C).",
+      "Peldaño 2: si la temperatura baja de 175 °C, se enciende la resistencia (Set). Peldaño 3: sobre 185 °C, o al apagar el horno, se apaga (Reset).",
+      "Mira cómo la temperatura sube y baja entre las dos marcas: esa banda es la histéresis. Sin ella, la resistencia se encendería y apagaría muchas veces por segundo cerca de la consigna, desgastando el contactor.",
+      "En la planta, abre la puerta del horno: las pérdidas aumentan y la resistencia pasa más tiempo encendida."
+    ],
+    "en": [
+      "Press ▶ Run (F5) and turn on ON. Rung 1: SCALE converts the transmitter number (0 to 27648) into degrees (0 to 300 °C).",
+      "Rung 2: if the temperature drops below 175 °C, the heater turns on (Set). Rung 3: above 185 °C, or when the oven is switched off, it turns off (Reset).",
+      "Watch the temperature go up and down between the two marks: that band is the hysteresis. Without it, the heater would switch many times per second near the setpoint, wearing out the contactor.",
+      "In the plant, open the oven door: losses increase and the heater stays on longer."
+    ]
+  },
+  "rungs": [
+    {
+      "comment": {
+        "es": "Escala el transmisor: 0–27648 → 0–300 °C.",
+        "en": "Scales the transmitter: 0–27648 → 0–300 °C."
+      },
+      "logic": { "items": [] },
+      "coils": [
+        {
+          "kind": "coil",
+          "type": "SCALE",
+          "operand": "MD0",
+          "params": {
+            "in": "IW0",
+            "inMin": "0",
+            "inMax": "27648",
+            "outMin": "0",
+            "outMax": "300"
+          }
+        }
+      ]
+    },
+    {
+      "comment": {
+        "es": "Bajo 175 °C: enciende la resistencia.",
+        "en": "Below 175 °C: heater on."
+      },
+      "logic": {
+        "items": [
+          { "kind": "contact", "type": "NO", "operand": "I0.0" },
+          { "kind": "contact", "type": "LT", "operand": "MD0", "params": { "in2": "175.0" } }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "set", "operand": "Q0.0" }]
+    },
+    {
+      "comment": {
+        "es": "Sobre 185 °C o con el horno apagado: apaga la resistencia.",
+        "en": "Above 185 °C or with the oven off: heater off."
+      },
+      "logic": {
+        "items": [
+          {
+            "kind": "parallel",
+            "branches": [
+              {
+                "items": [
+                  {
+                    "kind": "contact",
+                    "type": "GT",
+                    "operand": "MD0",
+                    "params": { "in2": "185.0" }
+                  }
+                ]
+              },
+              { "items": [{ "kind": "contact", "type": "NC", "operand": "I0.0" }] }
+            ]
+          }
+        ]
+      },
+      "coils": [{ "kind": "coil", "type": "reset", "operand": "Q0.0" }]
+    }
+  ]
+}

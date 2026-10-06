@@ -459,7 +459,12 @@
         "switch": "Switch",
         "button-no": "NO push button",
         "button-nc": "NC push button"
-      }
+      },
+      "analog": "Analog",
+      "analogInputs": "Analog inputs",
+      "analogOutputs": "Analog outputs",
+      "potentiometer": "Potentiometer {address}",
+      "percent": "{p} %"
     },
     "console": {
       "title": "Console",
@@ -665,7 +670,16 @@
         "lamp": "Lamp",
         "motor": "Motor with contactor and overload relay",
         "traffic": "Crossroad traffic lights",
-        "tank": "Tank with pump"
+        "tank": "Tank with pump",
+        "reversing": "Reversing motor",
+        "gate": "Automatic gate",
+        "starDelta": "Star-delta motor starter",
+        "conveyor": "Conveyor belt with boxes",
+        "parking": "Car park",
+        "sorter": "Sorting conveyor",
+        "pumps": "Tank with two pumps",
+        "oven": "Electric oven",
+        "levelControl": "Tank with proportional valve"
       },
       "empty": "No plant is connected. Pick one so your program controls a simulated machine: the outputs drive the plant and its sensors reach the inputs.",
       "connections": "Connections",
@@ -693,6 +707,60 @@
           "Q0_0": "Filling pump",
           "I0_2": "Low level switch (1 when level ≥ 20 %)",
           "I0_3": "High level switch (1 when level ≥ 80 %)"
+        },
+        "reversing": {
+          "Q0_0": "Forward contactor",
+          "Q0_1": "Reverse contactor",
+          "I0_3": "Overload relay NC contact (1 = normal)"
+        },
+        "gate": {
+          "Q0_0": "Motor: open",
+          "Q0_1": "Motor: close",
+          "Q0_2": "Warning beacon",
+          "I0_2": "Limit switch: open",
+          "I0_3": "Limit switch: closed",
+          "I0_4": "Photocell (1 = clear)"
+        },
+        "starDelta": {
+          "Q0_0": "Main contactor K1",
+          "Q0_1": "Star contactor K2",
+          "Q0_2": "Delta contactor K3",
+          "I0_2": "Overload relay NC contact (1 = normal)"
+        },
+        "conveyor": {
+          "Q0_0": "Belt motor",
+          "Q0_1": "Batch ready light",
+          "I0_2": "Box sensor"
+        },
+        "parking": {
+          "Q0_0": "FULL sign",
+          "Q0_1": "Entry barrier",
+          "I0_0": "Entry sensor",
+          "I0_1": "Exit sensor",
+          "I0_2": "Car waiting at the barrier"
+        },
+        "sorter": {
+          "Q0_0": "Belt motor",
+          "Q0_1": "Reject piston",
+          "I0_2": "Low sensor (every part)",
+          "I0_3": "High sensor (large parts only)"
+        },
+        "pumps": {
+          "Q0_0": "Pump 1",
+          "Q0_1": "Pump 2",
+          "Q0_2": "Alarm light",
+          "I0_2": "Low level switch (≥ 20 %)",
+          "I0_3": "High level switch (≥ 80 %)",
+          "I0_4": "Pump 1 healthy (NC contact)",
+          "I0_5": "Pump 2 healthy (NC contact)"
+        },
+        "oven": {
+          "Q0_0": "Heating element",
+          "IW0": "Temperature transmitter (0–27648 = 0–300 °C)"
+        },
+        "levelControl": {
+          "QW0": "Inlet valve (0–27648 = 0–100 %)",
+          "IW0": "Level transmitter (0–27648 = 0–100 %)"
         }
       },
       "lamp": {
@@ -733,7 +801,72 @@
         "open": "open",
         "closed": "closed"
       },
-      "controls": "Controls"
+      "controls": "Controls",
+      "reversing": {
+        "forward": "Forward",
+        "reverse": "Reverse",
+        "stopped": "Stopped",
+        "direction": "Direction",
+        "shortCircuit": "Short circuit! Both contactors closed and the protection tripped. Press “Reset”.",
+        "reset": "Reset protections"
+      },
+      "gate": {
+        "position": "Opening",
+        "addObstacle": "Place obstacle",
+        "removeObstacle": "Remove obstacle",
+        "needsOpen": "To place an obstacle, open the gate first.",
+        "hit": "The gate hit the obstacle!",
+        "jammed": "Open and close were ordered at once: the motor does not move.",
+        "photocell": "Photocell"
+      },
+      "starDelta": {
+        "star": "Star",
+        "delta": "Delta",
+        "off": "Not connected",
+        "connection": "Connection",
+        "current": "Current",
+        "peak": "Starting peak",
+        "times": "{n} × rated",
+        "shortCircuit": "Short circuit: star and delta closed at once! Press “Reset”."
+      },
+      "conveyor": {
+        "delivered": "Boxes delivered: {n}",
+        "sensor": "Sensor"
+      },
+      "parking": {
+        "waiting": "Waiting: {n}",
+        "parked": "Parked: {n} of {capacity}",
+        "arrives": "A car arrives",
+        "leaves": "A car leaves",
+        "full": "FULL",
+        "free": "SPACES",
+        "overflow": "More cars got in than there are spaces!"
+      },
+      "sorter": {
+        "ok": "Sorted right: {n}",
+        "wrong": "Sorted wrong: {n}",
+        "bin": "Large",
+        "end": "Small"
+      },
+      "pumps": {
+        "pump": "Pump {n}",
+        "fault": "Simulate fault",
+        "repair": "Repair",
+        "faulted": "faulted",
+        "runTime": "{s} s running",
+        "alarm": "Alarm"
+      },
+      "oven": {
+        "temperature": "Temperature",
+        "heater": "Heater",
+        "openDoor": "Open the door",
+        "closeDoor": "Close the door",
+        "band": "Control band"
+      },
+      "levelControl": {
+        "valve": "Valve",
+        "setpoint": "Setpoint"
+      }
     },
     "challenge": {
       "tab": "Challenge",
@@ -878,16 +1011,7 @@
     "desktopNote": "The simulator is designed for computers (screens 1024 px or wider).",
     "rung": "Rung {n}",
     "upcoming": {
-      "3": "Reversing motor with electrical interlock",
-      "5": "Automatic gate",
-      "7": "Star-delta starter with timer",
-      "8": "Conveyor belt with box counter",
-      "9": "Car park with space counter",
-      "10": "Sorting parts by size",
-      "11": "Batch mixer",
-      "12": "Two pumps with alternation and backup",
-      "13": "On/off temperature control with hysteresis",
-      "14": "Analog level control (introduction to PID)"
+      "11": "Batch mixer"
     }
   },
   "challenges": {
