@@ -46,7 +46,7 @@ test.describe('examples pages', () => {
     // The Ladder tab (FBD and ST are in hidden tabs).
     await expect(page.locator('[data-panel="LD"] svg [data-type="NO"]')).toHaveCount(4);
     await expect(page.locator('[data-panel="LD"] svg [data-type="coil"]')).toHaveCount(1);
-    await expect(page.getByText('Peldaño 1')).toBeVisible();
+    await expect(page.getByText('Peldaño 1', { exact: true })).toBeVisible();
     await noHorizontalScroll(page);
 
     const open = page.getByTestId('open-in-simulator');
@@ -59,7 +59,7 @@ test.describe('examples pages', () => {
     }
 
     await page.goto('/en/examples/traffic-light');
-    await expect(page.getByText('Rung 7')).toBeVisible();
+    await expect(page.getByText('Rung 7', { exact: true })).toBeVisible();
     await expect(page.locator('[data-plant="traffic"]')).toBeVisible();
   });
 
