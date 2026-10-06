@@ -830,6 +830,30 @@
       },
       "quote": "“{text}”",
       "helpTab": "Reference"
+    },
+    "fbd": {
+      "label": "FBD editor",
+      "network": "Network {n}",
+      "addNetwork": "Add network",
+      "location": "Network {n}",
+      "toFbd": "Same program, now in FBD: each rung is a network of blocks. You can go back to Ladder any time without losing anything.",
+      "toLd": "Same program, now in Ladder.",
+      "paletteHint": "Click an instruction to add it after the selected element, or drag it to a marked zone: before an input, below an & or ≥1 block, or in the output column.",
+      "wrapOr": "Create OR block (≥1)",
+      "executeScan": "Network {n} ran: its results are now in the output image and the markers.",
+      "elements": {
+        "NO": "Input",
+        "NC": "Negated input",
+        "coil": "Assignment (=)",
+        "negated": "Negated assignment"
+      },
+      "groups": {
+        "inputs": "Inputs and edges",
+        "outputs": "Outputs"
+      },
+      "fromSt": "You are back on the block program, which is the same as the Ladder one. Structured text is not converted to FBD automatically; your ST is kept.",
+      "orBlock": "OR block (≥1)",
+      "nothingSelected": "Select an input, a block or a network to see its properties."
     }
   },
   "examples": {
@@ -848,7 +872,7 @@
     "name": "Name",
     "description": "Description",
     "steps": "Step by step",
-    "program": "Ladder program",
+    "program": "Program",
     "plantPreview": "Virtual plant",
     "plantPreviewNote": "Shown at rest. In the simulator the plant moves according to your program's outputs.",
     "desktopNote": "The simulator is designed for computers (screens 1024 px or wider).",

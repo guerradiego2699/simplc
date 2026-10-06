@@ -42,7 +42,7 @@ export function ScanPanel() {
     : event.phase === 'execute'
       ? language === 'ST'
         ? t.scan.explain.executeSt
-        : fmt(t.scan.explain.execute, { n: rungNumber })
+        : fmt(language === 'FBD' ? t.fbd.executeScan : t.scan.explain.execute, { n: rungNumber })
       : fmt(t.scan.explain[event.phase], { n: snapshot?.scanCount ?? 0 });
 
   // Inputs and outputs used by the program, to compare terminal vs image.

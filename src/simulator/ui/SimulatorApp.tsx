@@ -5,6 +5,8 @@ import { IoBoard } from '@/simulator/io-panel/IoBoard';
 import { LadderEditor } from '@/simulator/languages/ladder/editor/LadderEditor';
 import { Palette } from '@/simulator/languages/ladder/editor/Palette';
 import { StEditorHost, StHelp, StSnippets } from '@/simulator/languages/st/editor/StPanels';
+import { FbdEditor } from '@/simulator/languages/fbd/editor/FbdEditor';
+import { FbdIcon } from '@/simulator/languages/fbd/editor/icons';
 import { InstructionIcon } from '@/simulator/languages/ladder/editor/symbols';
 import { motorStartStopProject } from '@/simulator/project/examples';
 import { SimulationController } from '@/simulator/store/controller';
@@ -111,13 +113,14 @@ function openRequestedContent(store: SimulatorStoreApi, t: SimStrings, locale: L
 function Workspace() {
   const t = useStrings();
   const store = useStoreApi();
-  const { rightWidth, bottomHeight, rightTab, bottomTab, inChallenge, isSt } = useSim(
+  const { rightWidth, bottomHeight, rightTab, bottomTab, inChallenge, isSt, isFbd } = useSim(
     useShallow((s) => ({
       rightWidth: s.rightWidth,
       bottomHeight: s.bottomHeight,
       rightTab: s.rightTab,
       inChallenge: getChallenge(s.project.challenge) !== undefined,
       isSt: s.project.language === 'ST',
+      isFbd: s.project.language === 'FBD',
       bottomTab: s.bottomTab,
     })),
   );
@@ -128,7 +131,7 @@ function Workspace() {
       <div className="flex min-h-0 flex-1">
         <div className="w-52 shrink-0">{isSt ? <StSnippets /> : <Palette />}</div>
         <main className="relative min-w-0 flex-1">
-          {isSt ? <StEditorHost /> : <LadderEditor />}
+          {isSt ? <StEditorHost /> : isFbd ? <FbdEditor /> : <LadderEditor />}
           <NoticeBanner />
         </main>
         <Resizer
@@ -281,6 +284,7 @@ function Resizer({
 function DragGhost() {
   const t = useStrings();
   const drag = useSim((s) => s.drag);
+  const fbd = useSim((s) => s.project.language === 'FBD');
   if (!drag) return null;
   const item = drag.item;
   const colors = { left: 'var(--primary)', right: 'var(--primary)', body: 'var(--primary)' };
@@ -297,7 +301,11 @@ function DragGhost() {
     >
       {item.source === 'palette' && (
         <svg width={48} height={30} viewBox="0 0 72 44" aria-hidden="true">
-          <InstructionIcon type={item.type} w={72} h={44} colors={colors} />
+          {fbd ? (
+            <FbdIcon type={item.type} w={72} h={44} />
+          ) : (
+            <InstructionIcon type={item.type} w={72} h={44} colors={colors} />
+          )}
         </svg>
       )}
       {label}

@@ -23,7 +23,7 @@ const button =
 export function PropertiesPanel() {
   const t = useStrings();
   const store = useStoreApi();
-  const { selection, ladder, tags, diagnostics, focusOperand, style } = useSim(
+  const { selection, ladder, tags, diagnostics, focusOperand, style, fbd } = useSim(
     useShallow((s) => ({
       selection: s.selection,
       ladder: s.project.ladder,
@@ -31,8 +31,14 @@ export function PropertiesPanel() {
       diagnostics: s.compiled.diagnostics,
       focusOperand: s.focusOperand,
       style: s.addressStyle,
+      fbd: s.project.language === 'FBD',
     })),
   );
+  // In FBD, contacts are inputs and coils are assignments; parallels are OR blocks.
+  const typeName = (type: string) =>
+    (fbd && (t.fbd.elements as Record<string, string>)[type]) ||
+    (t.elements as Record<string, string>)[type] ||
+    type;
   const operandRef = useRef<HTMLInputElement>(null);
   const listId = useId();
 
@@ -43,8 +49,8 @@ export function PropertiesPanel() {
   if (!selection) {
     return (
       <div className="space-y-3 p-4 text-sm text-text-muted">
-        <p>{t.properties.nothingSelected}</p>
-        <p className="text-xs">{t.properties.rangeHint}</p>
+        <p>{fbd ? t.fbd.nothingSelected : t.properties.nothingSelected}</p>
+        {!fbd && <p className="text-xs">{t.properties.rangeHint}</p>}
       </div>
     );
   }
@@ -56,7 +62,7 @@ export function PropertiesPanel() {
     return (
       <div className="space-y-4 p-4">
         <h3 className="font-mono text-sm font-semibold text-text">
-          {fmt(t.editor.rung, { n: index + 1 })}
+          {fmt(fbd ? t.fbd.network : t.editor.rung, { n: index + 1 })}
         </h3>
         <label className="block text-xs font-medium text-text-muted">
           {t.properties.comment}
@@ -126,7 +132,7 @@ export function PropertiesPanel() {
         <div className="flex flex-wrap gap-2">
           <button type="button" className={button} onClick={() => store.getState().wrapSelection()}>
             <GitFork size={14} aria-hidden="true" />
-            {t.properties.wrapBranch}
+            {fbd ? t.fbd.wrapOr : t.properties.wrapBranch}
           </button>
           <button
             type="button"
@@ -148,7 +154,9 @@ export function PropertiesPanel() {
   if (node.kind === 'parallel') {
     return (
       <div className="space-y-4 p-4">
-        <h3 className="text-sm font-semibold text-text">{t.elements.parallel}</h3>
+        <h3 className="text-sm font-semibold text-text">
+          {fbd ? t.fbd.orBlock : t.elements.parallel}
+        </h3>
         <p className="text-xs text-text-muted">{t.properties.parallelHint}</p>
         <button
           type="button"
@@ -170,7 +178,7 @@ export function PropertiesPanel() {
   return (
     <div className="space-y-4 p-4">
       <p className="font-mono text-xs text-text-muted">
-        {fmt(t.editor.rung, { n: where.rungIndex + 1 })}
+        {fmt(fbd ? t.fbd.network : t.editor.rung, { n: where.rungIndex + 1 })}
       </p>
       <label className="block text-xs font-medium text-text-muted">
         {t.properties.type}
@@ -189,7 +197,7 @@ export function PropertiesPanel() {
         >
           {types.map((type) => (
             <option key={type} value={type}>
-              {t.elements[type]}
+              {typeName(type)}
             </option>
           ))}
         </select>
@@ -272,7 +280,7 @@ export function PropertiesPanel() {
         {node.kind === 'contact' && (
           <button type="button" className={button} onClick={() => store.getState().wrapSelection()}>
             <GitFork size={14} aria-hidden="true" />
-            {t.properties.wrapBranch}
+            {fbd ? t.fbd.wrapOr : t.properties.wrapBranch}
           </button>
         )}
         <button

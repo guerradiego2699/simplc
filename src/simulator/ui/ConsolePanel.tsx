@@ -6,11 +6,12 @@ import { fmt, useSim, useStoreApi, useStrings } from './context';
 export function ConsolePanel() {
   const t = useStrings();
   const store = useStoreApi();
-  const { diagnostics, st, rungs, fault, notLoaded } = useSim(
+  const { diagnostics, st, rungs, fbd, fault, notLoaded } = useSim(
     useShallow((s) => ({
       diagnostics: s.compiled.diagnostics,
       st: s.compiled.st,
       rungs: s.project.ladder.rungs,
+      fbd: s.project.language === 'FBD',
       fault: s.snapshot?.fault ?? null,
       notLoaded: s.notLoaded,
     })),
@@ -74,7 +75,7 @@ export function ConsolePanel() {
                 <span className="flex-1 text-text">{diagnosticMessage(d, t)}</span>
                 {n > 0 && (
                   <span className="shrink-0 font-mono text-xs text-text-muted">
-                    {fmt(t.console.location, { n })}
+                    {fmt(fbd ? t.fbd.location : t.console.location, { n })}
                   </span>
                 )}
               </button>

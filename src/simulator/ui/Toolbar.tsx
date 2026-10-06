@@ -70,9 +70,11 @@ export function Toolbar() {
     if (l === 'ST') {
       if (store.getState().project.st?.trim()) setAskConvert(true);
       else toSt(true);
-    } else if (l === 'LD') {
-      store.getState().commit((p) => ({ ...p, language: 'LD' }));
-      notice(t.st.backToLd);
+    } else if (l === 'LD' || l === 'FBD') {
+      // Ladder and FBD are two views of the same program: switching is instant and lossless.
+      store.getState().commit((p) => ({ ...p, language: l }));
+      if (language === 'ST') notice(l === 'LD' ? t.st.backToLd : t.fbd.fromSt);
+      else notice(l === 'FBD' ? t.fbd.toFbd : t.fbd.toLd);
     }
   };
 
@@ -155,12 +157,12 @@ export function Toolbar() {
           <button
             key={l}
             type="button"
-            disabled={!(l === 'LD' || (l === 'ST' && !inChallenge))}
+            disabled={!(l === 'LD' || l === 'FBD' || (l === 'ST' && !inChallenge))}
             aria-pressed={l === language}
             data-language={l}
             onClick={() => chooseLanguage(l)}
             title={
-              l === 'LD'
+              l === 'LD' || l === 'FBD'
                 ? l
                 : l === 'ST'
                   ? inChallenge

@@ -227,6 +227,22 @@ dtMs, output)`, `read`, optional `command`), `models.ts` (lamp, motor, traffic, 
   write ```st for Structured Text, leave ASCII diagrams without a language. Code fonts have
   ligatures disabled.
 
+## FBD (Phase 12)
+
+- FBD is a second view/editor of the SAME program model as Ladder (rung = network), like LAD/FBD
+  in many PLC tools: `project.language` 'FBD' compiles with the Ladder compiler, switching LD ↔ FBD
+  is instant and lossless, challenges work in FBD, and LD/FBD → ST uses `ladderToSt`.
+- `languages/fbd/tree.ts`: rung → block tree (series → &, parallel → ≥1, NC → negated input,
+  P/N/compare → leaf boxes, timer/counter → box whose input is everything on its left; a parallel
+  with a timer/counter inside copies the incoming power into each branch). `nodeValue` computes
+  live values from the `<id>:state` probes. A test checks the tree equals the Ladder rung result
+  on every example and 300 random programs (`languages/__tests__/random-ladder.ts`).
+- `fbd/layout.ts` (px geometry, horizontal wires, drop zones as Ladder `InsertTarget`s),
+  `editor/FbdNetworkView.tsx` (pure drawing), `editor/FbdEditor.tsx` (store, drag & drop via
+  `drag.ts`), `editor/StaticFbd.tsx` (content pages), `editor/icons.tsx` (palette).
+- Example pages show the program in LD / FBD / ST tabs (`components/content/ProgramViews.astro`);
+  LanguageTabs draws FBD with `StaticFbd`. Code fonts (incl. SVG text) have ligatures off.
+
 ## Environment notes
 
 - Windows. Project lives in `C:\dev\simplc` (kept out of OneDrive on purpose: node_modules sync

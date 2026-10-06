@@ -1,0 +1,100 @@
+---
+/**
+ * A program shown in Ladder, FBD and Structured Text, as tabs (example pages).
+ * Same tab behaviour as LanguageTabs; plain Astro + a small script.
+ */
+import { Code } from 'astro:components';
+import type { Locale } from '@/config/site';
+import { format, getDictionary } from '@/i18n';
+import stGrammar from '@/lib/shiki/st.tmLanguage.json';
+import { plcampusTheme } from '@/lib/shiki/theme.mjs';
+import { StaticFbd } from '@/simulator/languages/fbd/editor/StaticFbd';
+import { StaticLadder } from '@/simulator/languages/ladder/editor/StaticLadder';
+import type { LadderProgram } from '@/simulator/languages/ladder/model';
+import { ladderToSt } from '@/simulator/languages/st/from-ladder';
+import type { Tag } from '@/simulator/project/types';
+
+interface Props {
+  id: string;
+  locale: Locale;
+  name: string;
+  program: LadderProgram;
+  tags: readonly Tag[];
+}
+
+const { id, locale, name, program, tags } = Astro.props;
+const dict = getDictionary(locale);
+const names = dict.widgets.languages.names;
+const rungLabel = (n: number) => format(dict.examples.rung, { n });
+const networkLabel = (n: number) => format(dict.simulator.fbd.network, { n });
+const st = ladderToSt(program, tags, {
+  header: format(dict.simulator.st.header, { name }),
+  rung: dict.simulator.st.rung,
+  rungVariable: dict.simulator.st.rungVariable,
+});
+const TABS = ['LD', 'FBD', 'ST'] as const;
+---
+
+<div data-lang-tabs>
+  <div role="tablist" aria-label={dict.examples.program} class="flex gap-1 border-b border-border">
+    {TABS.map((tab, i) => (
+      <button
+        type="button"
+        role="tab"
+        id={`${id}-tab-${tab}`}
+        aria-controls={`${id}-panel-${tab}`}
+        aria-selected={i === 0 ? 'true' : 'false'}
+        tabindex={i === 0 ? 0 : -1}
+        title={names[tab]}
+        class="-mb-px rounded-t-md border border-transparent px-3 py-1.5 font-mono text-sm font-semibold text-text-muted hover:text-text aria-selected:border-border aria-selected:border-b-bg aria-selected:bg-bg aria-selected:text-primary"
+      >
+        {tab}
+      </button>
+    ))}
+  </div>
+  {TABS.map((tab, i) => (
+    <div
+      role="tabpanel"
+      id={`${id}-panel-${tab}`}
+      aria-labelledby={`${id}-tab-${tab}`}
+      hidden={i !== 0}
+      class="pt-4"
+      data-panel={tab}
+    >
+      <p class="mb-3 text-sm text-text-muted">{names[tab]}</p>
+      {tab === 'LD' && <StaticLadder program={program} tags={tags} rungLabel={rungLabel} />}
+      {tab === 'FBD' && <StaticFbd program={program} tags={tags} networkLabel={networkLabel} />}
+      {tab === 'ST' && (
+        <div class="overflow-hidden rounded-md border border-border text-sm [&_pre]:overflow-x-auto [&_pre]:p-4">
+          <Code code={st} lang={stGrammar as never} theme={plcampusTheme} />
+        </div>
+      )}
+    </div>
+  ))}
+</div>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('[data-lang-tabs]')) {
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    const select = (index: number) => {
+      tabs.forEach((tab, i) => {
+        const selected = i === index;
+        tab.setAttribute('aria-selected', String(selected));
+        tab.tabIndex = selected ? 0 : -1;
+        const panel = document.getElementById(tab.getAttribute('aria-controls') ?? '');
+        if (panel) panel.hidden = !selected;
+      });
+    };
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => select(i));
+      tab.addEventListener('keydown', (e) => {
+        const delta = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (!delta) return;
+        e.preventDefault();
+        const next = (i + delta + tabs.length) % tabs.length;
+        select(next);
+        tabs[next]?.focus();
+      });
+    });
+  }
+</script>

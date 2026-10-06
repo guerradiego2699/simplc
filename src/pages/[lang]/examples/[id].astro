@@ -6,7 +6,7 @@ import Play from '@lucide/astro/icons/play';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { format, getDictionary, getTranslator, locales, localizePath } from '@/i18n';
 import { EXAMPLES, exampleProject, getExample } from '@/simulator/examples';
-import { StaticLadder } from '@/simulator/languages/ladder/editor/StaticLadder';
+import ProgramViews from '@/components/content/ProgramViews.astro';
 import { PlantView } from '@/simulator/plants/views/PlantViews';
 import type { Locale } from '@/config/site';
 
@@ -21,7 +21,6 @@ const dict = getDictionary(locale);
 const example = getExample(Astro.params.id)!;
 const project = exampleProject(example, locale);
 const simulatorHref = `${localizePath(locale, '/simulator')}?example=${example.id}`;
-const rungTemplate = t('examples.rung');
 ---
 
 <BaseLayout
@@ -114,10 +113,12 @@ const rungTemplate = t('examples.rung');
     <section class="mt-12">
       <h2 class="text-xl font-semibold text-text">{t('examples.program')}</h2>
       <div class="mt-4">
-        <StaticLadder
+        <ProgramViews
+          id={`program-${example.id}`}
+          locale={locale}
+          name={example.title[locale]}
           program={project.ladder}
           tags={project.tags}
-          rungLabel={(n: number) => format(rungTemplate, { n })}
         />
       </div>
     </section>

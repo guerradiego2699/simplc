@@ -6,6 +6,7 @@ import type { PaletteItem } from '@/simulator/store/simulator-store';
 import { spec, type InstructionType } from '../catalog';
 import type { CoilType, ContactType } from '../model';
 import { InstructionIcon } from './symbols';
+import { FbdIcon } from '@/simulator/languages/fbd/editor/icons';
 
 const GROUPS: { title: keyof SimStrings['palette']; types: InstructionType[] }[] = [
   { title: 'contacts', types: ['NO', 'NC', 'P', 'N'] },
@@ -29,6 +30,8 @@ export function Palette() {
   const store = useStoreApi();
   // In a challenge, only its allowed instructions are offered.
   const allowed = getChallenge(useSim((s) => s.project.challenge))?.allowed ?? null;
+  const fbd = useSim((s) => s.project.language === 'FBD');
+  const fbdNames = t.fbd.elements as Record<string, string>;
   const groups = GROUPS.map((g) => ({
     ...g,
     types: allowed ? g.types.filter((type) => allowed.includes(type as never)) : g.types,
@@ -58,7 +61,11 @@ export function Palette() {
               aria-hidden="true"
               className="transition-transform group-open/section:rotate-90"
             />
-            {t.palette[group.title]}
+            {fbd && group.title === 'contacts'
+              ? t.fbd.groups.inputs
+              : fbd && group.title === 'coils'
+                ? t.fbd.groups.outputs
+                : t.palette[group.title]}
           </summary>
           <ul className="px-2 pb-1.5">
             {group.types.map((type) => {
@@ -68,7 +75,7 @@ export function Palette() {
                   <button
                     type="button"
                     data-palette={type}
-                    title={t.elements[type]}
+                    title={(fbd && fbdNames[type]) || t.elements[type]}
                     className="flex w-full cursor-grab items-center gap-2 rounded-md px-1.5 py-0.5 text-left text-[13px] text-text hover:bg-surface-2 active:cursor-grabbing"
                     onPointerDown={(e) =>
                       startDragOrClick(e, store, { source: 'palette', ...item }, () =>
@@ -89,14 +96,20 @@ export function Palette() {
                       aria-hidden="true"
                       className="shrink-0"
                     >
-                      <InstructionIcon
-                        type={type}
-                        w={ICON.w * ICON.scale}
-                        h={ICON.h * ICON.scale}
-                        colors={colors}
-                      />
+                      {fbd ? (
+                        <FbdIcon type={type} w={ICON.w * ICON.scale} h={ICON.h * ICON.scale} />
+                      ) : (
+                        <InstructionIcon
+                          type={type}
+                          w={ICON.w * ICON.scale}
+                          h={ICON.h * ICON.scale}
+                          colors={colors}
+                        />
+                      )}
                     </svg>
-                    <span className="leading-tight">{t.elementsShort[type]}</span>
+                    <span className="leading-tight">
+                      {(fbd && fbdNames[type]) || t.elementsShort[type]}
+                    </span>
                   </button>
                 </li>
               );
@@ -104,7 +117,9 @@ export function Palette() {
           </ul>
         </details>
       ))}
-      <p className="mt-auto px-3 py-3 text-xs leading-relaxed text-text-muted">{t.palette.hint}</p>
+      <p className="mt-auto px-3 py-3 text-xs leading-relaxed text-text-muted">
+        {fbd ? t.fbd.paletteHint : t.palette.hint}
+      </p>
     </aside>
   );
 }

@@ -88,6 +88,7 @@ code,
 pre,
 kbd,
 samp,
+svg text,
 .font-mono {
   font-variant-ligatures: none;
   font-feature-settings: 'calt' 0;

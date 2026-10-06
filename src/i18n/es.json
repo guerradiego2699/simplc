@@ -830,6 +830,30 @@
       },
       "quote": "«{text}»",
       "helpTab": "Referencia"
+    },
+    "fbd": {
+      "label": "Editor FBD",
+      "network": "Red {n}",
+      "addNetwork": "Agregar red",
+      "location": "Red {n}",
+      "toFbd": "Mismo programa, ahora en FBD: cada peldaño es una red de bloques. Puedes volver a Ladder cuando quieras sin perder nada.",
+      "toLd": "Mismo programa, ahora en Ladder.",
+      "paletteHint": "Haz clic en una instrucción para agregarla después del elemento seleccionado, o arrástrala a una zona marcada: antes de una entrada, debajo de un bloque & o ≥1, o en la columna de salidas.",
+      "wrapOr": "Crear bloque OR (≥1)",
+      "executeScan": "Se ejecutó la red {n}: sus resultados quedaron en la imagen de salidas y en las marcas.",
+      "elements": {
+        "NO": "Entrada",
+        "NC": "Entrada negada",
+        "coil": "Asignación (=)",
+        "negated": "Asignación negada"
+      },
+      "groups": {
+        "inputs": "Entradas y flancos",
+        "outputs": "Salidas"
+      },
+      "fromSt": "Volviste al programa en bloques, que es el mismo que el de Ladder. El texto estructurado no se convierte solo a FBD; tu ST queda guardado.",
+      "orBlock": "Bloque OR (≥1)",
+      "nothingSelected": "Selecciona una entrada, un bloque o una red para ver sus propiedades."
     }
   },
   "examples": {
@@ -848,7 +872,7 @@
     "name": "Nombre",
     "description": "Descripción",
     "steps": "Paso a paso",
-    "program": "Programa en Ladder",
+    "program": "Programa",
     "plantPreview": "Planta virtual",
     "plantPreviewNote": "Vista en reposo. En el simulador la planta se mueve según las salidas de tu programa.",
     "desktopNote": "El simulador está pensado para computadores (pantallas de 1024 px o más).",

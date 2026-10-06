@@ -43,8 +43,9 @@ test.describe('examples pages', () => {
     const rows = page.locator('table tbody tr');
     await expect(rows).toHaveCount(4);
     await expect(rows.first()).toContainText('MARCHA');
-    await expect(page.locator('svg [data-type="NO"]')).toHaveCount(4);
-    await expect(page.locator('svg [data-type="coil"]')).toHaveCount(1);
+    // The Ladder tab (FBD and ST are in hidden tabs).
+    await expect(page.locator('[data-panel="LD"] svg [data-type="NO"]')).toHaveCount(4);
+    await expect(page.locator('[data-panel="LD"] svg [data-type="coil"]')).toHaveCount(1);
     await expect(page.getByText('Peldaño 1')).toBeVisible();
     await noHorizontalScroll(page);
 
