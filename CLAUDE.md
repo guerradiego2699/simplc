@@ -308,6 +308,14 @@ dtMs, output)`, `read`, optional `command`), `models.ts` (lamp, motor, traffic, 
 - Lighthouse (local preview): 100 in all four categories on content pages and the simulator.
   Monaco (~860 KB gzip) loads only for ST/IL.
 
+## Fixes after the phases
+
+- Project switches: `replaceProject` and undo/redo ACROSS a replaced project bump
+  `store.projectSwitch` (announced before the new project is applied) and clear panel controls;
+  the controller then does `runtime.reset()` (STOP, no program, all memory, forces and clock
+  cleared) instead of an online change. Normal edits keep online change. Info notices close when
+  the PLC starts. Regression tests: `tests/e2e/regressions.spec.ts`.
+
 ## Environment notes
 
 - Windows. Project lives in `C:\dev\simplc` (kept out of OneDrive on purpose: node_modules sync

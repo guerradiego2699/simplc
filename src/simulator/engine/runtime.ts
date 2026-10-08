@@ -144,6 +144,24 @@ export class PlcRuntime {
     this.applyOutputForcesOnly();
   }
 
+  /**
+   * Back to a blank PLC, as when a different project is downloaded: STOP, no program, every
+   * memory area cleared (also retentive ones), forces released and the clock back at 0.
+   */
+  reset(): void {
+    this.stop();
+    this.forces.clear();
+    this.memory.restart(true);
+    this.memory.physicalInputs.fill(0);
+    this.networks = [];
+    this.program = null;
+    this.fault = null;
+    this.timeMs = 0;
+    this.scanCount = 0;
+    this.ctx.temps.clear();
+    this.ctx.probes?.clear();
+  }
+
   // -------------------------------------------------------------------------------------------
   // I/O, monitoring and forcing
   // -------------------------------------------------------------------------------------------

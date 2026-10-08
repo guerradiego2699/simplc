@@ -107,6 +107,16 @@ export function NoticeBanner() {
     return () => clearTimeout(timer);
   }, [notice, store]);
 
+  // Starting the PLC makes "loaded, press Run" hints pointless, and they cover the program.
+  useEffect(
+    () =>
+      store.subscribe((s, prev) => {
+        if (s.status === 'running' && prev.status !== 'running' && s.notice?.kind === 'info')
+          s.setNotice(null);
+      }),
+    [store],
+  );
+
   if (!notice) return null;
   const error = notice.kind === 'error';
   return (

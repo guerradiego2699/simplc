@@ -95,6 +95,12 @@ export interface SimulatorState {
   project: Project;
   past: Project[];
   future: Project[];
+  /**
+   * Changes whenever a DIFFERENT project takes over (new, example, opened file, or undo/redo
+   * across one of those). The controller then resets the PLC instead of an online change, so
+   * nothing from the previous project (memory, forces, panel controls, time) leaks into it.
+   */
+  projectSwitch: number;
   compiled: ProjectCompileResult;
   /** Ask the ST editor to move the cursor (from the console); `id` changes on every request. */
   stReveal: { line: number; col: number; id: number } | null;
@@ -240,7 +246,19 @@ function clickTarget(
 }
 
 export function createSimulatorStore(initial: Project) {
+  /** Projects that entered the history through replaceProject (whole-project switches). */
+  const replacements = new WeakSet<Project>();
   return create<SimulatorStore>()((set, get) => {
+    /** Announces a project switch BEFORE the new project is applied, and clears panel controls. */
+    const switchProject = () =>
+      set({
+        projectSwitch: get().projectSwitch + 1,
+        ioControls: {},
+        analogInputs: {},
+        selection: null,
+        sfcSelection: null,
+        drag: null,
+      });
     const apply = (project: Project, pushHistory: boolean, coalesceKey?: string) => {
       const { project: before, past } = get();
       if (project === before) return;
@@ -268,6 +286,7 @@ export function createSimulatorStore(initial: Project) {
       project: initial,
       past: [],
       future: [],
+      projectSwitch: 0,
       compiled: compileProject(initial),
       stReveal: null,
       sfcSelection: null,
@@ -304,6 +323,7 @@ export function createSimulatorStore(initial: Project) {
         const previous = past[past.length - 1];
         if (!previous) return;
         lastCommit = null;
+        if (replacements.has(project)) switchProject();
         set({ past: past.slice(0, -1), future: [project, ...future] });
         apply(previous, false);
       },
@@ -313,6 +333,7 @@ export function createSimulatorStore(initial: Project) {
         const next = future[0];
         if (!next) return;
         lastCommit = null;
+        if (replacements.has(next)) switchProject();
         set({ past: [...past, project], future: future.slice(1) });
         apply(next, false);
       },
@@ -414,8 +435,9 @@ export function createSimulatorStore(initial: Project) {
 
       replaceProject(project) {
         lastCommit = null;
+        replacements.add(project);
+        switchProject();
         get().commit(() => project);
-        set({ selection: null, sfcSelection: null, drag: null });
       },
 
       selectSfc(sfcSelection) {

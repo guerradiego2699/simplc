@@ -54,6 +54,11 @@ export class SimulationController {
   constructor(store: SimulatorStoreApi) {
     this.store = store;
     this.unsubscribe = store.subscribe((state, prev) => {
+      // A different project: start from a blank, stopped PLC (announced before it is applied).
+      if (state.projectSwitch !== prev.projectSwitch) {
+        this.resetForNewProject();
+        return;
+      }
       // Online change: reload the program while running whenever it compiles.
       if (state.compiled !== prev.compiled && state.status !== 'stopped') this.loadCompiled();
       if (state.ioControls !== prev.ioControls) {
@@ -121,6 +126,21 @@ export class SimulationController {
     this.frame = 0;
     this.store.setState({ status: 'stopped', notLoaded: false, probes: {} });
     this.resetPlant();
+  }
+
+  /**
+   * Another project takes over: STOP, and nothing of the previous one survives (memory, forces,
+   * held presses, time, probes). Running it again is a fresh start.
+   */
+  private resetForNewProject(): void {
+    this.exitVisualize();
+    cancelAnimationFrame(this.frame);
+    this.frame = 0;
+    this.carry = 0;
+    this.held.clear();
+    this.runtime.reset();
+    this.store.setState({ status: 'stopped', notLoaded: false, probes: {} });
+    this.resetPlant(); // also when the new project uses the same plant
   }
 
   /** Runs exactly one scan cycle and stays paused (starts the PLC if needed). */

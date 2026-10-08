@@ -199,6 +199,22 @@ describe('operating modes', () => {
     expect(rt.read('M0.0')).toBe(false);
   });
 
+  it('reset() leaves a blank PLC: no program, memory, forces or time from before', () => {
+    const rt = running(program(network('n', [set('M0.0', no('I0.0')), set('Q0.1', TRUE)])), {
+      layout: { retentiveMarkerBytes: 1 },
+    });
+    rt.force('Q0.0', true);
+    scanWith(rt, { 'I0.0': true });
+    rt.reset();
+    expect(rt.mode).toBe('STOP');
+    expect(rt.loadedProgram).toBeNull();
+    expect(rt.read('M0.0')).toBe(false); // even the retentive byte
+    expect(rt.isForced('Q0.0')).toBe(false);
+    expect(rt.getOutput('Q0.0')).toBe(false);
+    expect(rt.timeMs).toBe(0);
+    expect(rt.scanCount).toBe(0);
+  });
+
   it('loading a new program in RUN keeps memory (online change)', () => {
     const rt = running(program(network('n', [set('M0.0', no('I0.0'))])));
     scanWith(rt, { 'I0.0': true });
