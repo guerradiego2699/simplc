@@ -316,6 +316,21 @@ dtMs, output)`, `read`, optional `command`), `models.ts` (lamp, motor, traffic, 
   cleared) instead of an online change. Normal edits keep online change. Info notices close when
   the PLC starts. Regression tests: `tests/e2e/regressions.spec.ts`.
 
+## Private lab (`/[lang]/lab`)
+
+- Owner-only demo of an AI logistics agent (Gemini + function calling), requested by the owner as
+  the one exception to "no accounts". Page: `src/pages/[lang]/lab.astro` + `src/components/lab/`
+  (noindex, out of the sitemap, linked only from the footer).
+- Server side: Vercel functions in `api/lab/` (`session.ts` login/logout, `chat.ts` one agent turn;
+  Web `Request → Response` handlers). Logic in `src/lib/lab/` — imported by the functions, so use
+  **relative imports with `.js` extensions** there (no `@/` alias). `npm run dev` serves `api/`
+  through the `vercelFunctionsDev` integration in `astro.config.mjs`; `astro preview` does not
+  (e2e mocks the API).
+- Env vars (Vercel + `.env.local`, never committed): `GEMINI_API_KEY`, `LAB_USERNAME`,
+  `LAB_PASSWORD`, optional `GEMINI_MODEL` (default `gemini-3.6-flash`). Sessions and the signed
+  conversation state use a key derived from them: changing the password logs everyone out.
+- Gemini free tier: ~20 requests/day per model; each agent turn uses 2–3.
+
 ## Environment notes
 
 - Windows. Project lives in `C:\dev\simplc` (kept out of OneDrive on purpose: node_modules sync

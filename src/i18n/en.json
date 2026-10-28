@@ -21,7 +21,8 @@
     "glossary": "Glossary",
     "faq": "FAQ",
     "support": "Support the project",
-    "legal": "Legal notice and privacy"
+    "legal": "Legal notice and privacy",
+    "lab": "Lab"
   },
   "theme": {
     "label": "Theme",
@@ -1350,5 +1351,55 @@
     "more": "Learn more",
     "preferences": "Cookie preferences",
     "noticeLabel": "Cookie notice"
+  },
+  "lab": {
+    "title": "Lab",
+    "description": "Private test section.",
+    "heading": "Lab: AI logistics agent",
+    "intro": "Private demo of a conversational agent (Gemini with function calling) that checks inventory, works out shortfalls and issues simulated purchase orders.",
+    "login": {
+      "title": "Restricted access",
+      "body": "This section is private. Sign in with your username and password.",
+      "username": "Username",
+      "password": "Password",
+      "submit": "Sign in",
+      "submitting": "Checking…",
+      "invalid": "Wrong username or password.",
+      "notConfigured": "The lab section is not configured on the server.",
+      "error": "Could not reach the server. Please try again."
+    },
+    "chat": {
+      "title": "Logistics and Inventory Assistant",
+      "subtitle": "Gemini · tools: consultar_stock, emitir_orden_compra",
+      "placeholder": "Type an inventory request…",
+      "send": "Send",
+      "thinking": "The agent is thinking…",
+      "empty": "Try one of these messages:",
+      "you": "You",
+      "agent": "Agent",
+      "reset": "New conversation",
+      "logout": "Sign out",
+      "error": "Could not get a reply from the server. Please try again.",
+      "expired": "Your session expired. Please sign in again.",
+      "suggestions": [
+        "We need to equip 10 new employees with laptops",
+        "How many monitors do we have?",
+        "Buy -5 keyboards",
+        "What's the weather today?"
+      ]
+    },
+    "console": {
+      "title": "System console",
+      "empty": "Every tool call made by the agent will show up here.",
+      "order": "Order {id} issued: {quantity} x {product}",
+      "retry": "Gemini returned {status}; retrying in {seconds} s"
+    },
+    "inventory": {
+      "title": "Checked stock",
+      "empty": "No stock checked yet.",
+      "ordersTitle": "Purchase orders",
+      "ordersEmpty": "No orders issued.",
+      "units": "u."
+    }
   }
 }

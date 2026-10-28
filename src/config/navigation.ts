@@ -21,6 +21,8 @@ export const FOOTER_NAV: readonly NavItem[] = [
   { path: '/faq', label: 'nav.faq' },
   { path: '/support', label: 'nav.support' },
   { path: '/legal', label: 'nav.legal' },
+  // Private lab (login required, noindex, left out of the sitemap).
+  { path: '/lab', label: 'nav.lab' },
 ];
 
 /**

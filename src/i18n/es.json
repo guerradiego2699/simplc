@@ -21,7 +21,8 @@
     "glossary": "Glosario",
     "faq": "Preguntas frecuentes",
     "support": "Apoyar el proyecto",
-    "legal": "Aviso legal y privacidad"
+    "legal": "Aviso legal y privacidad",
+    "lab": "Pruebas"
   },
   "theme": {
     "label": "Tema",
@@ -1352,5 +1353,55 @@
     "more": "Más información",
     "preferences": "Preferencias de cookies",
     "noticeLabel": "Aviso de cookies"
+  },
+  "lab": {
+    "title": "Pruebas",
+    "description": "Sección privada de pruebas.",
+    "heading": "Pruebas: agente logístico con IA",
+    "intro": "Demo privada de un agente conversacional (Gemini con function calling) que consulta inventario, calcula faltantes y emite órdenes de compra simuladas.",
+    "login": {
+      "title": "Acceso restringido",
+      "body": "Esta sección es privada. Ingresa con tu usuario y contraseña.",
+      "username": "Usuario",
+      "password": "Contraseña",
+      "submit": "Entrar",
+      "submitting": "Verificando…",
+      "invalid": "Usuario o contraseña incorrectos.",
+      "notConfigured": "La sección de pruebas no está configurada en el servidor.",
+      "error": "No se pudo conectar con el servidor. Intenta de nuevo."
+    },
+    "chat": {
+      "title": "Asistente de Logística e Inventario",
+      "subtitle": "Gemini · herramientas: consultar_stock, emitir_orden_compra",
+      "placeholder": "Escribe una solicitud de inventario…",
+      "send": "Enviar",
+      "thinking": "El agente está pensando…",
+      "empty": "Prueba con alguno de estos mensajes:",
+      "you": "Tú",
+      "agent": "Agente",
+      "reset": "Nueva conversación",
+      "logout": "Cerrar sesión",
+      "error": "No se pudo obtener respuesta del servidor. Intenta de nuevo.",
+      "expired": "Tu sesión expiró. Vuelve a ingresar.",
+      "suggestions": [
+        "Necesitamos equipar a 10 nuevos empleados con laptops",
+        "¿Cuántos monitores tenemos?",
+        "Compra -5 teclados",
+        "¿Qué clima hace hoy?"
+      ]
+    },
+    "console": {
+      "title": "Consola del sistema",
+      "empty": "Aquí aparecerá cada llamada del agente a las herramientas.",
+      "order": "Orden {id} emitida: {quantity} x {product}",
+      "retry": "Gemini respondió {status}; reintento en {seconds} s"
+    },
+    "inventory": {
+      "title": "Stock consultado",
+      "empty": "Aún no se ha consultado stock.",
+      "ordersTitle": "Órdenes de compra",
+      "ordersEmpty": "Sin órdenes emitidas.",
+      "units": "u."
+    }
   }
 }
