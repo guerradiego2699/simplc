@@ -85,7 +85,7 @@ export class LogisticsAgent {
     }
     // A tool already ran (e.g. an order was issued): keep the record so the model does not repeat
     // it, and close the turn with a model message so user/model turns keep alternating.
-    const last = this.history.at(-1);
+    const last = this.history[this.history.length - 1];
     if (last?.role !== 'model' || last.parts?.some((part) => part.functionCall)) {
       this.history.push({ role: 'model', parts: [{ text: notice }] });
     }
@@ -100,7 +100,7 @@ export class LogisticsAgent {
     const starts = this.history.flatMap((content, index) =>
       content.role === 'user' && content.parts?.some((part) => part.text) ? [index] : [],
     );
-    const cut = starts.at(-this.maxHistoryTurns);
+    const cut = starts[starts.length - this.maxHistoryTurns];
     if (starts.length > this.maxHistoryTurns && cut !== undefined) this.history.splice(0, cut);
   }
 }

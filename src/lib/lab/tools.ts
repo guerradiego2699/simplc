@@ -92,7 +92,8 @@ export class ToolExecutor {
         params: { producto: text, cantidad: integer },
         run: ({ producto, cantidad }) => {
           const status = inventory.issuePurchaseOrder(producto as string, cantidad as number);
-          const order = inventory.state.orders.at(-1);
+          // Index instead of .at(): Vercel type-checks the functions with an ES2021 lib.
+          const order = inventory.state.orders[inventory.state.orders.length - 1];
           return {
             status,
             orden_id: order?.id,
